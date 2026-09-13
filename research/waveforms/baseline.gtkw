@@ -1,0 +1,46 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Sun Sep 13 09:45:27 2026
+[*]
+[dumpfile] "/home/logan/nckh/RISC-V-Pipeline/research/waveforms/baseline.vcd"
+[dumpfile_mtime] "Sun Sep 13 08:48:23 2026"
+[dumpfile_size] 89588
+[savefile] "/home/logan/nckh/RISC-V-Pipeline/research/waveforms/baseline.gtkw"
+[timestart] 0
+[size] 1000 820
+[pos] 1158 -542
+*-6.000000 16 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_top.
+[treeopen] tb_top.riscV.
+[treeopen] tb_top.riscV.dp.
+[sst_width] 214
+[signals_width] 166
+[sst_expanded] 1
+[sst_vpaned_height] 229
+@28
+tb_top.reset
+tb_top.tb_clk
+@22
+tb_top.riscV.dp.pcreg.q[8:0]
+tb_top.riscV.dp.instr_mem.get_dataOut[31:0]
+@28
+tb_top.riscV.dp.detect.ID_EX_MemRead
+@22
+tb_top.riscV.dp.detect.ID_EX_rd[4:0]
+tb_top.riscV.dp.detect.IF_ID_RS1[4:0]
+tb_top.riscV.dp.detect.IF_ID_RS2[4:0]
+@28
+tb_top.riscV.dp.detect.stall
+tb_top.riscV.dp.forunit.EX_MEM_RegWrite
+@22
+tb_top.riscV.dp.forunit.EX_MEM_rd[4:0]
+@28
+tb_top.riscV.dp.forunit.Forward_A[1:0]
+tb_top.riscV.dp.forunit.Forward_B[1:0]
+tb_top.riscV.dp.forunit.MEM_WB_RegWrite
+@22
+tb_top.riscV.dp.forunit.MEM_WB_rd[4:0]
+tb_top.riscV.dp.forunit.RS1[4:0]
+tb_top.riscV.dp.forunit.RS2[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

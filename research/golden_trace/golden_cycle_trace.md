@@ -69,3 +69,22 @@ I2: add  x3, x2, x1  # PC = 0x08
 | C4    | 0x10 | -   | -   | I2  | I1  | I0  | 0     | 0     | EX/MEM    | MEM/WB    | x1 = 10  |
 | C5    | 0x14 | -   | -   | -   | I2  | I1  | 0     | 0     | None      | None      | x2 = 15  |
 | C6    | 0x18 | -   | -   | -   | -   | I2  | 0     | 0     | None      | None      | x3 = 25  |
+
+## Waveform Verification
+
+### ALU test (27 lệnh) — kiểm tra cấu trúc pipeline
+| Kiểm tra | Kết quả |
+|---|---|
+| Reset: PC giữ reset value khi reset=1 | ✅ |
+| PC tăng đều từng chu kỳ | ✅ |
+| Forwarding hoạt động (forunit 0→01) | ✅ |
+| Register writes khớp ngữ nghĩa chương trình (x1=8 ... x9=12) | ✅ |
+
+### Program B (test tối giản 3 lệnh) — kiểm chứng golden trace trực tiếp
+| Kiểm tra | Kết quả |
+|---|---|
+| Console: x1=10, x2=15, x3=25 (0x0a, 0x0f, 0x19) — khớp Expected final values | ✅ |
+| Forwarding tại C3/C4 — khớp Hazard Analysis | ✅ |
+| Thí nghiệm phụ (add x3,x2,x2): x3=30=15+15 → forward tới cả 2 ngõ ALU | ✅ |
+
+Kết luận: pipeline baseline đúng golden trace; RAW xử lý bằng forwarding, 0 stall — như dự đoán.
