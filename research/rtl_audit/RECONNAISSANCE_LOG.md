@@ -7,3 +7,14 @@
 - OS: Linux
 - Top module: 
 - Initial observations: 
+
+## Repository Structure
+
+- Top module: riscv (Testbench: tb_top)
+- Pipeline datapath: design/Datapath.sv
+- Control unit: design/Controller.sv, design/ALUController.sv, design/BranchUnit.sv
+- Hazard/forwarding unit: design/HazardDetection.sv, design/ForwardingUnit.sv
+- Instruction memory: design/instructionmemory.sv
+- Register file: design/RegFile.sv
+- Testbench: verif/tb_top.sv
+- Simulation command: iverilog -g2012 -o sim/sim.out design/*.sv design/*.v verif/tb_top.sv && vvp sim/sim.out
