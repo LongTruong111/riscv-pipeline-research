@@ -34,6 +34,8 @@ module tb_top;
   );
 
   initial begin
+    $dumpfile("research/waveforms/baseline.vcd");
+    $dumpvars(0, tb_top);
     tb_clk = 0;
     reset  = 1;
     #(CLKPERIOD);

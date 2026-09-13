@@ -32,7 +32,7 @@ module imm_Gen(
     output logic [31:0] Imm_out);
 
 
-always_comb
+always @*
     case(inst_code[6:0])
 
         7'b0000011: /*I-type load part*/      
