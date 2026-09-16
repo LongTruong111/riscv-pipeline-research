@@ -1,0 +1,34 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Wed Sep 16 02:11:41 2026
+[*]
+[dumpfile] "/home/logan/nckh/RISC-V-Pipeline/research/week3/waveforms/smoke3.vcd"
+[dumpfile_mtime] "Wed Sep 16 01:55:09 2026"
+[dumpfile_size] 62459
+[savefile] "/home/logan/nckh/RISC-V-Pipeline/research/week3/waveforms/smoke3.gtkw"
+[timestart] 0
+[size] 1385 600
+[pos] 34185 32964
+*-15.255269 105000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] tb_top.
+[treeopen] tb_top.riscV.
+[treeopen] tb_top.riscV.dp.
+[sst_width] 42
+[signals_width] 166
+[sst_expanded] 0
+[sst_vpaned_height] 151
+@28
+tb_top.reset
+tb_top.tb_clk
+@22
+tb_top.riscV.dp.pcreg.q[8:0]
+tb_top.riscV.dp.instr_mem.get_dataOut[31:0]
+@28
+tb_top.riscV.dp.detect.stall
+@22
+tb_top.riscV.dp.A[40:0]
+tb_top.riscV.dp.B[172:0]
+tb_top.riscV.dp.C[212:0]
+tb_top.riscV.dp.D[200:0]
+[pattern_trace] 1
+[pattern_trace] 0

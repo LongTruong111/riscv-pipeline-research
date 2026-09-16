@@ -1,0 +1,21 @@
+design/alu.sv:41: sorry: constant selects in always_* processes are not currently supported (all bits will be included).
+WARNING: design/ramOnChip32.v:20: $readmemh(instruction.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChip32.v:20: $readmemh(instruction.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChip32.v:20: $readmemh(instruction.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChip32.v:20: $readmemh(instruction.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChipData.v:20: $readmemh(data.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChipData.v:20: $readmemh(data.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChipData.v:20: $readmemh(data.hex): Not enough words in the file for the requested range [0:65535].
+WARNING: design/ramOnChipData.v:20: $readmemh(data.hex): Not enough words in the file for the requested range [0:65535].
+VCD info: dumpfile research/waveforms/baseline.vcd opened for output.
+                  55: Register [ 1] written with value: [00000005] | [          5]
+
+                  65: Register [ 2] written with value: [00000007] | [          7]
+
+                  75: Register [ 3] written with value: [00000003] | [          3]
+
+** VVP Stop(0) **
+** Flushing output streams.
+** Current simulation time is 510000 ticks.
+[?2004h> finish
+[?2004l** Continue **
