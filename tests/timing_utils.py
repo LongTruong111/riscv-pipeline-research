@@ -39,3 +39,15 @@ async def sample_after_rising(clk, signal):
     await RisingEdge(clk)
     await ReadOnly()
     return int(signal.value)
+
+async def capture_before_rising(clk, *signals):
+    """
+    Capture stable combinational intent before the next active edge.
+
+    Suitable for signals such as:
+    PcSel, Reg_Stall, forwarding selects, and WB commit intent.
+    """
+    await FallingEdge(clk)
+    await ReadOnly()
+
+    return tuple(int(signal.value) for signal in signals)

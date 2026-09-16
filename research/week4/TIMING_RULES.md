@@ -65,6 +65,30 @@ helpers in:
 
 Individual tests should not duplicate their own timing rules.
 
+## TR7 — Pre-edge control/commit intent capture
+
+Combinational control signals that are consumed by the DUT at the next
+RisingEdge are captured before that edge.
+
+Examples include:
+
+- PcSel
+- Reg_Stall
+- FAmuxSel
+- FBmuxSel
+- WB write-enable/address/data intent
+
+Recommended monitor sequence:
+
+1. FallingEdge + ReadOnly:
+   capture control and commit intent for the next RisingEdge.
+
+2. RisingEdge + ReadOnly:
+   observe architectural and pipeline state after the transition.
+
+This separation prevents off-by-one interpretation caused by
+nonblocking updates of pipeline registers at the active edge.
+
 ## Portability statement
 
 Same-RisingEdge stimulus produced `first=1, second=2` on both tested

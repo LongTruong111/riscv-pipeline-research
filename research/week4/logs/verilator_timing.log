@@ -6,7 +6,7 @@ mkdir -p sim_build
 /usr/local/bin/verilator -cc --exe -Mdir sim_build -DCOCOTB_SIM=1 --top-module week4_counter --timescale 1ns/1ps --vpi --public-flat-rw --prefix Vtop -o Vtop -LDFLAGS "-Wl,-rpath,/home/logan/.local/lib/python3.10/site-packages/cocotb/libs -L/home/logan/.local/lib/python3.10/site-packages/cocotb/libs -lcocotbvpi_verilator"  /home/logan/nckh/RISC-V-Pipeline/tests/week4_counter.sv /home/logan/.local/lib/python3.10/site-packages/cocotb/share/lib/verilator/verilator.cpp
 - V e r i l a t i o n   R e p o r t: Verilator 5.034 2025-02-24 rev v5.034
 - Verilator: Built from 0.022 MB sources in 2 modules, into 0.030 MB in 8 C++ files needing 0.000 MB
-- Verilator: Walltime 0.021 s (elab=0.003, cvt=0.007, bld=0.000); cpu 0.008 s on 1 threads; alloced 9.039 MB
+- Verilator: Walltime 0.022 s (elab=0.003, cvt=0.008, bld=0.000); cpu 0.008 s on 1 threads; alloced 9.039 MB
 make -C sim_build  -f Vtop.mk
 make[2]: Entering directory '/home/logan/nckh/RISC-V-Pipeline/research/week4/sim_build'
 ccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o verilator.o /home/logan/.local/lib/python3.10/site-packages/cocotb/share/lib/verilator/verilator.cpp
@@ -27,7 +27,7 @@ MODULE=test_week4_timing_race TESTCASE= TOPLEVEL=week4_counter TOPLEVEL_LANG=ver
      -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:101  in gpi_print_registered_impl       VPI registered
      0.00ns INFO     cocotb                             Running on Verilator version 5.034 2025-02-24
      0.00ns INFO     cocotb                             Running tests with cocotb v1.9.2 from /home/logan/.local/lib/python3.10/site-packages/cocotb
-     0.00ns INFO     cocotb                             Seeding Python random module with 1789553916
+     0.00ns INFO     cocotb                             Seeding Python random module with 1789555915
      0.00ns INFO     cocotb.regression                  Found test test_week4_timing_race.test_drive_at_posedge_racy
      0.00ns INFO     cocotb.regression                  Found test test_week4_timing_race.test_drive_at_fallingedge_safe
      0.00ns INFO     cocotb.regression                  Found test test_week4_timing_race.test_sample_phase
@@ -50,11 +50,11 @@ MODULE=test_week4_timing_race TESTCASE= TOPLEVEL=week4_counter TOPLEVEL_LANG=ver
    160.00ns INFO     cocotb.regression                  ***************************************************************************************************************
                                                         ** TEST                                                   STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
                                                         ***************************************************************************************************************
-                                                        ** test_week4_timing_race.test_drive_at_posedge_racy       PASS          50.00           0.00      41627.51  **
-                                                        ** test_week4_timing_race.test_drive_at_fallingedge_safe   PASS          60.00           0.00      69252.18  **
-                                                        ** test_week4_timing_race.test_sample_phase                PASS          50.00           0.00      70517.62  **
+                                                        ** test_week4_timing_race.test_drive_at_posedge_racy       PASS          50.00           0.00      44573.73  **
+                                                        ** test_week4_timing_race.test_drive_at_fallingedge_safe   PASS          60.00           0.00      84083.67  **
+                                                        ** test_week4_timing_race.test_sample_phase                PASS          50.00           0.00      78901.20  **
                                                         ***************************************************************************************************************
-                                                        ** TESTS=3 PASS=3 FAIL=0 SKIP=0                                         160.00           0.05       3383.50  **
+                                                        ** TESTS=3 PASS=3 FAIL=0 SKIP=0                                         160.00           0.04       3940.49  **
                                                         ***************************************************************************************************************
                                                         
 -Info: /home/logan/nckh/RISC-V-Pipeline/tests/week4_counter.sv:19: $dumpvar ignored, as Verilated without --trace
