@@ -1,4 +1,4 @@
-# Simulator build artifacts
+# Simulator artifacts
 sim/sim.out
 sim_build/
 results.xml
@@ -7,6 +7,6 @@ results.xml
 __pycache__/
 *.pyc
 
-# Generated waveform files
+# Generated waveforms
 *.vcd
 *.fst
