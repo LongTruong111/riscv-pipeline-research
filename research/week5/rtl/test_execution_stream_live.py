@@ -5,6 +5,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge
 
 from research.week5.impl.coverage_model import L2CoverageCollector
+from research.week5.impl.l1_coverage import L1CoverageCollector
 from research.week5.impl.signal_adapter import (
     ExecutionEventAdapter,
     PreEdgeSnapshot,
@@ -16,6 +17,7 @@ N_CYCLES = int(os.getenv("N_CYCLES", "120"))
 EXPECT_STALL = os.getenv("EXPECT_STALL", "0") == "1"
 EXPECT_FLUSH = os.getenv("EXPECT_FLUSH", "0") == "1"
 EXPECT_ACCEPTED = int(os.getenv("EXPECT_ACCEPTED", "0"))
+EXPECT_L1_BIN = os.getenv("EXPECT_L1_BIN", "").strip()
 
 def signal_int(signal, name):
     """
@@ -80,6 +82,7 @@ async def test_live_execution_stream_reconstruction(dut):
 
     adapter = ExecutionEventAdapter()
     coverage = L2CoverageCollector()
+    l1_coverage = L1CoverageCollector()
 
     accepted_events = 0
     accepted_after_stall = 0
@@ -275,6 +278,7 @@ async def test_live_execution_stream_reconstruction(dut):
         # Feeding every event into L2 also validates that the reconstructed
         # stream remains contiguous in executed-program order.
         coverage.observe(event)
+        l1_coverage.observe(event)
 
     # ------------------------------------------------------------------
     # FINAL INVARIANTS
@@ -290,7 +294,16 @@ async def test_live_execution_stream_reconstruction(dut):
             f"got {accepted_events}"
         )
     assert 0 <= coverage.intent_bins <= 62
+    assert 0 <= l1_coverage.intent_bins <= 20
 
+    if EXPECT_L1_BIN:
+        assert EXPECT_L1_BIN in l1_coverage.intent_seen, (
+            f"Unknown expected L1 bin: {EXPECT_L1_BIN}"
+        )
+
+        assert l1_coverage.intent_seen[EXPECT_L1_BIN], (
+            f"Expected L1 bin {EXPECT_L1_BIN} was not hit"
+        )
     dut._log.info(
         "EXECUTION_STREAM_SMOKE "
         f"cycles={N_CYCLES} "
@@ -299,6 +312,9 @@ async def test_live_execution_stream_reconstruction(dut):
         f"stall_cycles={stall_cycles} "
         f"flush_cycles={flush_cycles} "
         f"unsupported_cycles={unsupported_cycles} "
+        f"l1_intent_bins={l1_coverage.intent_bins} "
+        f"l1_seen="
+        f"{','.join(bin_id for bin_id, seen in l1_coverage.intent_seen.items() if seen)} "
         f"l2_intent_bins={coverage.intent_bins}"
     )
 
