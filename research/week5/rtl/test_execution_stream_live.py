@@ -6,6 +6,9 @@ from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge
 
 from research.week5.impl.coverage_model import L2CoverageCollector
 from research.week5.impl.l1_coverage import L1CoverageCollector
+from research.week5.impl.realization_checker import (
+    L1ControlRealizationChecker,
+)
 from research.week5.impl.signal_adapter import (
     ExecutionEventAdapter,
     PreEdgeSnapshot,
@@ -83,7 +86,14 @@ async def test_live_execution_stream_reconstruction(dut):
     adapter = ExecutionEventAdapter()
     coverage = L2CoverageCollector()
     l1_coverage = L1CoverageCollector()
+    control_checker = L1ControlRealizationChecker()
 
+    events_by_index = {}
+
+    control_checks = 0
+    control_passes = 0
+    control_failures = 0
+    control_failed_bins = set()
     accepted_events = 0
     accepted_after_stall = 0
 
@@ -277,8 +287,54 @@ async def test_live_execution_stream_reconstruction(dut):
 
         # Feeding every event into L2 also validates that the reconstructed
         # stream remains contiguous in executed-program order.
+        # Preserve every executed event so realization checking can resolve
+        # producer indices carried by L1Hit.
+        events_by_index[event.instruction_index] = event
+
         coverage.observe(event)
-        l1_coverage.observe(event)
+
+        l1_hits = l1_coverage.observe(event)
+
+        # --------------------------------------------------------------
+        # CONTROL REALIZATION DIAGNOSTICS
+        #
+        # IMPORTANT:
+        # This does not alter Intent Coverage and does not fail the test.
+        # A control mismatch is diagnostic evidence for the later
+        # Validated-Coverage layer.
+        # --------------------------------------------------------------
+        for l1_hit in l1_hits:
+            result = control_checker.check(
+                l1_hit,
+                event,
+                events_by_index,
+            )
+
+            control_checks += 1
+
+            if result.passed:
+                control_passes += 1
+                continue
+
+            control_failures += 1
+            control_failed_bins.add(result.bin_id)
+
+            failed_text = ",".join(
+                (
+                    f"{check.name}:"
+                    f"expected={check.expected},"
+                    f"observed={check.observed}"
+                )
+                for check in result.failed_checks
+            )
+
+            dut._log.warning(
+                "CONTROL_REALIZATION_FAIL "
+                f"bin={result.bin_id} "
+                f"consumer_index="
+                f"{result.consumer_instruction_index} "
+                f"checks={failed_text}"
+            )
 
     # ------------------------------------------------------------------
     # FINAL INVARIANTS
@@ -304,6 +360,9 @@ async def test_live_execution_stream_reconstruction(dut):
         assert l1_coverage.intent_seen[EXPECT_L1_BIN], (
             f"Expected L1 bin {EXPECT_L1_BIN} was not hit"
         )
+
+    assert control_checks == control_passes + control_failures
+
     dut._log.info(
         "EXECUTION_STREAM_SMOKE "
         f"cycles={N_CYCLES} "
@@ -315,9 +374,13 @@ async def test_live_execution_stream_reconstruction(dut):
         f"l1_intent_bins={l1_coverage.intent_bins} "
         f"l1_seen="
         f"{','.join(bin_id for bin_id, seen in l1_coverage.intent_seen.items() if seen)} "
-        f"l2_intent_bins={coverage.intent_bins}"
+        f"l2_intent_bins={coverage.intent_bins} "
+        f"control_checks={control_checks} "
+        f"control_passes={control_passes} "
+        f"control_failures={control_failures} "
+        f"control_failed_bins="
+        f"{','.join(sorted(control_failed_bins)) or 'none'}"
     )
-
     # ------------------------------------------------------------------
     # DIRECTED STALL REQUIREMENT
     # ------------------------------------------------------------------
