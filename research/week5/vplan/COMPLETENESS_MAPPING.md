@@ -610,10 +610,6 @@ This artifact may be marked PASS / FROZEN only when:
 
 Current status:
 
-`READY FOR REVIEW`
-
-After consistency review:
-
 `PASS / FROZEN`
 
 Next artifact:

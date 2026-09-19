@@ -527,11 +527,7 @@ This artifact may be marked PASS / FROZEN only when:
 
 ## 23. Freeze Status
 
-Current candidate status:
-
-`READY FOR REVIEW`
-
-After consistency review against the four frozen input artifacts:
+Current status:
 
 `PASS / FROZEN`
 
