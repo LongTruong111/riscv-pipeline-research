@@ -209,3 +209,203 @@ Framework microbenchmark:
 Full-DUT throughput baseline:
 
 `PENDING`
+
+## 10. Full-DUT Throughput Baseline
+
+After the framework microbenchmark, throughput was measured using the
+complete `riscv` RTL hierarchy.
+
+The measurement retained the same environment:
+
+* Verilator 5.034;
+* Cocotb 1.9.2;
+* Python 3.10.12;
+* Linux-native ext4 filesystem;
+* waveform tracing disabled;
+* no per-cycle disk or console logging.
+
+The DUT used the repository-local `instruction.hex` and `data.hex`
+memory images.
+
+The measurement protocol was pre-registered as:
+
+1. one warm-up run excluded from statistics;
+2. three measured repetitions;
+3. 100,000 simulated cycles per run.
+
+### Full-DUT Baseline
+
+Measured runs:
+
+| Run | Wall time (s) | Throughput (cycles/s) |
+| --- | ------------: | --------------------: |
+| 1   |      6.044995 |             16542.611 |
+| 2   |      5.324711 |             18780.364 |
+| 3   |      5.518618 |             18120.480 |
+
+Mean wall time:
+
+`5.629441 s`
+
+Wall-time standard deviation:
+
+`0.372711 s`
+
+Mean throughput:
+
+`17814.485 cycles/s`
+
+Throughput standard deviation:
+
+`1149.830 cycles/s`
+
+Throughput coefficient of variation:
+
+`6.45%`
+
+### Full-DUT Simple Monitor
+
+Measured runs:
+
+| Run | Wall time (s) | Throughput (cycles/s) |
+| --- | ------------: | --------------------: |
+| 1   |      8.262041 |             12103.547 |
+| 2   |      8.022836 |             12464.420 |
+| 3   |      7.810280 |             12803.638 |
+
+Mean wall time:
+
+`8.031719 s`
+
+Wall-time standard deviation:
+
+`0.226011 s`
+
+Mean throughput:
+
+`12457.202 cycles/s`
+
+Throughput standard deviation:
+
+`350.101 cycles/s`
+
+Throughput coefficient of variation:
+
+`2.81%`
+
+### Full-DUT Monitor Overhead
+
+Using measured mean wall times:
+
+`overhead = (8.031719 - 5.629441) / 5.629441`
+
+therefore:
+
+`monitor overhead = 42.67%`
+
+The corresponding mean throughput reduction is approximately:
+
+`30.07%`
+
+The monitor result is more stable than the baseline measurement across
+the three measured repetitions.
+
+---
+
+## 11. Interpretation
+
+The full-DUT result establishes that simulator throughput remains on the
+order of:
+
+`10^4 cycles/s`
+
+under lightweight Cocotb monitoring.
+
+The simple monitor is not equivalent to the future complete
+scoreboard, coverage collector, or Adaptive CGS implementation.
+
+Therefore the measured throughput is used for feasibility planning,
+not as a prediction of final comparative-campaign wall time.
+
+The final verification stack may be slower because it will perform:
+
+* pre-edge and post-edge observations;
+* dependency reconstruction;
+* scoreboard processing;
+* L1/L2 coverage classification;
+* adaptive-policy updates;
+* checkpoint telemetry.
+
+---
+
+## 12. Adaptive CGS Pilot Feasibility Decision
+
+The candidate space is:
+
+`epsilon in {0.05, 0.10, 0.20}`
+
+`alpha in {0.1, 0.3, 0.5}`
+
+`batch_size in {500, 1000, 2000}`
+
+The complete Cartesian product contains:
+
+`3 × 3 × 3 = 27 configurations`
+
+The full-DUT throughput preflight does not provide evidence that this
+search space must be reduced for computational reasons.
+
+Therefore the Week-5 pre-registration shall retain the complete
+27-configuration Cartesian search space.
+
+Pilot execution shall use:
+
+`3 fixed pilot seeds per configuration`
+
+and a maximum budget of:
+
+`100,000 executed instructions per seed`
+
+Thus the maximum pilot design contains:
+
+`27 × 3 = 81 runs`
+
+and:
+
+`8,100,000 executed instructions`
+
+before accounting for pipeline-cycle overhead.
+
+The 3 pilot seeds are used only for hyperparameter selection and shall
+be fixed before observing pilot coverage results.
+
+No candidate value may be introduced or removed after pilot coverage
+results have been observed.
+
+---
+
+## 13. Preflight Status
+
+Framework throughput baseline:
+
+`PASS`
+
+Full-DUT throughput baseline:
+
+`PASS`
+
+Linux-native filesystem contract:
+
+`PASS`
+
+Logging/I/O preflight:
+
+`PASS`
+
+Adaptive CGS Cartesian-grid feasibility:
+
+`PASS`
+
+Performance preflight status:
+
+`PASS / COMPLETE`

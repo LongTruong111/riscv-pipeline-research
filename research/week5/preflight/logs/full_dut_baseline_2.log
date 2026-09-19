@@ -1,0 +1,29 @@
+rm -f results.xml
+"make" -f research/week5/preflight/Makefile.full_dut results.xml
+make[1]: Entering directory '/home/logan/nckh/RISC-V-Pipeline'
+rm -f results.xml
+MODULE=test_full_dut_throughput TESTCASE=test_full_dut_baseline TOPLEVEL=riscv TOPLEVEL_LANG=verilog \
+         /home/logan/nckh/RISC-V-Pipeline/research/week5/preflight/sim_build_full_dut/Vtop
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:79   in set_program_name_in_venv        Did not detect Python virtual environment. Using system-wide Python interpreter
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:101  in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Verilator version 5.034 2025-02-24
+     0.00ns INFO     cocotb                             Running tests with cocotb v1.9.2 from /home/logan/.local/lib/python3.10/site-packages/cocotb
+     0.00ns INFO     cocotb                             Seeding Python random module with 1789806080
+     0.00ns INFO     cocotb.regression                  Found test test_full_dut_throughput.test_full_dut_baseline
+     0.00ns INFO     cocotb.regression                  running test_full_dut_baseline (1/1)
+                                                          Full RTL DUT baseline.
+
+                                                          One Cocotb wake-up per rising edge.
+                                                          No per-cycle DUT signal sampling inside the measured loop.
+FULL_DUT_THROUGHPUT mode=baseline cycles=100000 wall_s=5.324711 cycles_per_s=18780.364
+1000030.00ns INFO     cocotb.regression                  test_full_dut_baseline passed
+1000030.00ns INFO     cocotb.regression                  *********************************************************************************************************
+                                                         ** TEST                                             STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                         *********************************************************************************************************
+                                                         ** test_full_dut_throughput.test_full_dut_baseline   PASS     1000030.00           5.33     187767.54  **
+                                                         *********************************************************************************************************
+                                                         ** TESTS=1 PASS=1 FAIL=0 SKIP=0                               1000030.00           5.37     186290.54  **
+                                                         *********************************************************************************************************
+
+- :0: Verilog $finish
+make[1]: Leaving directory '/home/logan/nckh/RISC-V-Pipeline'
