@@ -211,3 +211,12 @@ Completed:
 - [x] forwarding priority checked.
 - [x] load-use behavior checked.
 - [x] stall/flush behavior checked.
+
+---
+
+## 7. Final Status
+
+`PASS / FROZEN`
+
+The T5 input baseline, DUT freeze boundary, signal mapping, and timing
+assumptions are complete and frozen for Gate T5.

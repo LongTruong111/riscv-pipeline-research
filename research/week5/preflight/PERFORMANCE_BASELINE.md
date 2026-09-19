@@ -200,15 +200,21 @@ A full-DUT throughput measurement is required first.
 
 ---
 
-## 9. Status
+## 9. Framework Microbenchmark Checkpoint
 
 Framework microbenchmark:
 
 `PASS`
 
+At this checkpoint, the full-DUT throughput baseline had not yet been
+measured.
+
+That dependency was subsequently resolved by the full-DUT benchmark
+documented in Sections 10–13.
+
 Full-DUT throughput baseline:
 
-`PENDING`
+`RESOLVED — PASS`
 
 ## 10. Full-DUT Throughput Baseline
 
