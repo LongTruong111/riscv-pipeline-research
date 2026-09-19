@@ -13,10 +13,15 @@ from research.week5.impl.signal_adapter import (
 
 N_CYCLES = int(os.getenv("N_CYCLES", "120"))
 
+EXPECT_STALL = os.getenv("EXPECT_STALL", "0") == "1"
+EXPECT_FLUSH = os.getenv("EXPECT_FLUSH", "0") == "1"
+EXPECT_ACCEPTED = int(os.getenv("EXPECT_ACCEPTED", "0"))
 
 def signal_int(signal, name):
     """
-    Convert a settled DUT signal to int with a useful failure message.
+    Convert a settled DUT signal to int.
+
+    Raise a useful assertion if the signal contains unresolved X/Z bits.
     """
     try:
         return int(signal.value)
@@ -28,12 +33,14 @@ def signal_int(signal, name):
 
 async def reset_active_high(dut, cycles=3):
     """
-    Frozen DUT reset convention.
+    Frozen DUT reset convention:
 
-    reset=1 asserted
-    reset=0 released at FallingEdge
+        reset = 1 -> asserted
+        reset = 0 -> released
+
+    Reset is released at FallingEdge so it is stable before the next
+    active RisingEdge.
     """
-    dut.clk.value = 0
     dut.reset.value = 1
 
     for _ in range(cycles):
@@ -51,11 +58,20 @@ async def test_live_execution_stream_reconstruction(dut):
     """
     Validate ExecutionEvent reconstruction against the frozen live RTL.
 
-    This test does NOT attempt L1/L2 closure.
+    This test validates the execution-stream foundation only. It does not
+    attempt L1 or L2 closure.
 
-    It verifies the event-stream foundation on which later coverage and
-    adaptive generation depend.
+    Checked properties include:
+
+    - stalled IF/ID instructions do not immediately create ExecutionEvents;
+    - flushed IF/ID instructions do not create ExecutionEvents;
+    - accepted instructions increment executed-program-order index once;
+    - accepted A-stage PC/instruction match the following B-stage state;
+    - forwarding selectors are sampled after RisingEdge + ReadOnly;
+    - the L2 collector accepts the reconstructed contiguous event stream.
     """
+
+    dut.clk.value = 0
 
     clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
@@ -66,26 +82,57 @@ async def test_live_execution_stream_reconstruction(dut):
     coverage = L2CoverageCollector()
 
     accepted_events = 0
+    accepted_after_stall = 0
+
     stall_cycles = 0
     flush_cycles = 0
     unsupported_cycles = 0
 
     for cycle in range(1, N_CYCLES + 1):
-
         # --------------------------------------------------------------
         # PRE-EDGE SNAPSHOT
         #
         # Frozen timing contract:
-        # FallingEdge -> ReadOnly
+        #
+        #   FallingEdge(clk)
+        #   -> ReadOnly()
+        #
+        # Observe IF/ID state and control intent before the next active
+        # pipeline edge.
         # --------------------------------------------------------------
         await FallingEdge(dut.clk)
         await ReadOnly()
 
-        stall = bool(signal_int(dut.probe_stall, "probe_stall"))
-        flush = bool(signal_int(dut.probe_flush, "probe_flush"))
+        reset = bool(
+            signal_int(
+                dut.reset,
+                "reset",
+            )
+        )
 
-        a_pc = signal_int(dut.probe_a_pc, "probe_a_pc")
-        a_instr = signal_int(dut.probe_a_instr, "probe_a_instr")
+        stall = bool(
+            signal_int(
+                dut.probe_stall,
+                "probe_stall",
+            )
+        )
+
+        flush = bool(
+            signal_int(
+                dut.probe_flush,
+                "probe_flush",
+            )
+        )
+
+        a_pc = signal_int(
+            dut.probe_a_pc,
+            "probe_a_pc",
+        )
+
+        a_instr = signal_int(
+            dut.probe_a_instr,
+            "probe_a_instr",
+        )
 
         if stall:
             stall_cycles += 1
@@ -98,7 +145,7 @@ async def test_live_execution_stream_reconstruction(dut):
         pending = adapter.observe_pre_edge(
             PreEdgeSnapshot(
                 cycle=cycle,
-                reset=bool(signal_int(dut.reset, "reset")),
+                reset=reset,
                 stall=stall,
                 flush_redirect=flush,
                 pc=a_pc,
@@ -106,7 +153,8 @@ async def test_live_execution_stream_reconstruction(dut):
             )
         )
 
-        # Stall / flush must never directly create an executed instruction.
+        # A stalled or flushed IF/ID instruction must not be admitted into
+        # the executed instruction stream on this edge.
         if stall or flush:
             assert pending is None, (
                 f"cycle={cycle}: stall/flush incorrectly admitted "
@@ -117,13 +165,21 @@ async def test_live_execution_stream_reconstruction(dut):
         # POST-EDGE SETTLED OBSERVATION
         #
         # Frozen timing contract:
-        # RisingEdge -> ReadOnly
+        #
+        #   RisingEdge(clk)
+        #   -> ReadOnly()
+        #
+        # At this point sequential pipeline state is settled.
         # --------------------------------------------------------------
         await RisingEdge(dut.clk)
         await ReadOnly()
 
-        # RTL explicitly clears all functional B controls when injecting
-        # reset/stall/flush bubbles.
+        # Frozen Datapath injects a functional ID/EX bubble when reset,
+        # Reg_Stall, or PcSel is active.
+        #
+        # B.Curr_Instr cannot be used as a valid bit because the RTL retains
+        # this debug instruction field even when its functional controls are
+        # cleared.
         if stall or flush:
             b_control_nonzero = signal_int(
                 dut.probe_b_control_nonzero,
@@ -135,21 +191,43 @@ async def test_live_execution_stream_reconstruction(dut):
                 f"stall/flush, but B controls are non-zero"
             )
 
+        # No instruction was accepted on this cycle.
         if pending is None:
-            assert adapter.instruction_count == before_count
+            assert adapter.instruction_count == before_count, (
+                f"cycle={cycle}: instruction_count changed without "
+                f"an accepted instruction"
+            )
 
-            if not stall and not flush and a_instr != 0:
+            if (
+                not reset
+                and not stall
+                and not flush
+                and a_instr != 0
+            ):
                 unsupported_cycles += 1
 
             continue
 
-        # A successfully admitted instruction must now be present in B.
-        b_pc = signal_int(dut.probe_b_pc, "probe_b_pc")
-        b_instr = signal_int(dut.probe_b_instr, "probe_b_instr")
+        # --------------------------------------------------------------
+        # ACCEPTED INSTRUCTION VALIDATION
+        #
+        # The instruction observed in A before the edge must now be present
+        # in B after the edge.
+        # --------------------------------------------------------------
+        b_pc = signal_int(
+            dut.probe_b_pc,
+            "probe_b_pc",
+        )
+
+        b_instr = signal_int(
+            dut.probe_b_instr,
+            "probe_b_instr",
+        )
 
         assert b_pc == pending.pc, (
             f"cycle={cycle}: ID/EX PC mismatch: "
-            f"expected {pending.pc:#05x}, got {b_pc:#05x}"
+            f"expected {pending.pc:#05x}, "
+            f"got {b_pc:#05x}"
         )
 
         assert b_instr == pending.instruction, (
@@ -158,8 +236,17 @@ async def test_live_execution_stream_reconstruction(dut):
             f"got {b_instr:#010x}"
         )
 
-        fwd_a = signal_int(dut.probe_fwd_a, "probe_fwd_a")
-        fwd_b = signal_int(dut.probe_fwd_b, "probe_fwd_b")
+        # Forwarding signals are meaningful for the instruction now
+        # resident in ID/EX and are sampled only after settled ReadOnly.
+        fwd_a = signal_int(
+            dut.probe_fwd_a,
+            "probe_fwd_a",
+        )
+
+        fwd_b = signal_int(
+            dut.probe_fwd_b,
+            "probe_fwd_b",
+        )
 
         event = adapter.finalize_post_edge(
             pending,
@@ -167,45 +254,81 @@ async def test_live_execution_stream_reconstruction(dut):
             forward_b=fwd_b,
         )
 
+        if event.stall_cycles_before_accept > 0:
+            accepted_after_stall += 1
+
         accepted_events += 1
 
-        # Instruction index is executed-program order, not cycle number.
-        assert event.instruction_index == accepted_events
+        # Executed-program-order index must be contiguous and independent
+        # of raw cycle count.
+        assert event.instruction_index == accepted_events, (
+            f"cycle={cycle}: expected instruction_index "
+            f"{accepted_events}, got {event.instruction_index}"
+        )
 
         assert event.pc == b_pc
         assert event.instruction == b_instr
+
         assert event.forward_a == fwd_a
         assert event.forward_b == fwd_b
 
-        # This also verifies that the L2 collector accepts a contiguous
-        # executed-program-order stream.
+        # Feeding every event into L2 also validates that the reconstructed
+        # stream remains contiguous in executed-program order.
         coverage.observe(event)
 
+    # ------------------------------------------------------------------
+    # FINAL INVARIANTS
+    # ------------------------------------------------------------------
     assert accepted_events > 0, (
         "Live DUT produced no accepted ExecutionEvent objects"
     )
 
     assert adapter.instruction_count == accepted_events
-
+    if EXPECT_ACCEPTED > 0:
+        assert accepted_events == EXPECT_ACCEPTED, (
+            f"Expected {EXPECT_ACCEPTED} accepted instructions, "
+            f"got {accepted_events}"
+        )
     assert 0 <= coverage.intent_bins <= 62
 
     dut._log.info(
         "EXECUTION_STREAM_SMOKE "
         f"cycles={N_CYCLES} "
         f"accepted={accepted_events} "
+        f"accepted_after_stall={accepted_after_stall} "
         f"stall_cycles={stall_cycles} "
         f"flush_cycles={flush_cycles} "
         f"unsupported_cycles={unsupported_cycles} "
         f"l2_intent_bins={coverage.intent_bins}"
     )
 
-    if stall_cycles == 0:
+    # ------------------------------------------------------------------
+    # DIRECTED STALL REQUIREMENT
+    # ------------------------------------------------------------------
+    if EXPECT_STALL:
+        assert stall_cycles > 0, (
+            "Directed stall workload did not assert Reg_Stall"
+        )
+
+        assert accepted_after_stall > 0, (
+            "A stalled IF/ID instruction was never subsequently accepted"
+        )
+
+    elif stall_cycles == 0:
         dut._log.warning(
             "No stall cycle occurred in the current instruction.hex; "
             "stall admission logic was not dynamically exercised."
         )
 
-    if flush_cycles == 0:
+    # ------------------------------------------------------------------
+    # DIRECTED FLUSH REQUIREMENT
+    # ------------------------------------------------------------------
+    if EXPECT_FLUSH:
+        assert flush_cycles > 0, (
+            "Directed flush workload did not assert PcSel"
+        )
+
+    elif flush_cycles == 0:
         dut._log.warning(
             "No redirect/flush occurred in the current instruction.hex; "
             "flush admission logic was not dynamically exercised."
