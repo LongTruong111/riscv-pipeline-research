@@ -61,6 +61,23 @@ module execution_stream_tb;
     wire [31:0] probe_b_instr = core.dp.B.Curr_Instr;
 
     /*
+     * Pipeline identity probes for architectural commit tracing.
+     *
+     * Curr_Instr is used only as an identity cross-check when the
+     * verification-side pipeline tag says the stage is functionally valid.
+     * It is NOT treated as a valid bit.
+     */
+    wire [31:0] probe_c_instr = core.dp.C.Curr_Instr;
+    wire [31:0] probe_d_instr = core.dp.D.Curr_Instr;
+
+    /*
+     * Architectural x0 observation.
+     *
+     * The frozen RegFile does not protect register zero, so this probe is
+     * required to validate the architectural invariant x0 == 0 directly.
+     */
+    wire [31:0] probe_x0 = core.dp.rf.register_file[0];
+    /*
      * Functional bubble indicator.
      *
      * B.Curr_Instr alone is not a valid-bit because the frozen RTL preserves

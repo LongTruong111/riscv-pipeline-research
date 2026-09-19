@@ -4,6 +4,15 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge
 
+from research.week5.impl.architectural_model import (
+    RV32ArchitecturalModel,
+)
+from research.week5.impl.commit_scoreboard import (
+    CommitScoreboard,
+    StoreObservation,
+    WritebackObservation,
+)
+
 from research.week5.impl.coverage_model import L2CoverageCollector
 from research.week5.impl.l1_coverage import L1CoverageCollector
 from research.week5.impl.realization_checker import (
@@ -14,6 +23,9 @@ from research.week5.impl.signal_adapter import (
     PreEdgeSnapshot,
 )
 
+from research.week5.impl.validated_coverage import (
+    L1ValidatedCoverageCollector,
+)
 
 N_CYCLES = int(os.getenv("N_CYCLES", "120"))
 
@@ -88,18 +100,109 @@ async def test_live_execution_stream_reconstruction(dut):
     l1_coverage = L1CoverageCollector()
     control_checker = L1ControlRealizationChecker()
 
+    architectural_model = RV32ArchitecturalModel()
+    commit_scoreboard = CommitScoreboard()
+    validated_coverage = L1ValidatedCoverageCollector()
+
     events_by_index = {}
+    steps_by_index = {}
+
+    # Verification-side pipeline identity.
+    #
+    # These tags represent accepted ExecutionEvent indices, not raw
+    # Curr_Instr values.
+    b_tag = None
+    c_tag = None
+    d_tag = None
 
     control_checks = 0
     control_passes = 0
     control_failures = 0
     control_failed_bins = set()
+    architectural_checks = 0
+    architectural_passes = 0
+    architectural_failures = 0
+    architectural_failure_kinds = set()
     accepted_events = 0
     accepted_after_stall = 0
 
     stall_cycles = 0
     flush_cycles = 0
     unsupported_cycles = 0
+
+    def record_validation_outcomes(outcomes):
+        for outcome in outcomes:
+            if outcome.validated:
+                dut._log.info(
+                    "L1_VALIDATED_HIT "
+                    f"bin={outcome.bin_id} "
+                    f"consumer_index="
+                    f"{outcome.consumer_instruction_index} "
+                    f"producer_indices="
+                    f"{','.join(str(index) for index in outcome.producer_instruction_indices) or 'none'}"
+                )
+                continue
+
+            if not outcome.control_passed:
+                reason = "control"
+            elif outcome.architectural_passed is False:
+                reason = "architectural"
+            else:
+                reason = "unknown"
+
+            failed_arch = ",".join(
+                (
+                    f"{instruction_index}:{kind}"
+                )
+                for instruction_index, kind
+                in outcome.failed_architectural_checks
+            ) or "none"
+
+            dut._log.info(
+                "L1_VALIDATION_REJECT "
+                f"bin={outcome.bin_id} "
+                f"consumer_index="
+                f"{outcome.consumer_instruction_index} "
+                f"reason={reason} "
+                f"failed_arch={failed_arch}"
+            )
+
+    def record_architectural_result(result):
+        nonlocal architectural_checks
+        nonlocal architectural_passes
+        nonlocal architectural_failures
+
+        architectural_checks += 1
+
+        if result.passed:
+            architectural_passes += 1
+        else:
+            architectural_failures += 1
+            architectural_failure_kinds.add(result.kind)
+
+            failed_text = ",".join(
+                (
+                    f"{check.name}:"
+                    f"expected={check.expected:#x},"
+                    f"observed={check.observed:#x}"
+                )
+                for check in result.failed_checks
+            )
+
+            dut._log.warning(
+                "ARCHITECTURAL_REALIZATION_FAIL "
+                f"kind={result.kind} "
+                f"instruction_index={result.instruction_index} "
+                f"checks={failed_text}"
+            )
+
+        outcomes = validated_coverage.record_architectural_result(
+            instruction_index=result.instruction_index,
+            kind=result.kind,
+            passed=result.passed,
+        )
+
+        record_validation_outcomes(outcomes)
 
     for cycle in range(1, N_CYCLES + 1):
         # --------------------------------------------------------------
@@ -115,6 +218,111 @@ async def test_live_execution_stream_reconstruction(dut):
         # --------------------------------------------------------------
         await FallingEdge(dut.clk)
         await ReadOnly()
+        # --------------------------------------------------------------
+        # ARCHITECTURAL COMMIT OBSERVATION
+        #
+        # Core FallingEdge corresponds to:
+        #
+        #   - Register File write using the current D stage;
+        #   - Data RAM write because ramOnChipData sees posedge(~clk).
+        #
+        # Pipeline tags still refer to the stages established by the
+        # previous RisingEdge.
+        # --------------------------------------------------------------
+
+        if d_tag is not None:
+            step = steps_by_index[d_tag]
+
+            d_instr = signal_int(
+                dut.probe_d_instr,
+                "probe_d_instr",
+            )
+
+            assert d_instr == step.instruction, (
+                f"cycle={cycle}: D-stage identity mismatch for "
+                f"instruction_index={d_tag}: "
+                f"expected {step.instruction:#010x}, "
+                f"got {d_instr:#010x}"
+            )
+
+            wb_result = commit_scoreboard.check_writeback(
+                step,
+                WritebackObservation(
+                    instruction_index=d_tag,
+                    write_enable=bool(
+                        signal_int(
+                            dut.reg_write_sig,
+                            "reg_write_sig",
+                        )
+                    ),
+                    rd=signal_int(
+                        dut.reg_num,
+                        "reg_num",
+                    ),
+                    data=signal_int(
+                        dut.reg_data,
+                        "reg_data",
+                    ),
+                    instruction=d_instr,
+                ),
+            )
+
+            record_architectural_result(wb_result)
+
+            x0_result = commit_scoreboard.check_x0(
+                instruction_index=d_tag,
+                observed_value=signal_int(
+                    dut.probe_x0,
+                    "probe_x0",
+                ),
+            )
+
+            record_architectural_result(x0_result)
+            # D is the last pipeline stage needed by the live scoreboard.
+            # Architectural evidence has already been copied into the
+            # validated-coverage tracker.
+            steps_by_index.pop(
+                d_tag,
+                None,
+            )
+        if c_tag is not None:
+            step = steps_by_index[c_tag]
+
+            c_instr = signal_int(
+                dut.probe_c_instr,
+                "probe_c_instr",
+            )
+
+            assert c_instr == step.instruction, (
+                f"cycle={cycle}: C-stage identity mismatch for "
+                f"instruction_index={c_tag}: "
+                f"expected {step.instruction:#010x}, "
+                f"got {c_instr:#010x}"
+            )
+
+            store_result = commit_scoreboard.check_store(
+                step,
+                StoreObservation(
+                    instruction_index=c_tag,
+                    write_enable=bool(
+                        signal_int(
+                            dut.mem_wr,
+                            "mem_wr",
+                        )
+                    ),
+                    address=signal_int(
+                        dut.mem_addr,
+                        "mem_addr",
+                    ),
+                    data=signal_int(
+                        dut.mem_wr_data,
+                        "mem_wr_data",
+                    ),
+                    instruction=c_instr,
+                ),
+            )
+
+            record_architectural_result(store_result)
 
         reset = bool(
             signal_int(
@@ -186,7 +394,17 @@ async def test_live_execution_stream_reconstruction(dut):
         # --------------------------------------------------------------
         await RisingEdge(dut.clk)
         await ReadOnly()
-
+        # Verification-side pipeline identity follows the same sequential
+        # movement as the DUT:
+        #
+        #     old C -> new D
+        #     old B -> new C
+        #     accepted A -> new B
+        #
+        # new B remains None until a pending admission is finalized below.
+        d_tag = c_tag
+        c_tag = b_tag
+        b_tag = None
         # Frozen Datapath injects a functional ID/EX bubble when reset,
         # Reg_Stall, or PcSel is active.
         #
@@ -267,6 +485,20 @@ async def test_live_execution_stream_reconstruction(dut):
             forward_b=fwd_b,
         )
 
+        # The accepted instruction now owns the verification-side B tag.
+        b_tag = event.instruction_index
+
+        # Independent sequential architectural oracle.
+        architectural_step = architectural_model.step(event)
+
+        steps_by_index[event.instruction_index] = architectural_step
+
+        pc_result = commit_scoreboard.check_pc(
+            architectural_step
+        )
+
+        record_architectural_result(pc_result)
+
         if event.stall_cycles_before_accept > 0:
             accepted_after_stall += 1
 
@@ -303,6 +535,7 @@ async def test_live_execution_stream_reconstruction(dut):
         # A control mismatch is diagnostic evidence for the later
         # Validated-Coverage layer.
         # --------------------------------------------------------------
+
         for l1_hit in l1_hits:
             result = control_checker.check(
                 l1_hit,
@@ -314,27 +547,54 @@ async def test_live_execution_stream_reconstruction(dut):
 
             if result.passed:
                 control_passes += 1
-                continue
+            else:
+                control_failures += 1
+                control_failed_bins.add(result.bin_id)
 
-            control_failures += 1
-            control_failed_bins.add(result.bin_id)
-
-            failed_text = ",".join(
-                (
-                    f"{check.name}:"
-                    f"expected={check.expected},"
-                    f"observed={check.observed}"
+                failed_text = ",".join(
+                    (
+                        f"{check.name}:"
+                        f"expected={check.expected},"
+                        f"observed={check.observed}"
+                    )
+                    for check in result.failed_checks
                 )
-                for check in result.failed_checks
+
+                dut._log.warning(
+                    "CONTROL_REALIZATION_FAIL "
+                    f"bin={result.bin_id} "
+                    f"consumer_index="
+                    f"{result.consumer_instruction_index} "
+                    f"checks={failed_text}"
+                )
+
+            validation_outcomes = validated_coverage.register_hit(
+                l1_hit,
+                control_passed=result.passed,
             )
 
-            dut._log.warning(
-                "CONTROL_REALIZATION_FAIL "
-                f"bin={result.bin_id} "
-                f"consumer_index="
-                f"{result.consumer_instruction_index} "
-                f"checks={failed_text}"
+            record_validation_outcomes(
+                validation_outcomes
             )
+
+        # L1 attribution only needs producer history through d3.
+        # Bound verification-side event storage independently of campaign
+        # length.
+        stale_event_index = (
+            event.instruction_index - 4
+        )
+
+        if stale_event_index > 0:
+            events_by_index.pop(
+                stale_event_index,
+                None,
+            )
+
+        validated_coverage.prune(
+            latest_instruction_index=(
+                event.instruction_index
+            )
+        )
 
     # ------------------------------------------------------------------
     # FINAL INVARIANTS
@@ -362,6 +622,47 @@ async def test_live_execution_stream_reconstruction(dut):
         )
 
     assert control_checks == control_passes + control_failures
+    assert (
+        architectural_checks
+        == architectural_passes + architectural_failures
+    )
+
+    validation_attempts = sum(
+        validated_coverage.validation_attempt_count.values()
+    )
+
+    validated_hits = sum(
+        validated_coverage.validated_hit_count.values()
+    )
+
+    rejected_hits = sum(
+        validated_coverage.rejected_hit_count.values()
+    )
+
+    assert validation_attempts == control_checks
+
+    assert (
+        validation_attempts
+        == validated_hits
+        + rejected_hits
+        + validated_coverage.pending_hits
+    )
+
+    assert (
+        0
+        <= validated_coverage.validated_bins
+        <= l1_coverage.intent_bins
+        <= 20
+    )
+
+    if EXPECT_L1_BIN:
+        target_l1_validated = int(
+            validated_coverage.validated_seen[
+                EXPECT_L1_BIN
+            ]
+        )
+    else:
+        target_l1_validated = -1
 
     dut._log.info(
         "EXECUTION_STREAM_SMOKE "
@@ -379,7 +680,23 @@ async def test_live_execution_stream_reconstruction(dut):
         f"control_passes={control_passes} "
         f"control_failures={control_failures} "
         f"control_failed_bins="
-        f"{','.join(sorted(control_failed_bins)) or 'none'}"
+        f"{','.join(sorted(control_failed_bins)) or 'none'} "
+        f"architectural_checks={architectural_checks} "
+        f"architectural_passes={architectural_passes} "
+        f"architectural_failures={architectural_failures} "
+        f"architectural_failure_kinds="
+        f"{','.join(sorted(architectural_failure_kinds)) or 'none'} "
+        f"l1_validated_bins="
+        f"{validated_coverage.validated_bins} "
+        f"l1_validated_seen="
+        f"{','.join(bin_id for bin_id, seen in validated_coverage.validated_seen.items() if seen) or 'none'} "
+        f"validation_attempts={validation_attempts} "
+        f"validated_hits={validated_hits} "
+        f"rejected_hits={rejected_hits} "
+        f"validation_pending="
+        f"{validated_coverage.pending_hits} "
+        f"target_l1_validated="
+        f"{target_l1_validated}"
     )
     # ------------------------------------------------------------------
     # DIRECTED STALL REQUIREMENT

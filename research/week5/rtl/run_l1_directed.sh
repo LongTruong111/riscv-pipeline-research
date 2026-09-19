@@ -42,11 +42,33 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# ----------------------------------------------------------------------
+# Intent regression accounting
+# ----------------------------------------------------------------------
+
 PASS_COUNT=0
 FAIL_COUNT=0
 RUN_COUNT=0
 
 declare -a FAILED_CASES=()
+
+# ----------------------------------------------------------------------
+# Canonical Validated-Coverage accounting
+#
+# A target is counted as validated only when the live per-hit promotion
+# layer reports target_l1_validated=1 for that case's canonical target bin.
+#
+# UNKNOWN is kept separate from UNVALIDATED so missing telemetry or a
+# simulation/infrastructure failure is never silently classified as a DUT
+# correctness failure.
+# ----------------------------------------------------------------------
+
+VALIDATED_PASS_COUNT=0
+VALIDATED_REJECTED_COUNT=0
+VALIDATED_UNKNOWN_COUNT=0
+
+declare -a UNVALIDATED_BINS=()
+declare -a VALIDATION_UNKNOWN_CASES=()
 
 mapfile -t CASE_ROWS < <(
     PYTHONPATH="${REPO_ROOT}" python3 - <<'PY'
@@ -66,7 +88,7 @@ PY
 
 printf "\n"
 printf "============================================================\n"
-printf " Week 5 L1 Directed Intent Regression\n"
+printf " Week 5 L1 Directed Canonical Regression\n"
 printf "============================================================\n"
 printf "SIM       : %s\n" "${SIM}"
 printf "N_CYCLES  : %s\n" "${N_CYCLES}"
@@ -97,9 +119,15 @@ for row in "${CASE_ROWS[@]}"; do
 
     if [[ ! -f "${FIXTURE}" ]]; then
         echo "[${TEST_ID}] FAIL: fixture missing: ${FIXTURE}"
+
         FAIL_COUNT=$((FAIL_COUNT + 1))
         RUN_COUNT=$((RUN_COUNT + 1))
+
+        VALIDATED_UNKNOWN_COUNT=$((VALIDATED_UNKNOWN_COUNT + 1))
+
         FAILED_CASES+=("${TEST_ID}")
+        VALIDATION_UNKNOWN_CASES+=("${TEST_ID}")
+
         continue
     fi
 
@@ -115,6 +143,11 @@ for row in "${CASE_ROWS[@]}"; do
 
     set +e
 
+    # These remain zero intentionally:
+    #
+    # the directed runner checks Intent reachability independently from
+    # DUT realization. Control/architectural correctness is collected by
+    # the live Validated-Coverage layer instead of changing Intent PASS.
     EXPECT_STALL=0 \
     EXPECT_FLUSH=0 \
     EXPECT_ACCEPTED="${EXPECTED_ACCEPTED}" \
@@ -132,8 +165,23 @@ for row in "${CASE_ROWS[@]}"; do
     SUMMARY="$(
         grep 'EXECUTION_STREAM_SMOKE' "${LOG_FILE}" \
             | tail -n 1 \
-            | sed -E 's/^.*EXECUTION_STREAM_SMOKE/EXECUTION_STREAM_SMOKE/' \
+            | sed -E \
+                's/^.*EXECUTION_STREAM_SMOKE/EXECUTION_STREAM_SMOKE/' \
             || true
+    )"
+
+    DIAGNOSTICS="$(
+        grep -E \
+            'CONTROL_REALIZATION_FAIL|ARCHITECTURAL_REALIZATION_FAIL|L1_VALIDATION_REJECT' \
+            "${LOG_FILE}" \
+            || true
+    )"
+
+    TARGET_VALIDATED="$(
+        printf '%s\n' "${SUMMARY}" \
+            | sed -nE \
+                's/.*target_l1_validated=(-1|0|1).*/\1/p' \
+            | tail -n 1
     )"
 
     if [[ ${STATUS} -eq 0 ]]; then
@@ -145,18 +193,50 @@ for row in "${CASE_ROWS[@]}"; do
             printf "    %s\n" "${SUMMARY}"
         fi
 
+        if [[ -n "${DIAGNOSTICS}" ]]; then
+            printf "%s\n" "${DIAGNOSTICS}" \
+                | sed 's/^/    /'
+        fi
+
         printf \
             "    oracle: stall=%s redirect=%s\n" \
             "${ORACLE_STALL}" \
             "${ORACLE_REDIRECT}"
+
+        case "${TARGET_VALIDATED}" in
+            1)
+                VALIDATED_PASS_COUNT=$((VALIDATED_PASS_COUNT + 1))
+                ;;
+
+            0)
+                VALIDATED_REJECTED_COUNT=$((VALIDATED_REJECTED_COUNT + 1))
+
+                UNVALIDATED_BINS+=("${TARGET_BIN}")
+                ;;
+
+            *)
+                VALIDATED_UNKNOWN_COUNT=$((VALIDATED_UNKNOWN_COUNT + 1))
+
+                VALIDATION_UNKNOWN_CASES+=("${TEST_ID}")
+                ;;
+        esac
+
     else
         FAIL_COUNT=$((FAIL_COUNT + 1))
         FAILED_CASES+=("${TEST_ID}")
+
+        VALIDATED_UNKNOWN_COUNT=$((VALIDATED_UNKNOWN_COUNT + 1))
+        VALIDATION_UNKNOWN_CASES+=("${TEST_ID}")
 
         printf "FAIL\n"
 
         if [[ -n "${SUMMARY}" ]]; then
             printf "    %s\n" "${SUMMARY}"
+        fi
+
+        if [[ -n "${DIAGNOSTICS}" ]]; then
+            printf "%s\n" "${DIAGNOSTICS}" \
+                | sed 's/^/    /'
         fi
 
         printf \
@@ -165,34 +245,137 @@ for row in "${CASE_ROWS[@]}"; do
             "${ORACLE_REDIRECT}"
 
         printf "\n"
-        printf -- "---------------- FAILURE LOG: %s ----------------\n" \
+        printf -- \
+            "---------------- FAILURE LOG: %s ----------------\n" \
             "${TEST_ID}"
 
         cat "${LOG_FILE}"
 
-        printf -- "-------------- END FAILURE LOG: %s --------------\n\n" \
+        printf -- \
+            "-------------- END FAILURE LOG: %s --------------\n\n" \
             "${TEST_ID}"
     fi
 
     rm -f "${LOG_FILE}"
 done
 
+# ----------------------------------------------------------------------
+# Summary percentages
+# ----------------------------------------------------------------------
+
+INTENT_PERCENT="$(
+    awk \
+        -v passed="${PASS_COUNT}" \
+        -v total="${RUN_COUNT}" \
+        'BEGIN {
+            if (total == 0) {
+                printf "0.0"
+            } else {
+                printf "%.1f", 100.0 * passed / total
+            }
+        }'
+)"
+
+if [[ ${VALIDATED_UNKNOWN_COUNT} -eq 0 ]]; then
+    VALIDATED_PERCENT="$(
+        awk \
+            -v passed="${VALIDATED_PASS_COUNT}" \
+            -v total="${RUN_COUNT}" \
+            'BEGIN {
+                if (total == 0) {
+                    printf "0.0"
+                } else {
+                    printf "%.1f", 100.0 * passed / total
+                }
+            }'
+    )"
+else
+    VALIDATED_PERCENT="N/A"
+fi
+
 printf "\n"
 printf "============================================================\n"
-printf " L1 Directed Intent Summary\n"
+printf " L1 Directed Canonical Summary\n"
 printf "============================================================\n"
-printf "RUN   : %d\n" "${RUN_COUNT}"
-printf "PASS  : %d\n" "${PASS_COUNT}"
-printf "FAIL  : %d\n" "${FAIL_COUNT}"
+
+printf "INTENT RUN          : %d\n" "${RUN_COUNT}"
+printf "INTENT PASS         : %d\n" "${PASS_COUNT}"
+printf "INTENT FAIL         : %d\n" "${FAIL_COUNT}"
+printf \
+    "INTENT COVERAGE     : %d/%d (%s%%)\n" \
+    "${PASS_COUNT}" \
+    "${RUN_COUNT}" \
+    "${INTENT_PERCENT}"
+
+printf "\n"
+
+printf \
+    "VALIDATED PASS      : %d\n" \
+    "${VALIDATED_PASS_COUNT}"
+
+printf \
+    "VALIDATED REJECTED  : %d\n" \
+    "${VALIDATED_REJECTED_COUNT}"
+
+printf \
+    "VALIDATED UNKNOWN   : %d\n" \
+    "${VALIDATED_UNKNOWN_COUNT}"
+
+if [[ ${VALIDATED_UNKNOWN_COUNT} -eq 0 ]]; then
+    printf \
+        "VALIDATED COVERAGE  : %d/%d (%s%%)\n" \
+        "${VALIDATED_PASS_COUNT}" \
+        "${RUN_COUNT}" \
+        "${VALIDATED_PERCENT}"
+else
+    printf \
+        "VALIDATED COVERAGE  : N/A (%d/%d targets validated; %d unknown)\n" \
+        "${VALIDATED_PASS_COUNT}" \
+        "${RUN_COUNT}" \
+        "${VALIDATED_UNKNOWN_COUNT}"
+fi
+
+printf "\n"
+
+if [[ ${#UNVALIDATED_BINS[@]} -gt 0 ]]; then
+    printf "UNVALIDATED BINS    :"
+
+    for bin_id in "${UNVALIDATED_BINS[@]}"; do
+        printf " %s" "${bin_id}"
+    done
+
+    printf "\n"
+else
+    printf "UNVALIDATED BINS    : none\n"
+fi
 
 if [[ ${FAIL_COUNT} -ne 0 ]]; then
-    printf "FAILED:"
-    printf " %s" "${FAILED_CASES[@]}"
+    printf "FAILED CASES        :"
+
+    for test_id in "${FAILED_CASES[@]}"; do
+        printf " %s" "${test_id}"
+    done
+
+    printf "\n"
+fi
+
+if [[ ${VALIDATED_UNKNOWN_COUNT} -ne 0 ]]; then
+    printf "VALIDATION UNKNOWN  :"
+
+    for test_id in "${VALIDATION_UNKNOWN_CASES[@]}"; do
+        printf " %s" "${test_id}"
+    done
+
     printf "\n"
 fi
 
 printf "============================================================\n"
 
-if [[ ${FAIL_COUNT} -ne 0 ]]; then
+# A simulation/Intent failure remains a regression failure.
+#
+# Missing Validated-Coverage telemetry is also an infrastructure failure:
+# it must not be silently converted into an unvalidated DUT bin.
+if [[ ${FAIL_COUNT} -ne 0 ]] ||
+   [[ ${VALIDATED_UNKNOWN_COUNT} -ne 0 ]]; then
     exit 1
 fi
