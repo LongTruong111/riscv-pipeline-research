@@ -98,4 +98,3 @@ def test_jal_requires_two_byte_alignment():
 def test_invalid_register_rejected():
     with pytest.raises(ValueError):
         addi(32, 0, 1)
-
