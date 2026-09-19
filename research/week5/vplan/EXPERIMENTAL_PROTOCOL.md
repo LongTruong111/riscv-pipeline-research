@@ -565,6 +565,43 @@ saturation protocol.
 
 Intent and Validated tail rates must remain explicitly distinguished.
 
+### Intent Tail-Rate Definition
+
+For descriptive comparison, define the Intent tail rate over the same
+final window:
+
+`W = 20,000 executed instructions`.
+
+Let:
+
+`DeltaB_intent_tail`
+
+be the number of previously unseen L2 Intent bins first discovered in
+the final 20,000 executed instructions.
+
+Then:
+
+`tail_rate_intent =
+    DeltaB_intent_tail / (W / 1000)`
+
+with units:
+
+`new Intent bins / 1,000 executed instructions`.
+
+This metric is descriptive only.
+
+The frozen saturation threshold:
+
+`theta_tail = 0.05`
+
+applies only to:
+
+`tail_rate_validated`
+
+as defined in `SATURATION_PROTOCOL.md`.
+
+No Intent-based saturation decision is introduced.
+
 ---
 
 ## 22. Coverage AUC
