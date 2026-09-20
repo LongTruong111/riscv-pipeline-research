@@ -17,5 +17,5 @@ VCD info: dumpfile research/waveforms/baseline.vcd opened for output.
 ** VVP Stop(0) **
 ** Flushing output streams.
 ** Current simulation time is 510000 ticks.
-[?2004h> finish
-[?2004l** Continue **
+> finish
+** Continue **
