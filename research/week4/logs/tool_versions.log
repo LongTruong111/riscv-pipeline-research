@@ -1,0 +1,7 @@
+Python 3.10.12
+cocotb 1.9.2
+Icarus Verilog version 11.0 (stable) ()
+
+Unable to get version from "/usr/lib/x86_64-linux-gnu/ivl/ivlpp -V"
+Unable to get version from "/usr/lib/x86_64-linux-gnu/ivl/ivl -V -C"/tmp/ivrlh69afe3c6" -C"/usr/lib/x86_64-linux-gnu/ivl/vvp.conf""
+Verilator 5.034 2025-02-24 rev v5.034
