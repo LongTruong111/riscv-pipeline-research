@@ -274,3 +274,44 @@ def test_authoritative_validated_hit_can_have_timing_mismatch():
     assert state.validated_seen is True
     assert state.validated_first.instruction_id == 2
     assert state.validated_first.cycle == 6
+
+def test_authoritative_validation_can_promote_while_diagnostics_unresolved():
+    collector = CoverageCollector()
+
+    collector.record_l1_intent(
+        "H01",
+        instruction_id=2,
+        cycle=2,
+        wall_ns=100,
+    )
+
+    record = ValidatedAttributionRecord(
+        instruction_id=2,
+        intent_bin="H01",
+        validated_bin="H01",
+        validated=True,
+        status=ValidationStatus.UNRESOLVED,
+        control_pass=True,
+        functional_pass=True,
+        performance_pass=None,
+        failed_control_checks=(),
+        failed_functional_checks=(),
+        timing_delta_cycles=None,
+    )
+
+    promoted = promote_l1_attribution(
+        collector,
+        record,
+        resolution_cycle=5,
+        wall_ns=180,
+    )
+
+    assert promoted is True
+
+    state = collector.l1_state["H01"]
+
+    assert state.intent_seen is True
+    assert state.validated_seen is True
+    assert state.validated_first.instruction_id == 2
+    assert state.validated_first.cycle == 5
+    assert state.validated_first.wall_ns == 180

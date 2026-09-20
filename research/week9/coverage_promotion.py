@@ -93,13 +93,29 @@ def promote_l1_attribution(
     """Apply one per-hit attribution result to L1 coverage state.
 
     Returns:
-        True if this hit is eligible for validated promotion.
-        False if the hit is rejected/unresolved/intended only.
+        True when the authoritative frozen Week-5 validation
+        makes this hit eligible for Validated Coverage.
+
+        False when authoritative validation has not promoted
+        this concrete hit.
 
     Notes:
-        The collector itself preserves first-hit immutability, so a
-        duplicate validated occurrence does not overwrite the first
-        validated metadata.
+        Diagnostic status is independent of frozen coverage promotion.
+
+        In particular, a record may be:
+
+            validated=True
+            status=UNRESOLVED
+
+        when frozen Week-5 control/architectural evidence is complete
+        but additional Week-7/Week-8 diagnostic evidence has not yet
+        arrived.
+
+        Likewise, a frozen validated hit may later carry
+        TIMING_MISMATCH without losing its already-established
+        Validated Coverage state.
+
+        CoverageCollector preserves first-hit immutability.
     """
 
     if not isinstance(collector, CoverageCollector):
