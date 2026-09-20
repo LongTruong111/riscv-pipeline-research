@@ -10,6 +10,7 @@ OP_R = 0b0110011
 OP_IMM = 0b0010011
 OP_LOAD = 0b0000011
 OP_STORE = 0b0100011
+OP_BRANCH = 0b1100011
 OP_JAL = 0b1101111
 OP_JALR = 0b1100111
 OP_LUI = 0b0110111
@@ -60,6 +61,8 @@ def _sign_extend(value: int, bits: int) -> int:
 
     return value
 
+def _signed32(value: int) -> int:
+    return _sign_extend(value & MASK32, 32)
 
 def _decode_i_imm(instruction: int) -> int:
     return _sign_extend(
@@ -67,6 +70,15 @@ def _decode_i_imm(instruction: int) -> int:
         12,
     )
 
+def _decode_b_imm(instruction: int) -> int:
+    raw = (
+        (((instruction >> 31) & 0x1) << 12)
+        | (((instruction >> 7) & 0x1) << 11)
+        | (((instruction >> 25) & 0x3F) << 5)
+        | (((instruction >> 8) & 0xF) << 1)
+    )
+
+    return _sign_extend(raw, 13)
 
 def _decode_s_imm(instruction: int) -> int:
     raw = (
@@ -314,6 +326,42 @@ class RV32ArchitecturalModel:
                 address=address,
                 data=data,
             )
+
+        # ----------------------------------------------------------
+        # BRANCH
+        # ----------------------------------------------------------
+        elif opcode == OP_BRANCH:
+            lhs = self.read_register(rs1)
+            rhs = self.read_register(rs2)
+
+            if funct3 == 0b000:      # BEQ
+                taken = lhs == rhs
+
+            elif funct3 == 0b001:    # BNE
+                taken = lhs != rhs
+
+            elif funct3 == 0b100:    # BLT
+                taken = _signed32(lhs) < _signed32(rhs)
+
+            elif funct3 == 0b101:    # BGE
+                taken = _signed32(lhs) >= _signed32(rhs)
+
+            elif funct3 == 0b110:    # BLTU
+                taken = lhs < rhs
+
+            elif funct3 == 0b111:    # BGEU
+                taken = lhs >= rhs
+
+            else:
+                raise UnsupportedArchitecturalInstruction(
+                    f"unsupported BRANCH funct3 {funct3:#05b}"
+                )
+
+            if taken:
+                next_pc = (
+                    event.pc
+                    + _decode_b_imm(instruction)
+                ) & MASK32
 
         # ----------------------------------------------------------
         # LUI
