@@ -48,6 +48,10 @@ from research.week9.coverage_collector import (
     CoverageCollector,
 )
 
+from research.week10.l2_live_coordinator import (
+    L2LiveCoordinator,
+)
+
 
 BENCH_CYCLES = int(
     os.getenv("BENCH_CYCLES", "10000")
@@ -81,6 +85,51 @@ def signal_int(signal, name):
             f"{name} contains unresolved X/Z value: "
             f"{signal.value}"
         ) from exc
+
+
+_WRITEBACK_CHECK_NAMES = frozenset({
+    "write_enable",
+    "write_rd",
+    "write_data",
+    "unexpected_architectural_write",
+})
+
+_STORE_CHECK_NAMES = frozenset({
+    "unexpected_store",
+    "store_enable",
+    "store_address_in_dut_range",
+    "store_address",
+    "store_data",
+})
+
+
+def functional_group_pass(result, names):
+    checks = tuple(
+        check for check in result.checks
+        if check.name in names
+    )
+    if not checks:
+        raise AssertionError(
+            f"missing functional checks for "
+            f"instruction_id={result.instruction_id}"
+        )
+    return all(
+        check.expected == check.observed
+        for check in checks
+    )
+
+
+def functional_named_pass(result, name):
+    checks = tuple(
+        check for check in result.checks
+        if check.name == name
+    )
+    if len(checks) != 1:
+        raise AssertionError(
+            f"expected one {name!r} check, "
+            f"got {len(checks)}"
+        )
+    return checks[0].expected == checks[0].observed
 
 
 async def reset_active_high(
@@ -154,6 +203,15 @@ async def test_week9_streaming_benchmark(dut):
         checkpoint_sink=checkpoint_sink,
     )
 
+    l2_coordinator = L2LiveCoordinator(
+        l2_coverage=l2_coverage,
+        coverage=week9_coverage,
+    )
+
+    events_by_index = {}
+    pending_next_pc = None
+    max_l2_arch_cache = 0
+
     tracker = BenchmarkTracker()
 
     accepted_count = 0
@@ -172,11 +230,13 @@ async def test_week9_streaming_benchmark(dut):
             executed_instructions=0,
             wall_ns=measurement_start_ns,
             rss_kib=read_current_rss_kib(),
-            pending_hits=0,
+            pending_hits=(
+                    l2_coordinator.pending_hit_count
+                ),
             retained_performance=0,
             timing_observations=0,
             architectural_steps=0,
-            recent_events=0,
+            recent_events=len(events_by_index),
         )
     )
 
@@ -266,6 +326,44 @@ async def test_week9_streaming_benchmark(dut):
 
             if not functional_result.passed:
                 functional_failures += 1
+
+            l2_wall_ns = (
+                time.perf_counter_ns()
+                - measurement_start_ns
+            )
+
+            l2_coordinator.record_architectural_result(
+                instruction_id=functional_result.instruction_id,
+                kind="writeback",
+                passed=functional_group_pass(
+                    functional_result,
+                    _WRITEBACK_CHECK_NAMES,
+                ),
+                cycle=cycle,
+                wall_ns=l2_wall_ns,
+            )
+
+            l2_coordinator.record_architectural_result(
+                instruction_id=functional_result.instruction_id,
+                kind="store",
+                passed=functional_group_pass(
+                    functional_result,
+                    _STORE_CHECK_NAMES,
+                ),
+                cycle=cycle,
+                wall_ns=l2_wall_ns,
+            )
+
+            l2_coordinator.record_architectural_result(
+                instruction_id=functional_result.instruction_id,
+                kind="x0",
+                passed=functional_named_pass(
+                    functional_result,
+                    "architectural_x0",
+                ),
+                cycle=cycle,
+                wall_ns=l2_wall_ns,
+            )
 
             performance_result = (
                 performance.observe_retire(
@@ -368,13 +466,45 @@ async def test_week9_streaming_benchmark(dut):
                 expectation
             )
 
+            if pending_next_pc is not None:
+                predecessor_id, predecessor_next_pc = (
+                    pending_next_pc
+                )
+
+                l2_coordinator.record_successor_pc(
+                    predecessor_instruction_id=predecessor_id,
+                    expected_next_pc=predecessor_next_pc,
+                    successor=event,
+                    cycle=cycle,
+                    wall_ns=(
+                        time.perf_counter_ns()
+                        - measurement_start_ns
+                    ),
+                )
+
             architectural_step = (
                 architectural_model.step(
                     event
                 )
             )
 
+            l2_coordinator.record_architectural_result(
+                instruction_id=event.instruction_index,
+                kind="pc",
+                passed=architectural_step.pc_match,
+                cycle=cycle,
+                wall_ns=(
+                    time.perf_counter_ns()
+                    - measurement_start_ns
+                ),
+            )
+
             assert architectural_step.pc_match
+
+            pending_next_pc = (
+                event.instruction_index,
+                architectural_step.next_pc,
+            )
 
             functional.register_expected(
                 ExpectedRetire
@@ -406,22 +536,44 @@ async def test_week9_streaming_benchmark(dut):
                     ),
                 )
 
-            for hit in l2_coverage.observe(
-                event
-            ):
-                week9_coverage.record_l2_intent(
-                    f"d{hit.distance}",
-                    hit.register,
-                    instruction_id=(
-                        hit
-                        .consumer_instruction_index
-                    ),
+            events_by_index[
+                event.instruction_index
+            ] = event
+
+            for hit in l2_coverage.observe(event):
+                producer_event = events_by_index[
+                    hit.producer_instruction_index
+                ]
+
+                l2_coordinator.register_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expectation,
                     cycle=cycle,
                     wall_ns=(
                         time.perf_counter_ns()
                         - measurement_start_ns
                     ),
                 )
+
+            stale_event_id = event.instruction_index - 2
+            if stale_event_id > 0:
+                events_by_index.pop(
+                    stale_event_id,
+                    None,
+                )
+
+            l2_coordinator.prune(
+                latest_instruction_id=(
+                    event.instruction_index
+                )
+            )
+
+            max_l2_arch_cache = max(
+                max_l2_arch_cache,
+                l2_coordinator.architectural_cache_entries,
+            )
 
             accepted_tag = (
                 RetireTag.from_execution_event(
@@ -444,7 +596,9 @@ async def test_week9_streaming_benchmark(dut):
             # RSS is sampled only at start/mid/end.
             # Intermediate value is unused by maxima.
             rss_kib=0,
-            pending_hits=0,
+            pending_hits=(
+                    l2_coordinator.pending_hit_count
+                ),
             retained_performance=(
                 performance.pending_count
             ),
@@ -455,7 +609,7 @@ async def test_week9_streaming_benchmark(dut):
                 functional
                 .pending_expected_count
             ),
-            recent_events=0,
+            recent_events=len(events_by_index),
         )
 
         tracker.observe_state(
@@ -476,7 +630,9 @@ async def test_week9_streaming_benchmark(dut):
                     rss_kib=(
                         read_current_rss_kib()
                     ),
-                    pending_hits=0,
+                    pending_hits=(
+                    l2_coordinator.pending_hit_count
+                ),
                     retained_performance=(
                         performance.pending_count
                     ),
@@ -487,7 +643,7 @@ async def test_week9_streaming_benchmark(dut):
                         functional
                         .pending_expected_count
                     ),
-                    recent_events=0,
+                    recent_events=len(events_by_index),
                 )
             )
 
@@ -500,7 +656,9 @@ async def test_week9_streaming_benchmark(dut):
             ),
             wall_ns=time.perf_counter_ns(),
             rss_kib=read_current_rss_kib(),
-            pending_hits=0,
+            pending_hits=(
+                    l2_coordinator.pending_hit_count
+                ),
             retained_performance=(
                 performance.pending_count
             ),
@@ -511,7 +669,7 @@ async def test_week9_streaming_benchmark(dut):
                 functional
                 .pending_expected_count
             ),
-            recent_events=0,
+            recent_events=len(events_by_index),
         )
     )
 
@@ -581,6 +739,17 @@ async def test_week9_streaming_benchmark(dut):
         <= 3
     )
 
+    # L2 realization state must remain bounded independently
+    # of campaign length.
+    assert summary.max_recent_events <= 2
+    assert summary.max_pending_hits <= 12
+
+    assert max_l2_arch_cache <= 6
+    assert (
+        l2_coordinator.architectural_cache_entries
+        <= 6
+    )
+
     assert functional_failures == 0
     assert performance_failures == 0
 
@@ -617,6 +786,12 @@ async def test_week9_streaming_benchmark(dut):
 
     l2_intent_count = sum(
         state.intent_seen
+        for state
+        in week9_coverage.l2_state.values()
+    )
+
+    l2_validated_count = sum(
+        state.validated_seen
         for state
         in week9_coverage.l2_state.values()
     )
@@ -659,6 +834,13 @@ async def test_week9_streaming_benchmark(dut):
         f"{performance_failures} "
         f"l1_intent={l1_intent_count} "
         f"l2_intent={l2_intent_count} "
+        f"l2_validated={l2_validated_count} "
+        f"max_l2_pending="
+        f"{summary.max_pending_hits} "
+        f"max_l2_arch_cache="
+        f"{max_l2_arch_cache} "
+        f"max_recent_events="
+        f"{summary.max_recent_events} "
         f"checkpoints={checkpoint_count} "
         f"slowdown_vs_t5_minimal_pct="
         f"{summary.slowdown_vs_t5_minimal_pct:.3f} "
