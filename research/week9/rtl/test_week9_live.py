@@ -59,6 +59,10 @@ from research.week9.validated_attribution import (
     ValidationStatus,
 )
 
+from research.week10.l2_live_coordinator import (
+    L2LiveCoordinator,
+)
+
 
 N_CYCLES = int(os.getenv("N_CYCLES", "60"))
 CASE_ID = os.getenv("CASE", "").strip()
@@ -179,6 +183,15 @@ async def test_week9_live_smoke(dut):
         coverage=week9_coverage,
     )
 
+    l2_coordinator = L2LiveCoordinator(
+        l2_coverage=l2_coverage,
+        coverage=week9_coverage,
+    )
+
+    # One predecessor next-PC expectation is retained until the
+    # next executed instruction is accepted. This remains O(1).
+    pending_next_pc = None
+
     # Only unresolved/in-flight state is retained.
     events_by_index = {}
     steps_by_index = {}
@@ -257,6 +270,14 @@ async def test_week9_live_smoke(dut):
         record_validation_outcomes(
             outcomes,
             cycle=cycle,
+        )
+
+        l2_coordinator.record_architectural_result(
+            instruction_id=result.instruction_index,
+            kind=result.kind,
+            passed=result.passed,
+            cycle=cycle,
+            wall_ns=wall_ns(),
         )
 
     for cycle in range(1, N_CYCLES + 1):
@@ -568,6 +589,30 @@ async def test_week9_live_smoke(dut):
                 == expected.instruction
             )
 
+            # Resolve the previous executed instruction's next-PC
+            # using this newly accepted architectural successor.
+            #
+            # Do not depend on steps_by_index here: a predecessor
+            # may already have reached D and been released before a
+            # redirect successor is accepted.
+            if pending_next_pc is not None:
+                (
+                    predecessor_instruction_id,
+                    predecessor_expected_next_pc,
+                ) = pending_next_pc
+
+                l2_coordinator.record_successor_pc(
+                    predecessor_instruction_id=(
+                        predecessor_instruction_id
+                    ),
+                    expected_next_pc=(
+                        predecessor_expected_next_pc
+                    ),
+                    successor=event,
+                    cycle=cycle,
+                    wall_ns=wall_ns(),
+                )
+
             week9_coverage.record_instruction(
                 instruction_id=instruction_id,
                 cycle=cycle,
@@ -589,6 +634,11 @@ async def test_week9_live_smoke(dut):
                 instruction_id
             ] = architectural_step
 
+            pending_next_pc = (
+                instruction_id,
+                architectural_step.next_pc,
+            )
+
             pc_result = (
                 commit_scoreboard.check_pc(
                     architectural_step
@@ -607,20 +657,34 @@ async def test_week9_live_smoke(dut):
             ] = event
 
             # ------------------------------------------------------
-            # L2 Intent only.
-            # No L2 Validated promotion is invented here.
+            # L2 Intent + Week-10 authoritative realization.
+            #
+            # Intent classification remains frozen Week-5.
+            # Validation is per concrete L2Hit under the frozen
+            # Week-10 realization contract.
             # ------------------------------------------------------
             l2_hits = l2_coverage.observe(
                 event
             )
 
             for hit in l2_hits:
-                week9_coverage.record_l2_intent(
-                    f"d{hit.distance}",
-                    hit.register,
-                    instruction_id=(
-                        hit.consumer_instruction_index
-                    ),
+                try:
+                    producer_event = events_by_index[
+                        hit.producer_instruction_index
+                    ]
+                except KeyError as exc:
+                    raise AssertionError(
+                        f"{CASE_ID}: missing L2 producer event "
+                        f"id={hit.producer_instruction_index} "
+                        f"for consumer="
+                        f"{hit.consumer_instruction_index}"
+                    ) from exc
+
+                l2_coordinator.register_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expected,
                     cycle=cycle,
                     wall_ns=wall_ns(),
                 )
@@ -682,6 +746,10 @@ async def test_week9_live_smoke(dut):
                 latest_instruction_index=(
                     instruction_id
                 )
+            )
+
+            l2_coordinator.prune(
+                latest_instruction_id=instruction_id
             )
 
             accepted_tag = (
@@ -762,12 +830,19 @@ async def test_week9_live_smoke(dut):
             f"{expected_status.value}"
         )
 
-    # Week-9 has not invented an L2 RealizationValid checker.
+    # Every L2 Validated bin must already have corresponding Intent.
+    # The final accepted consumer may remain unresolved because there
+    # is intentionally no invented successor for next-PC evidence.
     assert all(
-        not state.validated_seen
+        (
+            not state.validated_seen
+            or state.intent_seen
+        )
         for state
         in week9_coverage.l2_state.values()
     )
+
+    assert l2_coordinator.pending_hit_count <= 2
 
     l1_intent_count = sum(
         state.intent_seen
@@ -783,6 +858,12 @@ async def test_week9_live_smoke(dut):
 
     l2_intent_count = sum(
         state.intent_seen
+        for state
+        in week9_coverage.l2_state.values()
+    )
+
+    l2_validated_count = sum(
+        state.validated_seen
         for state
         in week9_coverage.l2_state.values()
     )
@@ -803,6 +884,9 @@ async def test_week9_live_smoke(dut):
         f"l1_intent={l1_intent_count} "
         f"l1_validated={l1_validated_count} "
         f"l2_intent={l2_intent_count} "
+        f"l2_validated={l2_validated_count} "
+        f"l2_pending="
+        f"{l2_coordinator.pending_hit_count} "
         f"target_validated="
         f"{int(target_state.validated_seen)} "
         f"target_status={target_status_text} "
