@@ -11,7 +11,7 @@ VERILOG_SOURCES = \
 	$(REPO_ROOT)/research/week5/rtl/execution_stream_tb.sv
 
 TOPLEVEL = execution_stream_tb
-MODULE = test_retire_monitor_live
+MODULE ?= test_retire_monitor_live
 
 SIM_BUILD := $(REPO_ROOT)/sim_build/week7_retire_monitor
 
