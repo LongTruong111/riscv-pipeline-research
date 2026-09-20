@@ -166,72 +166,142 @@ coverage validation and Week-8 performance diagnostics.
 
 ---
 
-## 7. ProducerArchitecturalPass
+## 7. ParticipantArchitecturalPass
 
-The producer of a positive L2 RAW dependency necessarily writes:
+Architectural validation is evaluated per participating instruction.
 
-    rd != x0
+For participant instruction `i`, define:
 
-ProducerArchitecturalPass requires the producer's authoritative
-architectural realization to pass.
+    ParticipantArchitecturalPass(i)
+        =
+        PCPass(i)
+        AND WritebackPass(i)
+        AND StorePass(i)
+        AND NextPCPass(i)
+        AND ConditionalX0Pass(i)
 
-The required evidence is:
+The required evidence is produced from the independent architectural
+model and the existing architectural observation semantics.
 
-1. producer executed PC is architecturally correct;
-2. producer architectural register-write behavior is correct;
-3. architectural x0 remains zero.
+### 7.1 Current-PC correctness
 
-For a positive RAW producer, writeback correctness includes:
+The accepted instruction PC must equal the independent architectural
+model's expected current PC.
+
+The DUT's 9-bit PC shall not be used to truncate a wider Golden PC in
+order to manufacture a pass.
+
+### 7.2 Register-write correctness
+
+Architectural register-write behavior must be correct:
 
 - write enable;
 - destination register;
-- write data.
+- write data;
 
-Producer correctness shall be evaluated independently from DUT
-forwarding values.
+when an architectural register write is expected.
+
+Unexpected architectural GPR writes must fail.
+
+### 7.3 Store correctness
+
+Store behavior must be correct:
+
+- store enable;
+- address;
+- data;
+
+when a store is expected.
+
+Unexpected stores must fail.
+
+### 7.4 Next-PC correctness
+
+The participant's expected `next_pc` is taken from the independent
+architectural model.
+
+When the next accepted architectural instruction is observed:
+
+    observed_successor_pc == participant_expected_next_pc
+
+must hold.
+
+This evidence is attributed to the predecessor instruction.
+
+Therefore control-flow correctness is validated without redefining
+executed-program-order dependency distance.
+
+For the final instruction of a campaign, if no successor is observed,
+`next_pc` remains unresolved rather than being falsely passed.
+
+### 7.5 Conditional x0 correctness
+
+x0 is not a global pass requirement for every positive L2 hit.
+
+An x0 check is authoritative for a participant only when that
+participant instruction itself attempts to write `rd=x0`:
+
+    event.writes_rd == True
+    AND event.rd == 0
+
+This prevents an unrelated persistent x0 defect from poisoning all later
+positive L2 validation.
+
+For ordinary positive L2 participants whose destination is not x0, an
+unrelated global x0 mismatch shall not invalidate the hit.
 
 ---
 
-## 8. ConsumerArchitecturalPass
+## 8. ProducerArchitecturalPass
 
-ConsumerArchitecturalPass requires the architectural behavior of the
-consumer instruction to be correct.
+For producer instruction `p`:
 
-The required evidence is:
+    ProducerArchitecturalPass
+        =
+        ParticipantArchitecturalPass(p)
 
-1. consumer executed PC is architecturally correct;
-2. consumer register-write behavior is correct when applicable;
-3. consumer store behavior is correct when applicable;
-4. architectural x0 remains zero;
-5. consumer next-PC behavior is architecturally correct.
+A positive L2 producer necessarily satisfies:
 
-The consumer next-PC requirement is satisfied when the next accepted
-architectural instruction has:
+    producer.rd != x0
 
-    next_event.pc == consumer_expected_next_pc
+because x0 cannot carry architectural producer state.
 
-This check is intentionally delayed until the successor instruction is
-observed.
+The producer nevertheless requires correct:
 
-For an end-of-campaign consumer whose successor is not observed, the
-hit remains unresolved rather than being falsely promoted.
+- current PC;
+- register-write behavior;
+- store behavior;
+- next-PC behavior.
+
+Conditional x0 evidence applies only if required by the participant rule
+above.
 
 ---
 
-## 9. Architectural evidence authority
+## 9. ConsumerArchitecturalPass
 
-Architectural expectations shall be produced only by the independent
-RV32 architectural model.
+For consumer instruction `c`:
 
-DUT datapath values shall not be used as the oracle.
+    ConsumerArchitecturalPass
+        =
+        ParticipantArchitecturalPass(c)
 
-Register-write/store/x0 observations may be checked using semantics
-equivalent to the existing frozen architectural / functional
-scoreboards.
+The consumer therefore requires correct:
 
-The implementation may reuse bounded streaming checker results, but
-shall not use a pass result whose semantics omit evidence required by
-this contract.
+- current PC;
+- register-write behavior;
+- store behavior;
+- next-PC behavior.
+
+If the consumer itself attempts to write `rd=x0`, x0 preservation is
+also required for that consumer.
+
+Week-8 `FunctionalResult.passed` shall not be consumed wholesale as the
+L2 architectural verdict because that result includes an unconditional
+global x0 check.
+
+The Week-10 implementation shall instead consume the individual
+authoritative architectural evidence needed by this contract.
 
 ---
 
@@ -448,14 +518,17 @@ Before live integration, unit tests shall prove at least:
 7. producer architectural failure fails;
 8. consumer register-write failure fails;
 9. consumer store failure fails;
-10. consumer next-PC failure fails;
-11. x0 corruption fails architectural validation;
-12. simultaneous d1/d2 hits validate independently;
-13. rs1 == rs2 produces one L2 bin but validates both roles;
-14. failed occurrence followed by passing occurrence promotes;
-15. missing successor leaves control-flow consumer unresolved;
-16. retire timing mismatch alone does not invalidate L2;
-17. retained pending state stays bounded over a long stream.
+10. producer next-PC failure fails;
+11. consumer next-PC failure fails;
+12. consumer-local rd=x0 corruption fails that hit;
+13. unrelated pre-existing x0 corruption does not poison an ordinary
+    positive L2 hit;
+14. simultaneous d1/d2 hits validate independently;
+15. rs1 == rs2 produces one L2 bin but validates both roles;
+16. failed occurrence followed by passing occurrence promotes;
+17. missing successor leaves the affected hit unresolved;
+18. retire timing mismatch alone does not invalidate L2;
+19. retained pending state stays bounded over a long stream.
 
 ---
 
