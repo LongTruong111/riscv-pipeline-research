@@ -234,3 +234,43 @@ def test_duplicate_success_does_not_overwrite_first_validated_hit():
     assert state.validated_first.instruction_id == 2
     assert state.validated_first.cycle == 6
     assert state.validated_first.wall_ns == 200
+
+def test_authoritative_validated_hit_can_have_timing_mismatch():
+    collector = CoverageCollector()
+
+    collector.record_l1_intent(
+        "H01",
+        instruction_id=2,
+        cycle=2,
+        wall_ns=100,
+    )
+
+    record = ValidatedAttributionRecord(
+        instruction_id=2,
+        intent_bin="H01",
+        validated_bin="H01",
+        validated=True,
+        status=ValidationStatus.TIMING_MISMATCH,
+        control_pass=True,
+        functional_pass=True,
+        performance_pass=False,
+        failed_control_checks=("retire_cycle",),
+        failed_functional_checks=(),
+        timing_delta_cycles=1,
+    )
+
+    promoted = promote_l1_attribution(
+        collector,
+        record,
+        resolution_cycle=6,
+        wall_ns=200,
+    )
+
+    assert promoted is True
+
+    state = collector.l1_state["H01"]
+
+    assert state.intent_seen is True
+    assert state.validated_seen is True
+    assert state.validated_first.instruction_id == 2
+    assert state.validated_first.cycle == 6
