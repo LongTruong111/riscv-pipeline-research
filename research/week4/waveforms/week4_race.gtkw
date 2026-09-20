@@ -2,10 +2,10 @@
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
 [*] Wed Sep 16 10:24:47 2026
 [*]
-[dumpfile] "/home/logan/nckh/RISC-V-Pipeline/research/week4/waveforms/week4_race.vcd"
+[dumpfile] "research/week4/waveforms/week4_race.vcd"
 [dumpfile_mtime] "Wed Sep 16 10:16:28 2026"
 [dumpfile_size] 704
-[savefile] "/home/logan/nckh/RISC-V-Pipeline/research/week4/waveforms/week4_race.gtkw"
+[savefile] "research/week4/waveforms/week4_race.gtkw"
 [timestart] 0
 [size] 2868 1767
 [pos] 34687 32767

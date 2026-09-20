@@ -1,5 +1,6 @@
 # Simulator artifacts
 sim/sim.out
+sim/*.log
 sim_build/
 results.xml
 
