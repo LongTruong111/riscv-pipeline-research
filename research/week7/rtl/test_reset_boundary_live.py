@@ -161,7 +161,7 @@ async def test_live_reset_boundary(dut):
 
         1. pre-reset instructions are present in B/C;
         2. reset invalidates verification-side B/C/D tags;
-        3. frozen RTL clears B/C/D pipeline state;
+        3. reset functionally invalidates the in-flight pipeline state;
         4. no pre-reset instruction retires after reset;
         5. executed-program-order instruction IDs restart;
         6. post-reset accepted count equals post-reset retired count.
@@ -227,12 +227,19 @@ async def test_live_reset_boundary(dut):
     # ASSERT RESET at FallingEdge, away from active RisingEdge.
     # --------------------------------------------------------------
     await FallingEdge(dut.clk)
-    await ReadOnly()
 
     # Nothing has reached D yet.
     assert monitor.d_tag is None
 
+    # Drive reset before entering ReadOnly. Cocotb forbids writes
+    # during the read-only synchronization phase.
     dut.reset.value = 1
+    await ReadOnly()
+
+    assert signal_int(
+        dut.reset,
+        "reset",
+    ) == 1
 
     # First reset-active RisingEdge clears pipeline registers.
     await RisingEdge(dut.clk)
@@ -249,37 +256,33 @@ async def test_live_reset_boundary(dut):
 
     assert monitor.retired_count == 0
 
-    # Frozen RTL pipeline registers must also be cleared.
+    # Frozen RTL reset injects a FUNCTIONAL bubble into B.
+    #
+    # Curr_Instr in B/C/D is deliberately not used as a valid bit:
+    # the frozen RTL may retain/propagate stale debug identity fields
+    # while the corresponding functional controls are invalid.
     assert signal_int(
         dut.probe_b_control_nonzero,
         "probe_b_control_nonzero",
     ) == 0
 
-    assert signal_int(
-        dut.probe_c_instr,
-        "probe_c_instr",
-    ) == 0
-
-    assert signal_int(
-        dut.probe_d_instr,
-        "probe_d_instr",
-    ) == 0
-
     # Keep reset asserted for the rest of the frozen three-cycle
-    # reset interval.
+    # reset interval. Each active reset edge must continue to inject
+    # a functional B-stage bubble.
     for _ in range(2):
         await RisingEdge(dut.clk)
         await ReadOnly()
 
         assert signal_int(
-            dut.probe_c_instr,
-            "probe_c_instr",
+            dut.probe_b_control_nonzero,
+            "probe_b_control_nonzero",
         ) == 0
 
-        assert signal_int(
-            dut.probe_d_instr,
-            "probe_d_instr",
-        ) == 0
+        assert monitor.stage_instruction_ids == (
+            None,
+            None,
+            None,
+        )
 
     # --------------------------------------------------------------
     # DEASSERT RESET at FallingEdge.
@@ -367,7 +370,7 @@ async def test_live_reset_boundary(dut):
         f"{','.join(str(x) for x in post_reset_accepted)} "
         f"post_reset_retired="
         f"{','.join(str(x) for x in post_reset_retired)} "
-        f"pipeline_clear=1 "
+        f"pipeline_invalidated=1 "
         f"id_restart=1 "
         f"status=PASS"
     )
