@@ -15,6 +15,7 @@ from research.week5.impl.architectural_model import (
 from research.week5.impl.commit_scoreboard import (
     StoreObservation,
 )
+from research.week5.impl.rv32_encode import add, addi, jal
 from research.week5.impl.coverage_model import (
     L2CoverageCollector,
 )
@@ -58,7 +59,7 @@ BENCH_CYCLES = int(
 )
 
 
-BENCH_PROGRAM_WORDS = (
+_LONGRUN_BENCH_PROGRAM_WORDS = (
     0x00000093,  # ADDI x1, x0, 0
     0x00100113,  # ADDI x2, x0, 1
     0x002101B3,  # ADD  x3, x2, x2
@@ -68,6 +69,96 @@ BENCH_PROGRAM_WORDS = (
     0x00328333,  # ADD  x6, x5, x3
     0xFEDFF3EF,  # JAL  x7, -20 -> PC 0x08
 )
+
+
+BENCH_EXECUTED_TARGET = int(
+    os.getenv("BENCH_EXECUTED_TARGET", "0")
+)
+
+BENCH_PROFILE = os.getenv(
+    "BENCH_PROFILE",
+    "longrun",
+)
+
+
+def _build_l2_closure_program_words():
+    """34-word deterministic L2 d1/d2 closure loop.
+
+    Executed-order coverage:
+      I02: d1 x1
+      I03..I31: d1 x2..x30 + d2 x1..x29
+      I32: d1 x31 + d2 x30
+      I33: repeated d1 x1 + d2 x31
+      I34: JAL x31 back to PC 0
+
+    Hence:
+      59/62 first reached at instruction 31
+      62/62 first reached at instruction 33
+    """
+    words = [
+        addi(1, 0, 1),
+        addi(2, 1, 1),
+    ]
+
+    for rd in range(3, 32):
+        words.append(
+            add(
+                rd,
+                rd - 1,
+                rd - 2,
+            )
+        )
+
+    # I32:
+    #   d1 x31
+    #   d2 x30
+    words.append(
+        add(
+            1,
+            31,
+            30,
+        )
+    )
+
+    # I33:
+    #   d1 x1 (already covered)
+    #   d2 x31 -> final L2 bin
+    words.append(
+        add(
+            2,
+            1,
+            31,
+        )
+    )
+
+    # I34 at PC 132 -> PC 0.
+    loop_pc = len(words) * 4
+    words.append(
+        jal(
+            31,
+            -loop_pc,
+        )
+    )
+
+    assert len(words) == 34
+    assert loop_pc == 132
+
+    return tuple(words)
+
+
+if BENCH_PROFILE == "longrun":
+    BENCH_PROGRAM_WORDS = (
+        _LONGRUN_BENCH_PROGRAM_WORDS
+    )
+elif BENCH_PROFILE == "l2_closure":
+    BENCH_PROGRAM_WORDS = (
+        _build_l2_closure_program_words()
+    )
+else:
+    raise ValueError(
+        "BENCH_PROFILE must be "
+        "'longrun' or 'l2_closure'"
+    )
 
 
 BENCH_PROGRAM = {
@@ -241,11 +332,13 @@ async def test_week9_streaming_benchmark(dut):
     )
 
     midpoint_cycle = BENCH_CYCLES // 2
+    completed_cycle = 0
 
     for cycle in range(
         1,
         BENCH_CYCLES + 1,
     ):
+        completed_cycle = cycle
         # ------------------------------------------------------
         # FALLING EDGE
         # ------------------------------------------------------
@@ -647,9 +740,29 @@ async def test_week9_streaming_benchmark(dut):
                 )
             )
 
+
+        if (
+            BENCH_EXECUTED_TARGET > 0
+            and
+            week9_coverage.executed_instructions
+            >= BENCH_EXECUTED_TARGET
+        ):
+            break
+
+    if BENCH_EXECUTED_TARGET > 0:
+        assert (
+            week9_coverage.executed_instructions
+            == BENCH_EXECUTED_TARGET
+        ), (
+            "executed-instruction target not reached: "
+            f"target={BENCH_EXECUTED_TARGET}, "
+            f"observed="
+            f"{week9_coverage.executed_instructions}"
+        )
+
     tracker.record_end(
         BenchmarkSample(
-            cycle=BENCH_CYCLES,
+            cycle=completed_cycle,
             executed_instructions=(
                 week9_coverage
                 .executed_instructions
@@ -795,6 +908,100 @@ async def test_week9_streaming_benchmark(dut):
         for state
         in week9_coverage.l2_state.values()
     )
+
+    if BENCH_PROFILE == "l2_closure":
+        assert l2_intent_count == 62
+        assert l2_validated_count == 62
+
+        validated_first_ids = []
+
+        for state in (
+            week9_coverage.l2_state.values()
+        ):
+            if not state.validated_seen:
+                continue
+
+            assert (
+                state.validated_first
+                is not None
+            )
+
+            validated_first_ids.append(
+                state.validated_first.instruction_id
+            )
+
+        validated_first_ids.sort()
+
+        assert len(validated_first_ids) == 62
+        assert all(
+            instruction_id is not None
+            for instruction_id
+            in validated_first_ids
+        )
+
+        n95_validated = (
+            validated_first_ids[58]
+        )
+
+        n100_validated = (
+            validated_first_ids[-1]
+        )
+
+        # Structural proof of the closure-program layout.
+        assert n95_validated == 31
+        assert n100_validated == 33
+
+        final_executed = (
+            week9_coverage.executed_instructions
+        )
+
+        tail_new_validated = None
+        tail_rate_validated = None
+
+        if final_executed >= 20000:
+            tail_start = (
+                final_executed - 20000
+            )
+
+            tail_new_validated = sum(
+                tail_start
+                < instruction_id
+                <= final_executed
+                for instruction_id
+                in validated_first_ids
+            )
+
+            tail_rate_validated = (
+                tail_new_validated / 20.0
+            )
+
+        # Frozen Gate-T9 final run.
+        if final_executed == 100000:
+            assert tail_new_validated == 0
+            assert tail_rate_validated == 0.0
+
+        dut._log.info(
+            "WEEK9_L2_CLOSURE_RESULT "
+            f"executed={final_executed} "
+            f"intent={l2_intent_count}/62 "
+            f"validated={l2_validated_count}/62 "
+            f"n95_validated={n95_validated} "
+            f"n100_validated={n100_validated} "
+            f"tail_new_validated="
+            f"{tail_new_validated} "
+            f"tail_rate_validated="
+            f"{tail_rate_validated} "
+            f"max_l2_pending="
+            f"{summary.max_pending_hits} "
+            f"max_l2_arch_cache="
+            f"{max_l2_arch_cache} "
+            f"max_recent_events="
+            f"{summary.max_recent_events} "
+            f"functional_failures="
+            f"{functional_failures} "
+            f"performance_failures="
+            f"{performance_failures}"
+        )
 
     estimated_100k_cycles_seconds = (
         100_000
