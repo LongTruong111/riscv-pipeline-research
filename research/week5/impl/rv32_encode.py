@@ -10,7 +10,7 @@ OP_JAL = 0b1101111
 OP_JALR = 0b1100111
 OP_LUI = 0b0110111
 OP_AUIPC = 0b0010111
-
+OP_BRANCH = 0b1100011
 
 def _reg(value: int) -> int:
     if not 0 <= value <= 31:
@@ -34,6 +34,31 @@ def _signed_imm(value: int, bits: int, *, alignment: int = 1) -> int:
 
     return value & ((1 << bits) - 1)
 
+def _branch(
+    rs1: int,
+    rs2: int,
+    offset: int,
+    funct3: int,
+) -> int:
+    rs1 = _reg(rs1)
+    rs2 = _reg(rs2)
+    imm13 = _signed_imm(offset, 13, alignment=2)
+
+    bit12 = (imm13 >> 12) & 0x1
+    bit11 = (imm13 >> 11) & 0x1
+    bits10_5 = (imm13 >> 5) & 0x3F
+    bits4_1 = (imm13 >> 1) & 0xF
+
+    return (
+        (bit12 << 31)
+        | (bits10_5 << 25)
+        | (rs2 << 20)
+        | (rs1 << 15)
+        | (funct3 << 12)
+        | (bits4_1 << 8)
+        | (bit11 << 7)
+        | OP_BRANCH
+    )
 
 def add(rd: int, rs1: int, rs2: int) -> int:
     rd = _reg(rd)
@@ -161,6 +186,28 @@ def jal(rd: int, offset: int) -> int:
         | OP_JAL
     )
 
+def beq(rs1: int, rs2: int, offset: int) -> int:
+    return _branch(rs1, rs2, offset, 0b000)
+
+
+def bne(rs1: int, rs2: int, offset: int) -> int:
+    return _branch(rs1, rs2, offset, 0b001)
+
+
+def blt(rs1: int, rs2: int, offset: int) -> int:
+    return _branch(rs1, rs2, offset, 0b100)
+
+
+def bge(rs1: int, rs2: int, offset: int) -> int:
+    return _branch(rs1, rs2, offset, 0b101)
+
+
+def bltu(rs1: int, rs2: int, offset: int) -> int:
+    return _branch(rs1, rs2, offset, 0b110)
+
+
+def bgeu(rs1: int, rs2: int, offset: int) -> int:
+    return _branch(rs1, rs2, offset, 0b111)
 
 def nop() -> int:
     return addi(0, 0, 0)
