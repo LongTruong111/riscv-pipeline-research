@@ -1,0 +1,46 @@
+make: Entering directory '/home/logan/nckh/RISC-V-Pipeline/research/week4'
+rm -f results.xml
+"make" -f Makefile results.xml
+make[1]: Entering directory '/home/logan/nckh/RISC-V-Pipeline/research/week4'
+mkdir -p sim_build
+/usr/bin/iverilog -o sim_build/sim.vvp -D COCOTB_SIM=1 -s week4_counter -g2012 -g2012 -f sim_build/cmds.f  /home/logan/nckh/RISC-V-Pipeline/tests/week4_counter.sv
+rm -f results.xml
+MODULE=test_week4_timing_race TESTCASE= TOPLEVEL=week4_counter TOPLEVEL_LANG=verilog \
+         /usr/bin/vvp -M /home/logan/.local/lib/python3.10/site-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build/sim.vvp  
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:79   in set_program_name_in_venv        Did not detect Python virtual environment. Using system-wide Python interpreter
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:101  in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 11.0 (stable)
+     0.00ns INFO     cocotb                             Running tests with cocotb v1.9.2 from /home/logan/.local/lib/python3.10/site-packages/cocotb
+     0.00ns INFO     cocotb                             Seeding Python random module with 1789557854
+     0.00ns INFO     cocotb.regression                  Found test test_week4_timing_race.test_drive_at_posedge_racy
+     0.00ns INFO     cocotb.regression                  Found test test_week4_timing_race.test_drive_at_fallingedge_safe
+     0.00ns INFO     cocotb.regression                  Found test test_week4_timing_race.test_sample_phase
+     0.00ns INFO     cocotb.regression                  running test_drive_at_posedge_racy (1/3)
+                                                          Intentionally racy experiment.
+                                                          
+                                                          en is changed on the same rising edge on which the RTL samples en.
+                                                          The observed behavior must NOT become a portable timing rule.
+    50.00ns INFO     cocotb.week4_counter               RACY_POS: first=1 second=2
+    50.00ns INFO     cocotb.regression                  test_drive_at_posedge_racy passed
+    50.00ns INFO     cocotb.regression                  running test_drive_at_fallingedge_safe (2/3)
+                                                          Safe experiment:
+                                                          drive en on falling edge, sample after next rising edge + ReadOnly.
+   110.00ns INFO     cocotb.week4_counter               SAFE_FALL: first=1 second=1
+   110.00ns INFO     cocotb.regression                  test_drive_at_fallingedge_safe passed
+   110.00ns INFO     cocotb.regression                  running test_sample_phase (3/3)
+                                                          Compare immediate read after RisingEdge with settled ReadOnly value.
+   160.00ns INFO     cocotb.week4_counter               SAMPLE_PHASE: immediate=0 settled=1
+   160.00ns INFO     cocotb.regression                  test_sample_phase passed
+   160.00ns INFO     cocotb.regression                  ***************************************************************************************************************
+                                                        ** TEST                                                   STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                        ***************************************************************************************************************
+                                                        ** test_week4_timing_race.test_drive_at_posedge_racy       PASS          50.00           0.00      36838.12  **
+                                                        ** test_week4_timing_race.test_drive_at_fallingedge_safe   PASS          60.00           0.00      86009.03  **
+                                                        ** test_week4_timing_race.test_sample_phase                PASS          50.00           0.00      83720.32  **
+                                                        ***************************************************************************************************************
+                                                        ** TESTS=3 PASS=3 FAIL=0 SKIP=0                                         160.00           0.06       2739.94  **
+                                                        ***************************************************************************************************************
+                                                        
+VCD info: dumpfile waveforms/week4_race.vcd opened for output.
+make[1]: Leaving directory '/home/logan/nckh/RISC-V-Pipeline/research/week4'
+make: Leaving directory '/home/logan/nckh/RISC-V-Pipeline/research/week4'
