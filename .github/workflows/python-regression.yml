@@ -1,4 +1,4 @@
-name: Python Regression
+name: Research Regression
 
 on:
   push:
@@ -8,6 +8,25 @@ on:
   pull_request:
 
 jobs:
+  week3-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Icarus Verilog
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y iverilog
+
+      - name: Run frozen-DUT smoke regression
+        run: make smoke
+
+      - name: Verify regression did not mutate tracked evidence
+        run: git diff --exit-code
+
   python-regression:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
