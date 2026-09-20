@@ -2,292 +2,270 @@
 
 ## Status
 
-**OPEN / BLOCKED**
+**CLOSED / PASS**
 
-Gate T9 is not closed because the frozen verification plan does not define a sufficiently explicit per-hit `L2 RealizationValid` contract.
+Gate T9 is complete.
 
-No `gate-t9` tag shall be created while this blocker remains open.
+The former L2 `RealizationValid` specification blocker was resolved by
+the explicit Week-10 L2 realization contract and its bounded live
+implementation.
 
-## Verified Week-9 Results
+The Week-9 RTL verification path now provides authoritative L2
+Validated Coverage promotion and has demonstrated complete closure of
+the frozen 62-bin L2 space.
 
-### Deterministic coverage infrastructure
+---
 
-PASS.
+## Frozen coverage model
 
-The Week-9 coverage infrastructure provides deterministic L1/L2 state tracking, first-hit metadata, fixed-size bin state, checkpoint support, and streamed telemetry.
+### L1
 
-L1 contains exactly 20 frozen bins.
+Frozen cardinality:
 
-L2 contains exactly 62 frozen bins:
+`20 bins: H01 ... H20`
+
+Canonical directed result:
+
+- Intent: `20 / 20`
+- Validated: `15 / 20`
+
+Known unvalidated DUT-defect bins remain:
+
+- H11
+- H13
+- H18
+- H19
+- H20
+
+These failures are not treated as missing stimulus.
+
+### L2
+
+Frozen cardinality:
+
+`62 bins`
+
+defined as:
 
 `DependencyDistance x DependentRegister`
 
-with:
+where:
 
-* distance in `{d1, d2}`;
-* dependent register in `{x1, ..., x31}`.
+- distance is `{d1, d2}`;
+- dependent register is `{x1, ..., x31}`;
+- dependency distance is executed-program-order distance.
 
-### Authoritative L1 Validated attribution
+Intent and Validated Coverage remain distinct.
 
-PASS.
+---
 
-Week-9 L1 promotion preserves the frozen Week-5 validation semantics:
+## Authoritative L2 realization
 
-`ValidatedHit = IntentHit AND ControlPass AND ArchitecturalPass`
+The authoritative per-hit contract is:
 
-Week-7 hazard attribution and Week-8 performance results remain independent diagnostic evidence and do not redefine frozen L1 Validated coverage.
+`L2ValidatedHit = Intent AND SourceControlPass AND ProducerArchitecturalPass AND ConsumerArchitecturalPass`
 
-The canonical directed result remains:
+Source-control validation includes:
 
-* L1 Intent: `20 / 20`;
-* L1 Validated: `15 / 20`;
-* unvalidated bins: `H11 H13 H18 H19 H20`.
+- architecturally participating RS1/RS2 source roles;
+- independent expected producer identity;
+- expected forwarding selection;
+- expected stall behavior;
+- simultaneous source-role handling.
 
-### Live integration
+Participant architectural validation includes:
 
-PASS.
+- accepted-PC correctness;
+- writeback correctness;
+- store correctness;
+- successor next-PC correctness;
+- conditional x0 correctness when the participant writes x0.
 
-The live Week-9 verification path was integrated with:
+Promotion is per concrete L2 hit.
 
-* frozen Week-5 execution events;
-* L1 and L2 Intent classification;
-* frozen L1 control realization;
-* frozen architectural validation;
-* Week-7 retire/hazard diagnostics;
-* Week-8 performance diagnostics;
-* Week-9 bounded live coverage coordination.
+A failed occurrence does not permanently poison the bin; a later valid
+occurrence may promote it.
 
-Transient attribution state is removed after resolution rather than retained for the complete campaign.
+Retained realization state is bounded with campaign length.
 
-### Streaming functional equivalence
+---
 
-PASS.
-
-The bounded Week-9 functional checker was compared against the frozen Week-8 FunctionalScoreboard semantics across all canonical directed cases.
-
-No semantic difference was observed in the equivalence regression.
-
-### Streaming timing/performance equivalence
+## Live integration
 
 PASS.
 
-The streaming Timing Oracle v1 implementation reproduces the frozen Week-7 timing expectations without materializing a campaign-length timing schedule.
+Authoritative L2 validation is integrated with the Week-9 streaming RTL
+verification path through:
 
-The bounded performance monitor reproduces frozen Week-8 performance results.
+- frozen Week-5 `ExecutionEvent` classification;
+- independent timing expectations;
+- streaming architectural checks;
+- bounded producer/consumer attribution;
+- successor-PC validation;
+- Week-9 coverage first-hit/checkpoint infrastructure.
 
-The combined streaming functional/timing equivalence regression passed:
+No frozen Week5-Week8 semantics were modified.
+
+---
+
+## Deterministic L2 closure witness
+
+PASS.
+
+Fixture:
+
+`research/week9/gate_t9/fixtures/l2_closure.hex`
+
+Raw log:
+
+`research/week9/gate_t9/closure_logs/l2_closure_100k.log`
+
+Summary:
+
+`research/week9/gate_t9/L2_CLOSURE_EVIDENCE.md`
+
+Authoritative result:
+
+- executed instructions: `100,000`
+- L2 Intent: `62 / 62`
+- L2 Validated: `62 / 62`
+- `n@95%_validated = 31`
+- `n@100%_validated = 33`
+- final 20k new Validated bins: `0`
+- `tail_rate_validated = 0.0`
+- functional failures: `0`
+- performance failures: `0`
+
+Bounded-state maxima:
+
+- unresolved L2 hits: `6`
+- L2 architectural cache entries: `6`
+- recent execution events: `2`
+- performance pending: `3`
+- functional pending: `3`
+
+The deterministic closure witness is Gate-T9 verification evidence and
+is not part of the M1/M2/M3 stochastic comparative dataset.
+
+---
+
+## Saturation / tail criteria
+
+Frozen L2 near closure:
+
+`59 / 62`
+
+Frozen L2 full closure:
 
 `62 / 62`
 
-### Week-9 unit regression
+Frozen tail window:
+
+`20,000 executed instructions`
+
+Frozen threshold:
+
+`0.05 new Validated bins / 1,000 executed instructions`
+
+Observed final tail rate:
+
+`0.0`
+
+Therefore the closure witness satisfies the frozen long-tail criterion
+and complete L2 Validated closure.
+
+---
+
+## Benchmark evidence
+
+The bounded L2-enabled benchmark completed successfully.
+
+Evidence commit:
+
+`970448d test(week9): record l2 validated benchmark evidence`
+
+Five 100k-cycle repetitions demonstrated:
+
+- functional failures: `0`
+- performance failures: `0`
+- bounded retained verification state
+- stable long-run execution
+- authoritative L2 Validated promotion
+
+The benchmark and closure witness serve different purposes:
+
+- benchmark: runtime/stability/bounded-state evidence;
+- closure witness: complete authoritative L2 coverage evidence.
+
+---
+
+## Full regression
 
 PASS.
 
-`200 / 200`
+Final regression:
 
-Week-9 unit tests pass.
+| Stage | Result |
+|---|---:|
+| Week 5 | 142 / 142 |
+| Week 6 | 64 / 64 |
+| Week 7 | 40 / 40 |
+| Week 8 | 36 / 36 |
+| Week 9 | 200 / 200 |
+| Week 10 L2 contract | 24 / 24 |
+| **Total** | **506 / 506** |
 
-### Full frozen regression
+---
 
-PASS.
-
-Final regression counts:
-
-| Verification stage |    Result |
-| ------------------ | --------: |
-| Week 5             | 142 / 142 |
-| Week 6             |   64 / 64 |
-| Week 7             |   40 / 40 |
-| Week 8             |   36 / 36 |
-| Week 9             | 200 / 200 |
-| Total              | 482 / 482 |
-
-### Frozen-tree integrity
+## Frozen-tree integrity
 
 PASS.
 
-The final comparison against `gate-t8` reports:
+Comparison against `gate-t8`:
 
-`frozen_diff=0`
+`frozen_diff = 0`
 
-No files under the frozen trees were modified:
+No modifications were made under:
 
-* `design`;
-* `research/week5`;
-* `research/week6`;
-* `research/week7`;
-* `research/week8`.
+- `design`
+- `research/week5`
+- `research/week6`
+- `research/week7`
+- `research/week8`
 
-## Benchmark v2
+---
 
-PASS for the implemented streaming verification path.
+## Evidence chain
 
-Configuration:
+Relevant commits:
 
-* 5 repetitions;
-* 100,000 cycles per repetition;
-* Verilator 5.034;
-* Cocotb 1.9.2;
-* bounded loop workload;
-* fixed Golden-model data-memory address footprint.
+- `d3201ff` — freeze L2 realization contract
+- `4eaa267` — refine L2 architectural realization contract
+- `65e567b` — implement bounded L2 realization checker
+- `d9c3d04` — add bounded L2 live coverage coordinator
+- `03023f7` — integrate authoritative L2 Validated coverage live
+- `6db8fbb` — integrate bounded L2 Validated benchmark
+- `970448d` — record L2 Validated benchmark evidence
+- `0ccb04d` — demonstrate full authoritative L2 closure
 
-Each run executed:
-
-`66,668 executed instructions`
-
-per:
-
-`100,000 cycles`.
-
-Median results:
-
-| Metric                           |   Median |
-| -------------------------------- | -------: |
-| cycles/s                         | 5212.243 |
-| instructions/s                   | 3474.898 |
-| first-to-second-half degradation |  -0.869% |
-| RSS start-to-mid delta           |  264 KiB |
-| RSS start-to-end delta           |  284 KiB |
-| slowdown vs T5 minimal           |  70.821% |
-| slowdown vs T5 monitor           |  62.566% |
-
-Across all five runs:
-
-* functional failures: `0`;
-* performance failures: `0`;
-* maximum retained performance expectations: `3`;
-* maximum retained functional expectations: `3`.
-
-## Bounded-memory assessment
-
-PASS for the implemented streaming path.
-
-The retained functional and performance structures remained bounded by the number of in-flight instructions rather than campaign length.
-
-Observed maxima were:
-
-`max_retained_performance <= 3`
-
-and:
-
-`max_functional_pending <= 3`.
-
-Median RSS increased by approximately:
-
-`264 KiB`
-
-during the first half of the 100k-cycle run and only approximately:
-
-`20 KiB`
-
-additional RSS from midpoint to end.
-
-No near-linear retained-state growth with executed-instruction count was observed.
-
-The benchmark workload also uses a fixed Golden-model data-memory address footprint, preventing sparse architectural memory from growing with campaign length.
-
-## Throughput assessment
-
-PASS for stability; substantial instrumentation overhead remains.
-
-Median first-to-second-half throughput degradation was:
-
-`-0.869%`
-
-so progressive degradation with campaign length was not observed.
-
-Absolute verification overhead remains significant:
-
-* `70.821%` slowdown versus the T5 minimal baseline;
-* `62.566%` slowdown versus the T5 monitor baseline.
-
-This overhead is retained as a verification-economics result and is not treated as a correctness failure.
-
-At median measured throughput, the estimated runtime for 100,000 executed instructions is approximately:
-
-`28.78 s`
-
-for the benchmark workload and environment.
-
-## L2 Validated Coverage Blocker
-
-BLOCKED.
-
-The frozen L2 specification states:
-
-`ValidatedHit = IntentHit AND RealizationValid`
-
-but does not define a complete per-`L2Hit` realization algorithm.
-
-The frozen implementation provides:
-
-* L2 Intent classification;
-* L2 Validated state storage;
-* `promote_validated()` as a state-promotion primitive.
-
-However, no frozen Week-5 through Week-8 component defines the authoritative mapping:
-
-`L2Hit -> required evidence -> RealizationValid`.
-
-In particular, no frozen rule maps an arbitrary `(distance, register)` L2 hit to one L1 behavioral bin.
-
-Such a mapping cannot be inferred because L2 explicitly excludes the following behavioral dimensions:
-
-* producer type;
-* consumer instruction class;
-* forwarding path;
-* RS1 versus RS2;
-* stall behavior;
-* special writeback source.
-
-Those distinctions are assigned to L1.
-
-Therefore Week 9 intentionally records L2 Intent only and does not invent L2 Validated promotion.
-
-See:
-
-`research/week9/gate_t9/L2_VALIDATION_SPEC_GAP.md`
+---
 
 ## Gate T9 Decision
 
-### PASS
+All required Gate-T9 verification obligations have been satisfied:
 
-* deterministic coverage infrastructure;
-* L1 authoritative validated attribution;
-* live L1 verification integration;
-* streaming functional equivalence;
-* streaming timing/performance equivalence;
-* bounded retained verification state;
-* 5 x 100k-cycle benchmark;
-* RSS stability;
-* throughput/runtime measurement;
-* checkpoint/telemetry infrastructure;
-* complete Week5–Week9 regression;
-* frozen Week5–Week8 tree integrity.
+- deterministic coverage infrastructure: PASS
+- L1 authoritative validation: PASS
+- L2 authoritative validation: PASS
+- live RTL integration: PASS
+- streaming functional verification: PASS
+- streaming timing/performance verification: PASS
+- bounded retained state: PASS
+- benchmark evidence: PASS
+- L2 near closure: PASS
+- L2 full closure: PASS
+- tail-rate criterion: PASS
+- full regression: PASS
+- frozen-tree integrity: PASS
 
-### BLOCKED
-
-* authoritative L2 `RealizationValid` evaluation;
-* live L2 Validated promotion;
-* L2 validated near-closure metrics;
-* L2 validated full-closure metrics;
-* final Gate T9 closure.
-
-## Resolution Required
-
-Gate T9 may be closed only after a new explicit L2 realization contract is frozen.
-
-That contract must define, for each concrete `L2Hit`:
-
-1. authoritative control evidence;
-2. authoritative architectural evidence;
-3. producer/consumer attribution requirements;
-4. forwarding correctness requirements;
-5. handling of simultaneous L2 hits;
-6. repeated-hit promotion semantics after an earlier failed realization;
-7. the exact relationship, if any, between L1 validation and L2 validation;
-8. behavior when authoritative and diagnostic evidence disagree.
-
-Until then:
-
-**Gate T9 remains OPEN / BLOCKED.**
+**Gate T9: CLOSED / PASS**
