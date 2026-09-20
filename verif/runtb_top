@@ -1,8 +1,8 @@
 vlib work
 vdel -all -lib work
 vlib work
-vlog -f compile_verilog
-vsim -gui -L altera_mf_ver work.tb_top
+vlog -f verif/compile_verilog
+vsim -gui work.tb_top
 
 add wave -position end sim:/tb_top/riscV/DATA_W
 add wave -position end sim:/tb_top/riscV/clk

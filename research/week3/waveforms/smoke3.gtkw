@@ -2,10 +2,10 @@
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
 [*] Wed Sep 16 02:11:41 2026
 [*]
-[dumpfile] "/home/logan/nckh/RISC-V-Pipeline/research/week3/waveforms/smoke3.vcd"
+[dumpfile] "research/week3/waveforms/smoke3.vcd"
 [dumpfile_mtime] "Wed Sep 16 01:55:09 2026"
 [dumpfile_size] 62459
-[savefile] "/home/logan/nckh/RISC-V-Pipeline/research/week3/waveforms/smoke3.gtkw"
+[savefile] "research/week3/waveforms/smoke3.gtkw"
 [timestart] 0
 [size] 1385 600
 [pos] 34185 32964

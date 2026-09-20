@@ -302,33 +302,43 @@ No known defect is reinterpreted as missing stimulus.
 
 ## 9. Complexity
 
-Expected values are indexed by `instruction_id`.
+Expected values are indexed by `instruction_id` using Python dictionaries.
 
-Functional checking therefore requires constant-time expected-value lookup per observed instruction:
+For ordinary Python dictionary operation, expected-value lookup is **average-case** constant time:
 
-$$
+$
 T_F=O(1)
-$$
+$
 
-Performance checking similarly requires:
+for the Functional Scoreboard and:
 
-$$
+$
 T_P=O(1)
-$$
+$
 
-per retired instruction.
+for the Performance Monitor per retired instruction.
 
-For \(N\) executed instructions:
+Therefore, online checking over \(N\) retired instructions is:
 
-$$
-T(N)=O(N)
-$$
+$
+T_{online}(N)=O(N)
+$
+
+on average.
 
 Stored expectation and result logs require:
 
-$$
+$
 S(N)=O(N)
-$$
+$
+
+Some final reporting operations sort instruction IDs (for example, missing-ID reporting), so those reporting paths may require:
+
+$
+T_{report}(N)=O(N\log N)
+$
+
+This does not change the per-retirement online-checking cost.
 
 Verification-side pipeline identity tracking remains bounded by the fixed pipeline depth.
 
