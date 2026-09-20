@@ -1,6 +1,6 @@
 # SIGNAL_INVENTORY
 
-Nguồn: baseline.vcd — cây SST GTKWave (tb_top → riscV → dp → ...) + RTL
+Nguồn: `research/waveforms/program_b.vcd` — cây SST GTKWave (`tb_top → riscV → dp → ...`) + RTL.
 
 ## Mục A — Architectural observability
 | Signal | Đường dẫn | Width | Mô tả |

@@ -1,0 +1,182 @@
+{
+  "T01": {
+    "description": "ALU d1 -> RS1_ONLY/RS1",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T01.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H01"
+  },
+  "T02": {
+    "description": "ALU d1 -> RS2",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T02.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H02"
+  },
+  "T03": {
+    "description": "ALU d2 -> RS1_ONLY/RS1",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T03.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H03"
+  },
+  "T04": {
+    "description": "ALU d2 -> RS2",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T04.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H04"
+  },
+  "T05": {
+    "description": "LOAD producer visible through RF at executed d3",
+    "expected_accepted": 4,
+    "hex_file": "research/week5/rtl/fixtures/l1/T05.hex",
+    "instruction_count": 4,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H05"
+  },
+  "T06": {
+    "description": "LOAD d1 -> RS1_ONLY/RS1",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T06.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 1,
+    "target_bin": "H06"
+  },
+  "T07": {
+    "description": "LOAD d1 -> RS2",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T07.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 1,
+    "target_bin": "H07"
+  },
+  "T08": {
+    "description": "LOAD d2 -> RS1_ONLY/RS1",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T08.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H08"
+  },
+  "T09": {
+    "description": "LOAD d2 -> RS2",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T09.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H09"
+  },
+  "T10": {
+    "description": "Dual ALU producers: d1 on RS1 and d2 on RS2",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T10.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H10"
+  },
+  "T11": {
+    "description": "LUI/IMM d1 -> RS1",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T11.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H11"
+  },
+  "T12": {
+    "description": "LUI/IMM d2 -> RS1",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T12.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H12"
+  },
+  "T13": {
+    "description": "AUIPC/PC_PLUS_IMM d1 -> RS1",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T13.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H13"
+  },
+  "T14": {
+    "description": "AUIPC/PC_PLUS_IMM d2 -> RS1",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T14.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H14"
+  },
+  "T15": {
+    "description": "JAL link -> next executed target consumer",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T15.hex",
+    "instruction_count": 4,
+    "oracle_redirect": true,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H15"
+  },
+  "T16": {
+    "description": "ALU d1 -> STORE data/RS2",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T16.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H16"
+  },
+  "T17": {
+    "description": "newest d1 writer must dominate older d2 writer",
+    "expected_accepted": 3,
+    "hex_file": "research/week5/rtl/fixtures/l1/T17.hex",
+    "instruction_count": 3,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H17"
+  },
+  "T18": {
+    "description": "x0 destination followed by architectural x0 source",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T18.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H18"
+  },
+  "T19": {
+    "description": "LOAD-to-x0 must not create architectural RAW stall",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T19.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H19"
+  },
+  "T20": {
+    "description": "unused OP-IMM raw rs2 field matches LOAD rd",
+    "expected_accepted": 2,
+    "hex_file": "research/week5/rtl/fixtures/l1/T20.hex",
+    "instruction_count": 2,
+    "oracle_redirect": false,
+    "oracle_stall_cycles": 0,
+    "target_bin": "H20"
+  }
+}

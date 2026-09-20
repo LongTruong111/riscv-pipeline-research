@@ -1,0 +1,73 @@
+=== Representative RV32I objdump cross-check ===
+
+/tmp/t6_objdump_check.o:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <_start>:
+   0:	fff00093          	li	ra,-1
+   4:	002081b3          	add	gp,ra,sp
+   8:	0002a203          	lw	tp,0(t0)
+   c:	0042a223          	sw	tp,4(t0)
+  10:	12345337          	lui	t1,0x12345
+  14:	23456397          	auipc	t2,0x23456
+  18:	0200046f          	jal	s0,38 <target>
+  1c:	010504e7          	jalr	s1,16(a0)
+  20:	00208c63          	beq	ra,sp,38 <target>
+  24:	00209a63          	bne	ra,sp,38 <target>
+  28:	0020c863          	blt	ra,sp,38 <target>
+  2c:	0020d663          	bge	ra,sp,38 <target>
+  30:	0020e463          	bltu	ra,sp,38 <target>
+  34:	0020f263          	bgeu	ra,sp,38 <target>
+
+00000038 <target>:
+  38:	00000013          	nop
+
+=== Branch +8 cross-check ===
+
+/tmp/t6_branch_check.o:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <_start>:
+   0:	00208463          	beq	ra,sp,8 <.L1^B1>
+   4:	00000013          	nop
+
+00000008 <.L1^B1>:
+   8:	00209463          	bne	ra,sp,10 <.L2^B1>
+   c:	00000013          	nop
+
+00000010 <.L2^B1>:
+  10:	0020c463          	blt	ra,sp,18 <.L3^B1>
+  14:	00000013          	nop
+
+00000018 <.L3^B1>:
+  18:	0020d463          	bge	ra,sp,20 <.L4^B1>
+  1c:	00000013          	nop
+
+00000020 <.L4^B1>:
+  20:	0020e463          	bltu	ra,sp,28 <.L5^B1>
+  24:	00000013          	nop
+
+00000028 <.L5^B1>:
+  28:	0020f463          	bgeu	ra,sp,30 <.L6^B1>
+  2c:	00000013          	nop
+
+00000030 <.L6^B1>:
+  30:	00000013          	nop
+
+=== JAL +8 cross-check ===
+
+/tmp/t6_jal_check.o:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <_start>:
+   0:	008002ef          	jal	t0,8 <.L1^B1>
+   4:	00000013          	nop
+
+00000008 <.L1^B1>:
+   8:	00000013          	nop

@@ -2,10 +2,8 @@
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
 [*] Sun Sep 13 09:45:27 2026
 [*]
-[dumpfile] "/home/logan/nckh/RISC-V-Pipeline/research/waveforms/baseline.vcd"
-[dumpfile_mtime] "Sun Sep 13 08:48:23 2026"
-[dumpfile_size] 89588
-[savefile] "/home/logan/nckh/RISC-V-Pipeline/research/waveforms/baseline.gtkw"
+[dumpfile] "research/waveforms/program_b.vcd"
+[savefile] "research/waveforms/program_b.gtkw"
 [timestart] 0
 [size] 1000 820
 [pos] 1158 -542

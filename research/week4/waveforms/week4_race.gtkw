@@ -1,0 +1,24 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Wed Sep 16 10:24:47 2026
+[*]
+[dumpfile] "research/week4/waveforms/week4_race.vcd"
+[dumpfile_mtime] "Wed Sep 16 10:16:28 2026"
+[dumpfile_size] 704
+[savefile] "research/week4/waveforms/week4_race.gtkw"
+[timestart] 0
+[size] 2868 1767
+[pos] 34687 32767
+*-13.648517 20900 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 214
+[signals_width] 110
+[sst_expanded] 1
+[sst_vpaned_height] 562
+@28
+week4_counter.clk
+week4_counter.rst_n
+week4_counter.en
+@23
+week4_counter.count[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

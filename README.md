@@ -1,72 +1,122 @@
-# Pipelined RISC-V Processor
+# RISC-V Pipeline Verification Research
 
-This repository contains a SystemVerilog implementation of a RISC-V processor project. The main objective of this project is to provide a reliable and high-performance solution for executing RISC-V instructions.
+This repository extends an existing pipelined RISC-V SystemVerilog core with a staged verification-research workflow. The DUT is intentionally frozen after Gate T3 so later work can evaluate verification methods against a stable baseline rather than silently repairing observed defects.
 
-## Repository Structure
-The repository is structured as follows:
-- [`design`](/design): Contains the source code of the RISC-V processor project.
-- [`doc`](/doc): Contains the report.
-- [`sim`](/sim): Contains the simulation files and its results.
-- [`verif`](/verif): Contains the testbench files.
+## Current Research State
 
-## Resources
-- For additional information on the implementation, please refer to the [report.pdf](doc/report.pdf).
-- To get started with the RISC-V instruction set, please refer to:
-  - [The RISC-V Instruction Set Manual Volume I: User-Level ISA - Document Version 2.2](https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf)
-  - [The RISC-V Instruction Set Manual Volume I: Unprivileged ISA - Document Version 20191213](https://riscv.org/wp-content/uploads/2019/12/riscv-spec-20191213.pdf)
-- To simulate and test the RISC-V processor project, please use the following software: [ModelSim-Intel® FPGAs Standard Edition Software Version 20.1.1](https://www.intel.com/content/www/us/en/software-kit/750666/modelsim-intel-fpgas-standard-edition-software-version-20-1-1.html)
+The active research line has progressed through:
 
-## Instructions
-The following table lists the implemented instructions and their status. The instructions are listed in the order they appear in the RISC-V ISA manual.
+- **Gate T3** — DUT reconnaissance, independent smoke validation, and RTL freeze.
+- **Week 4** — simulator scheduling/timing contract and race experiments.
+- **Gate T5** — hazard-space definition, executable coverage model, directed realization checks, and performance preflight.
+- **Gate T6** — independent Golden Functional Model and bounded Timing Oracle v0.
+- **Gate T7** — Timing Oracle v1, retire monitoring, hazard attribution, and reset-boundary validation.
+- **Gate T8** — independent Functional Scoreboard, Performance Monitor, and cross-verdict classification.
 
-| # | Instruction | Implemented | Tested | Working |
-|---|-------------|:-----------:|:------:|:-------:|
-| 1 | `LUI`       |     ✅     |   ✅   |   ✅   | 
-| 2 | `AUIPC`     |     ✅     |   ✅   |   ✅   | 
-| 3 | `JAL`       |     ✅     |   ✅   |   ✅   | 
-| 4 | `JALR`      |     ✅     |   ✅   |   ✅   | 
-| 5 | `BEQ`       |     ✅     |   ✅   |   ✅   | 
-| 6 | `BNE`       |     ✅     |   ✅   |   ✅   | 
-| 7 | `BLT`       |     ✅     |   ✅   |   ✅   | 
-| 8 | `BGE`       |     ✅     |   ✅   |   ✅   | 
-| 9 | `BLTU`      |     ✅     |   ✅   |   ✅   | 
-| 10| `BGEU`      |     ✅     |   ✅   |   ✅   | 
-| 11| `LB`        |     ✅     |   ✅   |   ✅   | 
-| 12| `LH`        |     ✅     |   ✅   |   ✅   | 
-| 13| `LW`        |     ✅     |   ✅   |   ✅   | 
-| 14| `LBU`       |     ✅     |   ✅   |   ✅   | 
-| 15| `LHU`       |     ✅     |   ✅   |   ✅   | 
-| 16| `SB`        |     ✅     |   ✅   |   ✅   | 
-| 17| `SH`        |     ✅     |   ✅   |   ✅   | 
-| 18| `SW`        |     ✅     |   ✅   |   ✅   | 
-| 19| `ADDI`      |     ✅     |   ✅   |   ✅   | 
-| 20| `SLTI`      |     ✅     |   ✅   |   ✅   | 
-| 21| `SLTIU`     |     ✅     |   ✅   |   ✅   | 
-| 22| `XORI`      |     ✅     |   ✅   |   ✅   | 
-| 23| `ORI`       |     ✅     |   ✅   |   ✅   | 
-| 24| `ANDI`      |     ✅     |   ✅   |   ✅   | 
-| 25| `SLLI`      |     ✅     |   ✅   |   ✅   | 
-| 26| `SRLI`      |     ✅     |   ✅   |   ✅   | 
-| 27| `SRAI`      |     ✅     |   ✅   |   ✅   | 
-| 28| `ADD`       |     ✅     |   ✅   |   ✅   | 
-| 29| `SUB`       |     ✅     |   ✅   |   ✅   | 
-| 30| `SLL`       |     ✅     |   ✅   |   ✅   | 
-| 31| `SLT`       |     ✅     |   ✅   |   ✅   | 
-| 32| `SLTU`      |     ✅     |   ✅   |   ✅   | 
-| 33| `XOR`       |     ✅     |   ✅   |   ✅   | 
-| 34| `SRL`       |     ✅     |   ✅   |   ✅   | 
-| 35| `SRA`       |     ✅     |   ✅   |   ✅   | 
-| 36| `OR`        |     ✅     |   ✅   |   ✅   | 
-| 37| `AND`       |     ✅     |   ✅   |   ✅   | 
-| 38| `FENCE`     |     ❌     |   ❌   |   ❌   | 
-| 39| `ECALL`     |     ❌     |   ❌   |   ❌   | 
-| 40| `EBREAK`    |     ❌     |   ❌   |   ❌   | 
+Gate-closure evidence is kept under `research/week*/`. The frozen DUT is under `design/`.
 
-## [Contributors](https://github.com/estufa-cin-ufpe/RISC-V-Pipeline/graphs/contributors)
+## Important Baseline Constraint
 
-- [joaopmarinho](https://github.com/joaopmarinho)
-- [nathaliafab](https://github.com/nathaliafab)
+The project does **not** claim that every implemented RV32I instruction is defect-free. The research baseline deliberately retains known DUT defects so the verification environment can detect and classify them.
 
-## Acknowledgements
+The frozen known defect set currently includes:
 
-We extend our appreciation to [Yifan Xu](https://github.com/yifax/RISC-V-PipeLine) for their project, which provided the groundwork for this repository.
+- H11
+- H13
+- H18
+- H19
+- H20
+
+See `research/week5/rtl/CONTROL_REALIZATION_FINDINGS.md` and later gate-closure documents for the evidence and attribution.
+
+## Repository Layout
+
+```text
+design/                 Frozen SystemVerilog DUT
+verif/                  Legacy/original verification utilities and testbench
+sim/                    Original simulation examples + ignored runtime outputs
+tests/                  Week-4 scheduler/timing probe
+research/
+  rtl_audit/             RTL reconnaissance
+  signals/               Signal inventory and observability work
+  waveforms/             Curated historical waveform evidence
+  week3/                 Smoke validation + DUT freeze evidence
+  week4/                 Timing/race contract
+  week5/                 vPlan, coverage, directed realization, preflight
+  week6/                 Golden functional model + Timing Oracle v0
+  week7/                 Timing Oracle v1 + retire/attribution monitors
+  week8/                 Functional/performance scoreboard integration
+```
+
+Generated build products, Python caches, simulator result XML, and ordinary runtime waveforms are intentionally ignored.
+
+## Python Regression
+
+Python 3.10 is the frozen development baseline.
+
+```bash
+python3 -m pip install -r requirements.txt
+pytest research/week5/impl/tests -q
+pytest research/week6/tests -q
+pytest research/week7/tests -q
+pytest research/week8/tests -q
+```
+
+The Gate-T8 baseline recorded:
+
+```text
+Week 5: 142 passed
+Week 6: 64 passed
+Week 7: 40 passed
+Week 8: 36 passed
+```
+
+These counts are historical gate evidence; rerun the commands above after any maintenance change.
+
+## Live RTL Regression
+
+Live RTL tests are cocotb tests and must be launched through their simulator runners, not by invoking the cocotb test modules directly with pytest.
+
+Gate T8 directed live cases:
+
+```bash
+for c in T01 T11 T19 T20; do
+    research/week8/rtl/run_week8_case.sh "$c"
+done
+```
+
+Expected classification coverage:
+
+- T01: `CORRECT_ON_TIME`
+- T11: `FUNCTIONAL_ONLY_FAIL`
+- T19: `PERFORMANCE_ONLY_FAIL`
+- T20: `PERFORMANCE_ONLY_FAIL`
+
+The runners mutate the root `instruction.hex` only temporarily and restore it on exit. Because that file is shared, live RTL cases must be run **sequentially**, not in parallel.
+
+## Runtime vs. Evidence Artifacts
+
+Runtime simulator outputs belong in ignored locations such as `sim/` or `sim_build/`.
+
+Curated logs and waveforms already committed under `research/` are historical experimental evidence and should not be overwritten by ordinary regression runs.
+
+## Tool Baseline
+
+The recorded Week-5 environment includes:
+
+- Ubuntu 22.04 / WSL2
+- Python 3.10.12
+- cocotb 1.9.2
+- pytest 8.3.2
+- Icarus Verilog 11.0
+- Verilator 5.034
+
+See `research/week5/gate_t5/ENVIRONMENT_MANIFEST.txt` for the complete captured environment.
+
+## Upstream Provenance
+
+This repository is based on the pipelined RISC-V implementation by the original project contributors and the earlier work acknowledged by that project. The research layer in `research/` is additive and preserves the DUT baseline for verification experiments.
+
+## Scope
+
+The research claims are limited to the explicitly declared verification scope in the versioned vPlan and gate documents. They should not be interpreted as proof of complete RV32I correctness.
