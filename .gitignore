@@ -10,3 +10,6 @@ __pycache__/
 # Generated waveforms
 *.vcd
 *.fst
+
+# Pytest artifacts
+.pytest_cache/
