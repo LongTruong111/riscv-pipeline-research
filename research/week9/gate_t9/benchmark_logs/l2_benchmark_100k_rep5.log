@@ -1,0 +1,25 @@
+rm -f results.xml
+"make" -f research/week9/benchmark/Makefile results.xml
+make[1]: Entering directory '/home/logan/nckh/RISC-V-Pipeline'
+rm -f results.xml
+MODULE=test_week9_benchmark TESTCASE= TOPLEVEL=execution_stream_tb TOPLEVEL_LANG=verilog \
+         /home/logan/nckh/RISC-V-Pipeline/sim_build/week9_benchmark/Vtop    
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:79   in set_program_name_in_venv        Did not detect Python virtual environment. Using system-wide Python interpreter
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:101  in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Verilator version 5.034 2025-02-24
+     0.00ns INFO     cocotb                             Running tests with cocotb v1.9.2 from /home/logan/.local/lib/python3.10/site-packages/cocotb
+     0.00ns INFO     cocotb                             Seeding Python random module with 1789920636
+     0.00ns INFO     cocotb.regression                  Found test test_week9_benchmark.test_week9_streaming_benchmark
+     0.00ns INFO     cocotb.regression                  running test_week9_streaming_benchmark (1/1)
+1000030.00ns INFO     cocotb.execution_stream_tb         WEEK9_BENCHMARK_RESULT cycles=100000 instructions=66668 wall_s=21.678986 cycles_per_s=4612.762 instructions_per_s=3075.236 first_half_cps=4562.480 second_half_cps=4664.164 throughput_degradation_pct=-2.229 rss_start_kib=34656 rss_mid_kib=35232 rss_end_kib=35232 rss_mid_delta_kib=576 rss_end_delta_kib=576 max_perf_pending=3 max_functional_pending=3 functional_failures=0 performance_failures=0 l1_intent=3 l2_intent=4 l2_validated=4 max_l2_pending=2 max_l2_arch_cache=6 max_recent_events=2 checkpoints=66 slowdown_vs_t5_minimal_pct=74.177 slowdown_vs_t5_monitor_pct=66.872 est_100k_cycles_s=21.679 est_100k_instr_s=32.518
+1000030.00ns INFO     cocotb.regression                  test_week9_streaming_benchmark passed
+1000030.00ns INFO     cocotb.regression                  *************************************************************************************************************
+                                                         ** TEST                                                 STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                         *************************************************************************************************************
+                                                         ** test_week9_benchmark.test_week9_streaming_benchmark   PASS     1000030.00          21.68      46125.52  **
+                                                         *************************************************************************************************************
+                                                         ** TESTS=1 PASS=1 FAIL=0 SKIP=0                                   1000030.00          21.75      45984.60  **
+                                                         *************************************************************************************************************
+                                                         
+- :0: Verilog $finish
+make[1]: Leaving directory '/home/logan/nckh/RISC-V-Pipeline'

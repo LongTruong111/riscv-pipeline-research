@@ -1,0 +1,29 @@
+Week9 Gate T9 - L2 Validated 100k Benchmark Evidence
+
+Runs: 5
+Cycles per run: 100000
+Expected executed instructions/run: 66668
+
+rep1: cycles_per_s=4731.235 instructions_per_s=3154.220 rss_end_delta_kib=576 l2=4/4 pending=2 arch_cache=6 recent_events=2
+rep2: cycles_per_s=4788.397 instructions_per_s=3192.328 rss_end_delta_kib=576 l2=4/4 pending=2 arch_cache=6 recent_events=2
+rep3: cycles_per_s=4756.242 instructions_per_s=3170.892 rss_end_delta_kib=572 l2=4/4 pending=2 arch_cache=6 recent_events=2
+rep4: cycles_per_s=4664.577 instructions_per_s=3109.780 rss_end_delta_kib=576 l2=4/4 pending=2 arch_cache=6 recent_events=2
+rep5: cycles_per_s=4612.762 instructions_per_s=3075.236 rss_end_delta_kib=576 l2=4/4 pending=2 arch_cache=6 recent_events=2
+
+median_cycles_per_s=4731.235
+median_instructions_per_s=3154.220
+median_rss_mid_delta_kib=576
+median_rss_end_delta_kib=576
+max_l2_pending=2
+max_l2_arch_cache=6
+max_recent_events=2
+functional_failures=0
+performance_failures=0
+l2_intent=4
+l2_validated=4
+
+previous_week9_median_cycles_per_s=5212.243
+relative_cycles_per_s_change_pct=-9.228
+
+NOTE: relative throughput change is recorded as evidence;
+no new acceptance threshold is introduced here.
