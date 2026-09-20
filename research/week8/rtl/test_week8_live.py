@@ -59,7 +59,7 @@ async def reset_dut(dut):
 async def test_week8_live_classification(dut):
     case_id = os.environ["CASE"]
 
-    assert case_id in {"T01", "T19", "T20"}
+    assert case_id in {"T01", "T11", "T19", "T20"}
 
     case = DIRECTED_CASES[case_id]
 
@@ -280,6 +280,31 @@ async def test_week8_live_classification(dut):
             item == CrossVerdictClass.CORRECT_ON_TIME
             for item in classifications
         )
+
+    elif case_id == "T11":
+        assert len(verdicts) == 2
+
+        assert (
+            verdicts[0].classification
+            == CrossVerdictClass.CORRECT_ON_TIME
+        )
+
+        assert (
+            verdicts[1].classification
+            == CrossVerdictClass.FUNCTIONAL_ONLY_FAIL
+        )
+
+        assert not verdicts[1].functional_pass
+        assert verdicts[1].performance_pass
+
+        assert verdicts[1].functional_failed_checks == (
+            "write_data",
+        )
+
+        assert verdicts[1].timing_delta_cycles == 0
+
+        assert functional.failed_count == 1
+        assert performance.failed_count == 0
 
     elif case_id in {"T19", "T20"}:
         assert all(

@@ -4,10 +4,10 @@ set -euo pipefail
 CASE="${1:-}"
 
 case "${CASE}" in
-    T01|T19|T20)
+    T01|T11|T19|T20)
         ;;
     *)
-        echo "usage: $0 {T01|T19|T20}" >&2
+        echo "usage: $0 {T01|T11|T19|T20}" >&2
         exit 2
         ;;
 esac
