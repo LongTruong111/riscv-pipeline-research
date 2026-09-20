@@ -37,6 +37,29 @@ def _decode_b_imm(instruction: int) -> int:
 
     return _sign_extend(raw, 13)
 
+def _decode_s_imm(instruction: int) -> int:
+    raw = (
+        (((instruction >> 25) & 0x7F) << 5)
+        | ((instruction >> 7) & 0x1F)
+    )
+
+    return _sign_extend(raw, 12)
+
+
+def _decode_u_imm(instruction: int) -> int:
+    return instruction & 0xFFFFF000
+
+
+def _decode_j_imm(instruction: int) -> int:
+    raw = (
+        (((instruction >> 31) & 0x1) << 20)
+        | (((instruction >> 12) & 0xFF) << 12)
+        | (((instruction >> 20) & 0x1) << 11)
+        | (((instruction >> 21) & 0x3FF) << 1)
+    )
+
+    return _sign_extend(raw, 21)
+
 @dataclass(frozen=True, slots=True)
 class DecodedInstruction:
     opcode: int
@@ -88,18 +111,27 @@ def decode_instruction(instruction: int) -> Optional[DecodedInstruction]:
             "ALU_RESULT", "RS1_RS2",
             mnemonic, funct3, funct7, None,
         )
+
     if opcode == OP_LOAD:
+        mnemonic = "LW" if funct3 == 0b010 else "LOAD"
+
         return DecodedInstruction(
             opcode, rs1, rs2, rd,
             True, False, True,
             "MEM_DATA", "RS1_ONLY",
+            mnemonic, funct3, funct7,
+            _decode_i_imm(instruction),
         )
 
     if opcode == OP_STORE:
+        mnemonic = "SW" if funct3 == 0b010 else "STORE"
+
         return DecodedInstruction(
             opcode, rs1, rs2, rd,
             True, True, False,
             "NONE", "RS1_RS2",
+            mnemonic, funct3, funct7,
+            _decode_s_imm(instruction),
         )
 
     if opcode == OP_IMM:
@@ -138,18 +170,26 @@ def decode_instruction(instruction: int) -> Optional[DecodedInstruction]:
             mnemonic, funct3, funct7,
             _decode_b_imm(instruction),
         )
+
     if opcode == OP_JAL:
         return DecodedInstruction(
             opcode, rs1, rs2, rd,
             False, False, True,
             "PC_PLUS_4", "NO_GPR_SOURCE",
+            "JAL", funct3, funct7,
+            _decode_j_imm(instruction),
         )
 
     if opcode == OP_JALR:
+        if funct3 != 0b000:
+            return None
+
         return DecodedInstruction(
             opcode, rs1, rs2, rd,
             True, False, True,
             "PC_PLUS_4", "RS1_ONLY",
+            "JALR", funct3, funct7,
+            _decode_i_imm(instruction),
         )
 
     if opcode == OP_LUI:
@@ -157,6 +197,8 @@ def decode_instruction(instruction: int) -> Optional[DecodedInstruction]:
             opcode, rs1, rs2, rd,
             False, False, True,
             "IMM", "NO_GPR_SOURCE",
+            "LUI", funct3, funct7,
+            _decode_u_imm(instruction),
         )
 
     if opcode == OP_AUIPC:
@@ -164,6 +206,7 @@ def decode_instruction(instruction: int) -> Optional[DecodedInstruction]:
             opcode, rs1, rs2, rd,
             False, False, True,
             "PC_PLUS_IMM", "NO_GPR_SOURCE",
+            "AUIPC", funct3, funct7,
+            _decode_u_imm(instruction),
         )
-
     return None
