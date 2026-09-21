@@ -296,6 +296,65 @@ A4 requires distinct d1 and d2 target registers.
 
 A9 attributes only the newest writer.
 
+### A4 Dual-Target Resolution
+
+A4 must satisfy:
+
+```text
+R_d1 != R_d2
+```
+
+Let:
+
+```text
+U_d1 = uncovered positive registers for d1
+U_d2 = uncovered positive registers for d2
+```
+
+A4 selects an ordered register pair:
+
+```text
+(R_d1, R_d2)
+```
+
+subject to:
+
+```text
+R_d1 != R_d2
+```
+
+For every valid pair, define:
+
+```text
+opportunity_score =
+    1[R_d1 in U_d1] +
+    1[R_d2 in U_d2]
+```
+
+The targeting policy selects uniformly, using the experiment RNG,
+among valid pairs having the maximum `opportunity_score`.
+
+This rule maximizes the number of currently uncovered L2 Intent
+opportunities realized by A4 while preserving the frozen
+distinct-register constraint.
+
+If both distances have the same single uncovered register, both bins
+cannot be targeted simultaneously because A4 requires distinct
+registers. In that case, the maximum opportunity score is one, and the
+seeded tie-break determines which distance receives the uncovered
+register.
+
+If a distance is saturated, it contributes no uncovered-opportunity
+score. Its register is selected from the remaining legal positive
+registers subject to the A4 distinctness constraint.
+
+This rule affects only register targeting. It does not modify reward,
+coverage attribution, or arm-selection policy.
+
+All candidate register collections must be placed into a canonical
+deterministic order before seeded random selection. Python set/hash
+iteration order must not affect the generated trace.
+
 ---
 
 ## 12. Template and Filler Policy
