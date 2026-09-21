@@ -37,6 +37,13 @@ module adaptive_execution_stream_tb;
     logic [8:0]  imem_patch_addr;
     logic [31:0] imem_patch_data;
 
+    logic [15:0] imem_patch_index;
+
+    assign imem_patch_index = {
+        7'b0,
+        imem_patch_addr
+    };
+
     riscv core (
         .clk           (clk),
         .reset         (reset),
@@ -74,21 +81,21 @@ module adaptive_execution_stream_tb;
             );
         end
 
-        core.dp.instr_mem.meminst.memBlock0.mem[
-            imem_patch_addr
-        ] = imem_patch_data[7:0];
+    core.dp.instr_mem.meminst.memBlock0.mem[
+        imem_patch_index
+    ] = imem_patch_data[7:0];
 
-        core.dp.instr_mem.meminst.memBlock1.mem[
-            imem_patch_addr + 9'd1
-        ] = imem_patch_data[15:8];
+    core.dp.instr_mem.meminst.memBlock1.mem[
+        imem_patch_index + 16'd1
+    ] = imem_patch_data[15:8];
 
-        core.dp.instr_mem.meminst.memBlock2.mem[
-            imem_patch_addr + 9'd2
-        ] = imem_patch_data[23:16];
+    core.dp.instr_mem.meminst.memBlock2.mem[
+        imem_patch_index + 16'd2
+    ] = imem_patch_data[23:16];
 
-        core.dp.instr_mem.meminst.memBlock3.mem[
-            imem_patch_addr + 9'd3
-        ] = imem_patch_data[31:24];
+    core.dp.instr_mem.meminst.memBlock3.mem[
+       imem_patch_index + 16'd3
+    ] = imem_patch_data[31:24];
     end
 
     /*
