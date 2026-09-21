@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Tuple
 
+from research.week5.impl.execution_event import (
+    ExecutionEvent,
+)
 from research.week10.adaptive.epoch_coordinator import (
     AdaptiveEpochCoordinator,
     EpochStart,
@@ -426,6 +429,301 @@ class BoundedProgramRing:
 
         return oldest
 
+@dataclass(frozen=True)
+class AcceptedBlockResult:
+    """
+    Immutable completion record for one fully consumed stream block.
+    """
+
+    template_instance_id: int
+    first_instruction_index: int
+    last_instruction_index: int
+    accepted_instruction_count: int
+
+    def __post_init__(self) -> None:
+        if self.template_instance_id <= 0:
+            raise ValueError(
+                "template_instance_id must be positive"
+            )
+
+        if self.first_instruction_index <= 0:
+            raise ValueError(
+                "first_instruction_index must be positive"
+            )
+
+        if (
+            self.last_instruction_index
+            < self.first_instruction_index
+        ):
+            raise ValueError(
+                "last_instruction_index precedes first"
+            )
+
+        if self.accepted_instruction_count <= 0:
+            raise ValueError(
+                "accepted_instruction_count must be positive"
+            )
+
+        if (
+            self.last_instruction_index
+            - self.first_instruction_index
+            + 1
+            != self.accepted_instruction_count
+        ):
+            raise ValueError(
+                "accepted instruction range is not contiguous"
+            )
+
+
+class StreamExecutionMismatch(RuntimeError):
+    """
+    Raised when RTL accepted-program order diverges from the planned
+    stream.
+    """
+
+
+class AcceptedStreamTracker:
+    """
+    Validate planned stream blocks against the architectural accepted
+    ExecutionEvent stream.
+
+    This tracker uses only executed-program-order events. Clock cycles,
+    stalls, and flushed/wrong-path instructions do not advance it.
+
+    Memory usage is bounded by the blocks currently resident in the
+    runtime IMEM ring.
+    """
+
+    def __init__(
+        self,
+        *,
+        first_expected_instruction_index: int = 1,
+    ) -> None:
+        if (
+            isinstance(
+                first_expected_instruction_index,
+                bool,
+            )
+            or not isinstance(
+                first_expected_instruction_index,
+                int,
+            )
+            or first_expected_instruction_index <= 0
+        ):
+            raise ValueError(
+                "first_expected_instruction_index "
+                "must be positive"
+            )
+
+        self._blocks: list[
+            PlannedStreamBlock
+        ] = []
+
+        self._block_progress = 0
+
+        self._next_expected_instruction_index = (
+            first_expected_instruction_index
+        )
+
+        self._accepted_count = 0
+
+    @property
+    def accepted_count(self) -> int:
+        return self._accepted_count
+
+    @property
+    def next_expected_instruction_index(
+        self,
+    ) -> int:
+        return (
+            self._next_expected_instruction_index
+        )
+
+    @property
+    def pending_block_count(self) -> int:
+        return len(self._blocks)
+
+    @property
+    def current_block(
+        self,
+    ) -> PlannedStreamBlock | None:
+        if not self._blocks:
+            return None
+
+        return self._blocks[0]
+
+    def enqueue(
+        self,
+        block: PlannedStreamBlock,
+    ) -> None:
+        if not isinstance(
+            block,
+            PlannedStreamBlock,
+        ):
+            raise TypeError(
+                "block must be PlannedStreamBlock"
+            )
+
+        if self._blocks:
+            previous = self._blocks[-1]
+
+            expected_logical_start = (
+                previous.logical_word_end_exclusive
+            )
+
+            if (
+                block.logical_word_start
+                != expected_logical_start
+            ):
+                raise StreamExecutionMismatch(
+                    "accepted-stream blocks are not "
+                    "logically contiguous"
+                )
+
+        expected_first_index = (
+            self._next_expected_instruction_index
+            + sum(
+                pending.expected_executed_instruction_count
+                for pending in self._blocks
+            )
+        )
+
+        if (
+            block.first_executed_instruction_index
+            != expected_first_index
+        ):
+            raise StreamExecutionMismatch(
+                "block executed-index layout is not contiguous: "
+                f"expected={expected_first_index}, "
+                f"observed="
+                f"{block.first_executed_instruction_index}"
+            )
+
+        self._blocks.append(
+            block
+        )
+
+    def observe(
+        self,
+        event: ExecutionEvent,
+    ) -> AcceptedBlockResult | None:
+        """
+        Consume exactly one architecturally accepted instruction.
+
+        Returns AcceptedBlockResult only when the event completes the
+        current stream block.
+        """
+        if not isinstance(
+            event,
+            ExecutionEvent,
+        ):
+            raise TypeError(
+                "event must be ExecutionEvent"
+            )
+
+        if not self._blocks:
+            raise StreamExecutionMismatch(
+                "accepted instruction arrived with "
+                "no planned stream block"
+            )
+
+        if (
+            event.instruction_index
+            != self._next_expected_instruction_index
+        ):
+            raise StreamExecutionMismatch(
+                "accepted instruction_index mismatch: "
+                f"expected="
+                f"{self._next_expected_instruction_index}, "
+                f"observed={event.instruction_index}"
+            )
+
+        block = self._blocks[0]
+
+        expected_pcs = (
+            block.expected_executed_pcs
+        )
+
+        expected_words = (
+            block.expected_executed_words
+        )
+
+        if (
+            self._block_progress
+            >= len(expected_pcs)
+        ):
+            raise RuntimeError(
+                "stream block progress overflow"
+            )
+
+        expected_pc = expected_pcs[
+            self._block_progress
+        ]
+
+        expected_word = expected_words[
+            self._block_progress
+        ]
+
+        if event.pc != expected_pc:
+            raise StreamExecutionMismatch(
+                "accepted PC diverged from stream plan: "
+                f"instruction_index={event.instruction_index}, "
+                f"expected_pc=0x{expected_pc:03x}, "
+                f"observed_pc=0x{event.pc:03x}"
+            )
+
+        if event.instruction != expected_word:
+            raise StreamExecutionMismatch(
+                "accepted instruction word diverged "
+                "from stream plan: "
+                f"instruction_index={event.instruction_index}, "
+                f"pc=0x{event.pc:03x}, "
+                f"expected=0x{expected_word:08x}, "
+                f"observed=0x{event.instruction:08x}"
+            )
+
+        self._accepted_count += 1
+        self._next_expected_instruction_index += 1
+        self._block_progress += 1
+
+        if (
+            self._block_progress
+            != block.expected_executed_instruction_count
+        ):
+            return None
+
+        completed = self._blocks.pop(0)
+
+        first_index = (
+            completed.first_executed_instruction_index
+        )
+
+        accepted_count = (
+            completed.expected_executed_instruction_count
+        )
+
+        last_index = (
+            first_index
+            + accepted_count
+            - 1
+        )
+
+        self._block_progress = 0
+
+        return AcceptedBlockResult(
+            template_instance_id=(
+                completed.template_instance_id
+            ),
+            first_instruction_index=(
+                first_index
+            ),
+            last_instruction_index=(
+                last_index
+            ),
+            accepted_instruction_count=(
+                accepted_count
+            ),
+        )
 
 class AdaptiveEpochStreamPlanner:
     """

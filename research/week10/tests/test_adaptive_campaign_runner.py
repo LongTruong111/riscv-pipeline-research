@@ -2,18 +2,22 @@ from random import Random
 
 import pytest
 
+from research.week5.impl.execution_event import (
+    ExecutionEvent,
+)
 from research.week5.impl.coverage_model import (
     L2CoverageCollector,
 )
 from research.week9.coverage_collector import (
     CoverageCollector,
 )
-
 from research.week10.adaptive.campaign_runner import (
+    AcceptedStreamTracker,
+    AdaptiveEpochStreamPlanner,
     BoundedProgramRing,
     IMEM_WORD_CAPACITY,
     MAX_STREAM_BLOCK_WORDS,
-    AdaptiveEpochStreamPlanner,
+    StreamExecutionMismatch,
     physical_pc_for_logical_word,
 )
 from research.week10.adaptive.decision_engine import (
@@ -487,3 +491,307 @@ def test_stream_block_never_exceeds_bounded_maximum():
                 block.image_word_count
                 <= MAX_STREAM_BLOCK_WORDS
             )
+def make_execution_event(
+    *,
+    instruction_index,
+    pc,
+    instruction,
+):
+    return ExecutionEvent(
+        instruction_index=instruction_index,
+        cycle=instruction_index,
+        pc=pc,
+        instruction=instruction,
+        rs1=0,
+        rs2=0,
+        rd=0,
+        uses_rs1=False,
+        uses_rs2=False,
+        writes_rd=False,
+        producer_type="NONE",
+        consumer_type="NONE",
+        stall_cycles_before_accept=0,
+        forward_a=0,
+        forward_b=0,
+    )
+def test_accepted_tracker_consumes_exact_block():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    tracker.enqueue(block)
+
+    for offset, (
+        pc,
+        word,
+    ) in enumerate(
+        zip(
+            block.expected_executed_pcs,
+            block.expected_executed_words,
+        )
+    ):
+        result = tracker.observe(
+            make_execution_event(
+                instruction_index=1 + offset,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+        if (
+            offset
+            < block.expected_executed_instruction_count - 1
+        ):
+            assert result is None
+
+    assert result is not None
+
+    assert (
+        result.template_instance_id
+        == block.template_instance_id
+    )
+
+    assert (
+        result.accepted_instruction_count
+        == block.expected_executed_instruction_count
+    )
+
+    assert tracker.accepted_count == 2
+    assert tracker.pending_block_count == 0
+
+
+def test_accepted_tracker_rejects_wrong_instruction_index():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker()
+    tracker.enqueue(block)
+
+    with pytest.raises(
+        StreamExecutionMismatch
+    ):
+        tracker.observe(
+            make_execution_event(
+                instruction_index=2,
+                pc=block.expected_executed_pcs[0],
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
+            )
+        )
+
+
+def test_accepted_tracker_rejects_wrong_pc():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker()
+    tracker.enqueue(block)
+
+    with pytest.raises(
+        StreamExecutionMismatch
+    ):
+        tracker.observe(
+            make_execution_event(
+                instruction_index=1,
+                pc=4,
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
+            )
+        )
+
+
+def test_accepted_tracker_rejects_wrong_word():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker()
+    tracker.enqueue(block)
+
+    with pytest.raises(
+        StreamExecutionMismatch
+    ):
+        tracker.observe(
+            make_execution_event(
+                instruction_index=1,
+                pc=block.expected_executed_pcs[0],
+                instruction=0xFFFFFFFF,
+            )
+        )
+
+
+def test_a7_tracker_skips_flushed_image_words():
+    planner, _, _ = make_planner(
+        arm_index=7,
+        nominal=3,
+        first_executed_instruction_index=10,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert (
+        block.expected_executed_word_offsets
+        == (0, 3, 4)
+    )
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=10
+    )
+
+    tracker.enqueue(block)
+
+    events = [
+        make_execution_event(
+            instruction_index=10 + offset,
+            pc=pc,
+            instruction=word,
+        )
+        for offset, (
+            pc,
+            word,
+        ) in enumerate(
+            zip(
+                block.expected_executed_pcs,
+                block.expected_executed_words,
+            )
+        )
+    ]
+
+    assert tracker.observe(events[0]) is None
+    assert tracker.observe(events[1]) is None
+
+    completed = tracker.observe(
+        events[2]
+    )
+
+    assert completed is not None
+    assert completed.accepted_instruction_count == 3
+
+    assert tracker.accepted_count == 3
+
+
+def test_tracker_handles_physical_pc_wrap():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+        initial_logical_word_index=127,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert block.expected_executed_pcs == (
+        508,
+        0,
+    )
+
+    tracker = AcceptedStreamTracker()
+    tracker.enqueue(block)
+
+    assert tracker.observe(
+        make_execution_event(
+            instruction_index=1,
+            pc=508,
+            instruction=(
+                block.expected_executed_words[0]
+            ),
+        )
+    ) is None
+
+    completed = tracker.observe(
+        make_execution_event(
+            instruction_index=2,
+            pc=0,
+            instruction=(
+                block.expected_executed_words[1]
+            ),
+        )
+    )
+
+    assert completed is not None
+
+
+def test_tracker_consumes_multiple_blocks_contiguously():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=5,
+    )
+
+    planner.begin_epoch()
+
+    first = planner.build_next_block()
+    second = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker()
+
+    tracker.enqueue(first)
+    tracker.enqueue(second)
+
+    next_index = 1
+    completed_ids = []
+
+    for block in (
+        first,
+        second,
+    ):
+        for pc, word in zip(
+            block.expected_executed_pcs,
+            block.expected_executed_words,
+        ):
+            completed = tracker.observe(
+                make_execution_event(
+                    instruction_index=next_index,
+                    pc=pc,
+                    instruction=word,
+                )
+            )
+
+            next_index += 1
+
+            if completed is not None:
+                completed_ids.append(
+                    completed.template_instance_id
+                )
+
+    assert completed_ids == [
+        first.template_instance_id,
+        second.template_instance_id,
+    ]
+
+    assert (
+        tracker.accepted_count
+        == (
+            first.expected_executed_instruction_count
+            + second.expected_executed_instruction_count
+        )
+    )
+
+    assert tracker.pending_block_count == 0
