@@ -118,7 +118,6 @@ def attribution_targets_for(
         f"unsupported adaptive template distance: {spec.distance!r}"
     )
 
-
 @dataclass(frozen=True)
 class EpochRewardResult:
     """
@@ -129,7 +128,12 @@ class EpochRewardResult:
     actual_executed_instructions: int
 
     attributable_targets: FrozenSet[L2IntentBin]
+
+    # All globally observed L2 Intent bins during this epoch.
     observed_intent_bins: FrozenSet[L2IntentBin]
+
+    # Subset whose exact template provenance was independently proven.
+    attributable_observed_intent_bins: FrozenSet[L2IntentBin]
 
     global_new_intent_bins: FrozenSet[L2IntentBin]
     attributable_new_intent_bins: FrozenSet[L2IntentBin]
@@ -149,18 +153,31 @@ class EpochRewardTracker:
     """
     Bounded per-epoch L2 Intent reward tracker.
 
-    Novelty is frozen against coverage state at epoch start.
+    Two observation domains are deliberately separate:
 
-    Global Intent hits and reward attribution remain separate:
+        global_observed
+            every live L2 Intent hit observed during the epoch
+
+        attributable_observed
+            only hits whose exact generated-template provenance has
+            independently matched
+
+    Novelty remains frozen against coverage state at epoch start:
 
         global_new =
-            observed_during_epoch - covered_at_epoch_start
+            global_observed - covered_at_epoch_start
 
         attributable_new =
-            global_new intersect selected_arm_targets
+            (
+                attributable_observed
+                - covered_at_epoch_start
+            )
+            intersect selected_arm_targets
 
         reward =
-            1000 * len(attributable_new) / actual_executed_instructions
+            1000
+            * len(attributable_new)
+            / actual_executed_instructions
 
     Validated coverage is intentionally absent from this interface.
     """
@@ -189,6 +206,10 @@ class EpochRewardTracker:
 
         self._observed_intent_bins: set[L2IntentBin] = set()
 
+        self._attributable_observed_intent_bins: set[
+            L2IntentBin
+        ] = set()
+
         self._finalized = False
 
     @staticmethod
@@ -196,11 +217,32 @@ class EpochRewardTracker:
         bins: Iterable[L2IntentBin],
     ) -> None:
         for bin_value in bins:
-            if not isinstance(bin_value, L2IntentBin):
+            if not isinstance(
+                bin_value,
+                L2IntentBin,
+            ):
                 raise TypeError(
                     "L2 Intent coverage must contain "
                     "L2IntentBin objects"
                 )
+
+    def _require_open_bin(
+        self,
+        bin_value: L2IntentBin,
+    ) -> None:
+        if self._finalized:
+            raise RuntimeError(
+                "cannot record L2 Intent hit "
+                "after reward finalization"
+            )
+
+        if not isinstance(
+            bin_value,
+            L2IntentBin,
+        ):
+            raise TypeError(
+                "bin_value must be an L2IntentBin"
+            )
 
     @property
     def arm_id(self) -> ArmID:
@@ -222,28 +264,68 @@ class EpochRewardTracker:
     def observed_intent_bins(
         self,
     ) -> FrozenSet[L2IntentBin]:
-        return frozenset(self._observed_intent_bins)
+        return frozenset(
+            self._observed_intent_bins
+        )
+
+    @property
+    def attributable_observed_intent_bins(
+        self,
+    ) -> FrozenSet[L2IntentBin]:
+        return frozenset(
+            self._attributable_observed_intent_bins
+        )
 
     def record_intent_hit(
         self,
         bin_value: L2IntentBin,
     ) -> None:
         """
-        Record one realized L2 Intent hit.
+        Record one global live L2 Intent observation.
 
-        Duplicate hits are naturally deduplicated by the bounded set.
+        This method grants NO adaptive attribution by itself.
+
+        In particular, observing the selected target bin is not enough
+        to earn reward without exact template provenance.
         """
-        if self._finalized:
-            raise RuntimeError(
-                "cannot record L2 Intent hit after reward finalization"
+        self._require_open_bin(
+            bin_value
+        )
+
+        self._observed_intent_bins.add(
+            bin_value
+        )
+
+    def record_attributable_intent_hit(
+        self,
+        bin_value: L2IntentBin,
+    ) -> None:
+        """
+        Record an Intent observation whose exact template provenance has
+        already been independently established by the caller.
+
+        An attributable hit necessarily also exists in global Intent.
+        """
+        self._require_open_bin(
+            bin_value
+        )
+
+        if (
+            bin_value
+            not in self._attributable_targets
+        ):
+            raise ValueError(
+                "provenance-qualified hit is outside "
+                "the selected arm attribution targets"
             )
 
-        if not isinstance(bin_value, L2IntentBin):
-            raise TypeError(
-                "bin_value must be an L2IntentBin"
-            )
+        self._observed_intent_bins.add(
+            bin_value
+        )
 
-        self._observed_intent_bins.add(bin_value)
+        self._attributable_observed_intent_bins.add(
+            bin_value
+        )
 
     def finalize(
         self,
@@ -258,13 +340,28 @@ class EpochRewardTracker:
                 "epoch reward has already been finalized"
             )
 
-        if actual_executed_instructions <= 0:
+        if (
+            isinstance(
+                actual_executed_instructions,
+                bool,
+            )
+            or not isinstance(
+                actual_executed_instructions,
+                int,
+            )
+            or actual_executed_instructions <= 0
+        ):
             raise ValueError(
-                "actual_executed_instructions must be positive"
+                "actual_executed_instructions "
+                "must be a positive integer"
             )
 
         observed = frozenset(
             self._observed_intent_bins
+        )
+
+        attributable_observed = frozenset(
+            self._attributable_observed_intent_bins
         )
 
         global_new = frozenset(
@@ -273,7 +370,10 @@ class EpochRewardTracker:
         )
 
         attributable_new = frozenset(
-            global_new
+            (
+                attributable_observed
+                - self._covered_at_epoch_start
+            )
             & self._attributable_targets
         )
 
@@ -294,6 +394,9 @@ class EpochRewardTracker:
                 self._attributable_targets
             ),
             observed_intent_bins=observed,
+            attributable_observed_intent_bins=(
+                attributable_observed
+            ),
             global_new_intent_bins=global_new,
             attributable_new_intent_bins=(
                 attributable_new

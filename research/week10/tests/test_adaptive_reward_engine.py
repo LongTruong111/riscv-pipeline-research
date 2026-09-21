@@ -135,7 +135,9 @@ def test_new_attributable_hit_generates_reward():
         covered_at_epoch_start=set(),
     )
 
-    tracker.record_intent_hit(d1(7))
+    tracker.record_attributable_intent_hit(
+        d1(7)
+    )
 
     result = tracker.finalize(
         actual_executed_instructions=500
@@ -145,7 +147,6 @@ def test_new_attributable_hit_generates_reward():
     assert result.attributable_new_count == 1
     assert result.reward == pytest.approx(2.0)
 
-
 def test_reward_uses_actual_executed_count():
     tracker = EpochRewardTracker(
         arm_id=ArmID.A0,
@@ -153,7 +154,9 @@ def test_reward_uses_actual_executed_count():
         covered_at_epoch_start=set(),
     )
 
-    tracker.record_intent_hit(d1(7))
+    tracker.record_attributable_intent_hit(
+        d1(7)
+    )
 
     result = tracker.finalize(
         actual_executed_instructions=503
@@ -164,45 +167,6 @@ def test_reward_uses_actual_executed_count():
     )
 
 
-def test_already_covered_target_gives_zero_reward():
-    tracker = EpochRewardTracker(
-        arm_id=ArmID.A0,
-        target=TargetSelection(d1=7),
-        covered_at_epoch_start={d1(7)},
-    )
-
-    tracker.record_intent_hit(d1(7))
-
-    result = tracker.finalize(
-        actual_executed_instructions=500
-    )
-
-    assert result.global_new_count == 0
-    assert result.attributable_new_count == 0
-    assert result.reward == 0.0
-
-
-def test_incidental_new_hit_updates_global_new_but_not_reward():
-    tracker = EpochRewardTracker(
-        arm_id=ArmID.A0,
-        target=TargetSelection(d1=7),
-        covered_at_epoch_start=set(),
-    )
-
-    tracker.record_intent_hit(d1(18))
-
-    result = tracker.finalize(
-        actual_executed_instructions=500
-    )
-
-    assert result.global_new_intent_bins == frozenset(
-        {d1(18)}
-    )
-
-    assert result.attributable_new_intent_bins == frozenset()
-    assert result.reward == 0.0
-
-
 def test_attributable_and_incidental_hits_are_separated():
     tracker = EpochRewardTracker(
         arm_id=ArmID.A0,
@@ -210,9 +174,19 @@ def test_attributable_and_incidental_hits_are_separated():
         covered_at_epoch_start=set(),
     )
 
-    tracker.record_intent_hit(d1(7))
-    tracker.record_intent_hit(d2(20))
-    tracker.record_intent_hit(d1(21))
+    # Exact-provenance selected-arm hit.
+    tracker.record_attributable_intent_hit(
+        d1(7)
+    )
+
+    # Incidental global-only hits.
+    tracker.record_intent_hit(
+        d2(20)
+    )
+
+    tracker.record_intent_hit(
+        d1(21)
+    )
 
     result = tracker.finalize(
         actual_executed_instructions=500
@@ -227,10 +201,14 @@ def test_attributable_and_incidental_hits_are_separated():
     )
 
     assert result.attributable_new_intent_bins == frozenset(
-        {d1(7)}
+        {
+            d1(7),
+        }
     )
 
-    assert result.reward == pytest.approx(2.0)
+    assert result.reward == pytest.approx(
+        2.0
+    )
 
 
 def test_duplicate_attributable_hits_count_once():
@@ -241,7 +219,9 @@ def test_duplicate_attributable_hits_count_once():
     )
 
     for _ in range(20):
-        tracker.record_intent_hit(d1(11))
+        tracker.record_attributable_intent_hit(
+            d1(11)
+        )
 
     result = tracker.finalize(
         actual_executed_instructions=500
@@ -249,26 +229,10 @@ def test_duplicate_attributable_hits_count_once():
 
     assert result.global_new_count == 1
     assert result.attributable_new_count == 1
-    assert result.reward == pytest.approx(2.0)
 
-
-def test_duplicate_incidental_hits_count_once_globally():
-    tracker = EpochRewardTracker(
-        arm_id=ArmID.A0,
-        target=TargetSelection(d1=11),
-        covered_at_epoch_start=set(),
+    assert result.reward == pytest.approx(
+        2.0
     )
-
-    for _ in range(20):
-        tracker.record_intent_hit(d2(4))
-
-    result = tracker.finalize(
-        actual_executed_instructions=500
-    )
-
-    assert result.global_new_count == 1
-    assert result.attributable_new_count == 0
-    assert result.reward == 0.0
 
 
 def test_a4_can_reward_two_new_bins():
@@ -281,8 +245,13 @@ def test_a4_can_reward_two_new_bins():
         covered_at_epoch_start=set(),
     )
 
-    tracker.record_intent_hit(d1(7))
-    tracker.record_intent_hit(d2(13))
+    tracker.record_attributable_intent_hit(
+        d1(7)
+    )
+
+    tracker.record_attributable_intent_hit(
+        d2(13)
+    )
 
     result = tracker.finalize(
         actual_executed_instructions=500
@@ -290,8 +259,54 @@ def test_a4_can_reward_two_new_bins():
 
     assert result.global_new_count == 2
     assert result.attributable_new_count == 2
-    assert result.reward == pytest.approx(4.0)
 
+    assert result.reward == pytest.approx(
+        4.0
+    )
+
+def test_start_snapshot_is_immutable_against_caller_mutation():
+    covered = {
+        d1(1),
+    }
+
+    tracker = EpochRewardTracker(
+        arm_id=ArmID.A0,
+        target=TargetSelection(d1=2),
+        covered_at_epoch_start=covered,
+    )
+
+    # Mutate caller-owned state after tracker construction.
+    # The tracker must retain the frozen original snapshot.
+    covered.add(
+        d1(2)
+    )
+
+    tracker.record_attributable_intent_hit(
+        d1(2)
+    )
+
+    result = tracker.finalize(
+        actual_executed_instructions=500
+    )
+
+    assert result.global_new_intent_bins == frozenset(
+        {
+            d1(2),
+        }
+    )
+
+    assert result.attributable_new_intent_bins == frozenset(
+        {
+            d1(2),
+        }
+    )
+
+    assert result.global_new_count == 1
+    assert result.attributable_new_count == 1
+
+    assert result.reward == pytest.approx(
+        2.0
+    )
 
 def test_a4_one_old_one_new_rewards_only_new_bin():
     tracker = EpochRewardTracker(
@@ -300,26 +315,44 @@ def test_a4_one_old_one_new_rewards_only_new_bin():
             d1=7,
             d2=13,
         ),
-        covered_at_epoch_start={d1(7)},
+        covered_at_epoch_start={
+            d1(7),
+        },
     )
 
-    tracker.record_intent_hit(d1(7))
-    tracker.record_intent_hit(d2(13))
+    # Both dependencies are exact-provenance hits.
+    # d1(7) was already covered at epoch start, so only d2(13)
+    # contributes new attributable coverage.
+    tracker.record_attributable_intent_hit(
+        d1(7)
+    )
+
+    tracker.record_attributable_intent_hit(
+        d2(13)
+    )
 
     result = tracker.finalize(
         actual_executed_instructions=500
     )
 
     assert result.global_new_intent_bins == frozenset(
-        {d2(13)}
+        {
+            d2(13),
+        }
     )
 
     assert result.attributable_new_intent_bins == frozenset(
-        {d2(13)}
+        {
+            d2(13),
+        }
     )
 
-    assert result.reward == pytest.approx(2.0)
+    assert result.global_new_count == 1
+    assert result.attributable_new_count == 1
 
+    assert result.reward == pytest.approx(
+        2.0
+    )
 
 def test_a4_incidental_third_bin_does_not_increase_reward():
     tracker = EpochRewardTracker(
@@ -331,18 +364,46 @@ def test_a4_incidental_third_bin_does_not_increase_reward():
         covered_at_epoch_start=set(),
     )
 
-    tracker.record_intent_hit(d1(7))
-    tracker.record_intent_hit(d2(13))
-    tracker.record_intent_hit(d1(22))
+    # Exact-provenance selected-arm dependencies.
+    tracker.record_attributable_intent_hit(
+        d1(7)
+    )
+
+    tracker.record_attributable_intent_hit(
+        d2(13)
+    )
+
+    # Global novelty only. This hit is incidental and must not
+    # contribute adaptive reward.
+    tracker.record_intent_hit(
+        d1(22)
+    )
 
     result = tracker.finalize(
         actual_executed_instructions=500
     )
 
+    assert result.global_new_intent_bins == frozenset(
+        {
+            d1(7),
+            d2(13),
+            d1(22),
+        }
+    )
+
+    assert result.attributable_new_intent_bins == frozenset(
+        {
+            d1(7),
+            d2(13),
+        }
+    )
+
     assert result.global_new_count == 3
     assert result.attributable_new_count == 2
-    assert result.reward == pytest.approx(4.0)
 
+    assert result.reward == pytest.approx(
+        4.0
+    )
 
 def test_no_hits_gives_zero_reward():
     tracker = EpochRewardTracker(
@@ -460,28 +521,6 @@ def test_cannot_finalize_twice():
             actual_executed_instructions=500
         )
 
-
-def test_start_snapshot_is_immutable_against_caller_mutation():
-    covered = {d1(1)}
-
-    tracker = EpochRewardTracker(
-        arm_id=ArmID.A0,
-        target=TargetSelection(d1=2),
-        covered_at_epoch_start=covered,
-    )
-
-    covered.add(d1(2))
-
-    tracker.record_intent_hit(d1(2))
-
-    result = tracker.finalize(
-        actual_executed_instructions=500
-    )
-
-    assert result.attributable_new_count == 1
-    assert result.reward == pytest.approx(2.0)
-
-
 def test_result_exposes_exact_attribution_target():
     tracker = EpochRewardTracker(
         arm_id=ArmID.A6,
@@ -496,3 +535,44 @@ def test_result_exposes_exact_attribution_target():
     assert result.attributable_targets == frozenset(
         {d2(19)}
     )
+
+def test_same_target_bin_without_provenance_gives_no_reward():
+    tracker = EpochRewardTracker(
+        arm_id=ArmID.A0,
+        target=TargetSelection(d1=7),
+        covered_at_epoch_start=set(),
+    )
+
+    # Same exact selected L2 bin, but only global observation.
+    tracker.record_intent_hit(
+        d1(7)
+    )
+
+    result = tracker.finalize(
+        actual_executed_instructions=500
+    )
+
+    assert result.global_new_intent_bins == frozenset(
+        {d1(7)}
+    )
+
+    assert (
+        result.attributable_observed_intent_bins
+        == frozenset()
+    )
+
+    assert result.attributable_new_count == 0
+    assert result.reward == 0.0
+
+
+def test_attributable_observation_must_be_selected_target():
+    tracker = EpochRewardTracker(
+        arm_id=ArmID.A0,
+        target=TargetSelection(d1=7),
+        covered_at_epoch_start=set(),
+    )
+
+    with pytest.raises(ValueError):
+        tracker.record_attributable_intent_hit(
+            d1(18)
+        )

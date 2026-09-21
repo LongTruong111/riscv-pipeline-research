@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import FrozenSet, Tuple
+from typing import FrozenSet, Iterable, Tuple
 
 from research.week5.impl.coverage_model import (
     D1,
@@ -15,6 +15,10 @@ from research.week10.adaptive.decision_engine import (
     BanditDecision,
     BanditDecisionEngine,
     BanditUpdate,
+)
+from research.week10.adaptive.provenance import (
+    AttributionRegistry,
+    AttributionWitness,
 )
 from research.week10.adaptive.register_policy import (
     L2IntentCoverageState,
@@ -118,11 +122,17 @@ class AdaptiveEpochCoordinator:
         self._live = live_coordinator
 
         self._active: _ActiveEpoch | None = None
+        self._attribution = AttributionRegistry()
+
+    @property
+    def pending_attribution_witness_count(
+        self,
+    ) -> int:
+        return self._attribution.pending_count
 
     @property
     def active(self) -> bool:
         return self._active is not None
-
     @property
     def current_epoch(self) -> EpochStart | None:
         if self._active is None:
@@ -237,6 +247,12 @@ class AdaptiveEpochCoordinator:
                 "cannot begin a new epoch while another is active"
             )
 
+        if self._attribution.pending_count != 0:
+            raise RuntimeError(
+                "cannot begin epoch with stale "
+                "attribution witnesses"
+            )
+
         covered_at_start = (
             self._snapshot_global_intent()
         )
@@ -269,6 +285,63 @@ class AdaptiveEpochCoordinator:
 
         return start
 
+    def register_attribution_witnesses(
+        self,
+        witnesses: Iterable[AttributionWitness],
+    ) -> None:
+        """
+        Register exact intended dependencies for generated template
+        instances belonging to the currently active arm.
+
+        Registration itself does not create global Intent or reward.
+        """
+        if self._active is None:
+            raise RuntimeError(
+                "cannot register attribution witnesses "
+                "without an active epoch"
+            )
+
+        witnesses = tuple(witnesses)
+
+        selected_arm = (
+            self._active.start.decision.arm_id
+        )
+
+        eligible_targets = (
+            self._active.reward_tracker
+            .attributable_targets
+        )
+
+        for witness in witnesses:
+            if not isinstance(
+                witness,
+                AttributionWitness,
+            ):
+                raise TypeError(
+                    "all witnesses must be AttributionWitness"
+                )
+
+            if witness.arm_id is not selected_arm:
+                raise ValueError(
+                    "attribution witness arm does not match "
+                    "the active selected arm"
+                )
+
+            witness_bin = L2IntentBin(
+                distance=witness.distance,
+                register=witness.register,
+            )
+
+            if witness_bin not in eligible_targets:
+                raise ValueError(
+                    "attribution witness is outside "
+                    "the active arm target set"
+                )
+
+        self._attribution.register_many(
+            witnesses
+        )
+
     def register_l2_hit(
         self,
         hit: L2Hit,
@@ -282,16 +355,22 @@ class AdaptiveEpochCoordinator:
         """
         Register one live L2 Intent hit.
 
-        The authoritative Week10 L2 coordinator is invoked first.
-        Only a successfully accepted live hit is then added to the
-        adaptive reward tracker.
+        Every valid live hit updates global Intent observation.
 
-        Validation outcome is irrelevant to reward attribution.
+        Adaptive reward attribution occurs only if the hit exactly
+        matches a previously registered template-provenance witness.
+
+        Validated outcome remains irrelevant to reward.
         """
         if self._active is None:
             raise RuntimeError(
                 "cannot attribute an L2 hit without an active epoch"
             )
+
+        # Validate bin representation before mutating live coverage.
+        intent_bin = self._intent_bin_from_hit(
+            hit
+        )
 
         outcomes = self._live.register_hit(
             hit,
@@ -302,9 +381,28 @@ class AdaptiveEpochCoordinator:
             wall_ns=wall_ns,
         )
 
+        # Every live hit contributes to global Intent observation.
         self._active.reward_tracker.record_intent_hit(
-            self._intent_bin_from_hit(hit)
+            intent_bin
         )
+
+        # Reward requires an exact producer/consumer provenance match.
+        witness = self._attribution.consume_match(
+            hit
+        )
+
+        if witness is not None:
+            if (
+                witness.arm_id
+                is not self._active.start.decision.arm_id
+            ):
+                raise RuntimeError(
+                    "matched witness belongs to a different arm"
+                )
+
+            self._active.reward_tracker.record_attributable_intent_hit(
+                intent_bin
+            )
 
         return outcomes
 
@@ -360,10 +458,17 @@ class AdaptiveEpochCoordinator:
         latest_instruction_id: int,
     ) -> None:
         """
-        Preserve the existing bounded L2 validation-state contract.
+        Preserve bounded L2 validation and provenance state.
+
+        Call after all L2 hits for latest_instruction_id have been
+        processed.
         """
         self._live.prune(
             latest_instruction_id=latest_instruction_id
+        )
+
+        self._attribution.prune(
+            latest_instruction_index=latest_instruction_id
         )
 
     def finish_epoch(
@@ -380,6 +485,12 @@ class AdaptiveEpochCoordinator:
         if self._active is None:
             raise RuntimeError(
                 "cannot finish an epoch when none is active"
+            )
+
+        if self._attribution.pending_count != 0:
+            raise RuntimeError(
+                "cannot finish epoch with unresolved "
+                "attribution witnesses"
             )
 
         active = self._active

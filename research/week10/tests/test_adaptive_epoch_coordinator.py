@@ -2,6 +2,9 @@ from random import Random
 
 import pytest
 
+from research.week10.adaptive.provenance import (
+    AttributionWitness,
+)
 from research.week5.impl.coverage_model import (
     D1,
     D2,
@@ -189,13 +192,14 @@ def make_stack(
         live,
     )
 
-
 def register_hit(
     coordinator,
     register,
     *,
     distance=D1,
     producer_id=1,
+    attributable=False,
+    template_instance_id=1,
 ):
     (
         producer,
@@ -208,6 +212,35 @@ def register_hit(
         producer_id=producer_id,
     )
 
+    if attributable:
+        active = coordinator.current_epoch
+        assert active is not None
+
+        witness_distance = (
+            Distance.D1
+            if distance == D1
+            else Distance.D2
+        )
+
+        coordinator.register_attribution_witnesses(
+            (
+                AttributionWitness(
+                    arm_id=active.decision.arm_id,
+                    template_instance_id=(
+                        template_instance_id
+                    ),
+                    distance=witness_distance,
+                    register=register,
+                    producer_instruction_index=(
+                        producer.instruction_index
+                    ),
+                    consumer_instruction_index=(
+                        consumer.instruction_index
+                    ),
+                ),
+            )
+        )
+
     return coordinator.register_l2_hit(
         hit,
         producer=producer,
@@ -216,7 +249,6 @@ def register_hit(
         cycle=consumer.cycle,
         wall_ns=consumer.cycle,
     )
-
 
 def test_begin_epoch_selects_arm_and_target():
     coordinator, _, _, _ = make_stack(
@@ -289,6 +321,7 @@ def test_attributable_intent_hit_updates_global_coverage_and_reward():
         coordinator,
         register,
         distance=D1,
+	attributable=True,
     )
 
     assert coverage.l2_state[
@@ -327,6 +360,7 @@ def test_validated_coverage_is_not_required_for_reward():
         coordinator,
         register,
         distance=D1,
+        attributable=True,
     )
 
     # Architectural results have deliberately not been supplied.
@@ -408,6 +442,7 @@ def test_reward_denominator_uses_actual_executed_count():
         coordinator,
         register,
         distance=D1,
+        attributable=True,
     )
 
     completion = coordinator.finish_epoch(
@@ -435,6 +470,7 @@ def test_finish_epoch_updates_selected_bandit_arm():
         coordinator,
         start.target.d1,
         distance=D1,
+        attributable=True,
     )
 
     completion = coordinator.finish_epoch(
@@ -536,6 +572,7 @@ def test_already_covered_target_cannot_generate_novelty_reward():
         target,
         distance=D1,
         producer_id=100,
+        attributable=True,
     )
 
     completion = coordinator.finish_epoch(
@@ -582,6 +619,8 @@ def test_a4_can_receive_two_attributable_new_intent_bins():
         d1_register,
         distance=D1,
         producer_id=1,
+        attributable=True,
+        template_instance_id=1,
     )
 
     register_hit(
@@ -589,22 +628,96 @@ def test_a4_can_receive_two_attributable_new_intent_bins():
         d2_register,
         distance=D2,
         producer_id=10,
+        attributable=True,
+        template_instance_id=1,
+    )
+def test_same_bin_incidental_wrong_provenance_is_global_only():
+    (
+        coordinator,
+        _,
+        coverage,
+        _,
+    ) = make_stack(
+        arm_index=0
+    )
+
+    start = coordinator.begin_epoch()
+
+    register = start.target.d1
+    assert register is not None
+
+    coordinator.register_attribution_witnesses(
+        (
+            AttributionWitness(
+                arm_id=ArmID.A0,
+                template_instance_id=1,
+                distance=Distance.D1,
+                register=register,
+                producer_instruction_index=10,
+                consumer_instruction_index=11,
+            ),
+        )
+    )
+
+    # Same (d1, register), but different producer/consumer identity.
+    register_hit(
+        coordinator,
+        register,
+        distance=D1,
+        producer_id=20,
+        attributable=False,
+    )
+
+    assert coverage.l2_state[
+        ("d1", register)
+    ].intent_seen
+
+    coordinator.prune_validation_state(
+        latest_instruction_id=21
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
     )
 
     completion = coordinator.finish_epoch(
         actual_executed_instructions=500
     )
 
+    assert completion.reward_result.global_new_count == 1
     assert (
-        completion.reward_result
-        .attributable_new_count
-        == 2
+        completion.reward_result.attributable_new_count
+        == 0
     )
 
-    assert completion.reward_result.reward == pytest.approx(
-        4.0
+def test_cannot_finish_with_unresolved_attribution_witness():
+    coordinator, _, _, _ = make_stack(
+        arm_index=0
     )
 
+    start = coordinator.begin_epoch()
+
+    register = start.target.d1
+    assert register is not None
+
+    coordinator.register_attribution_witnesses(
+        (
+            AttributionWitness(
+                arm_id=ArmID.A0,
+                template_instance_id=1,
+                distance=Distance.D1,
+                register=register,
+                producer_instruction_index=10,
+                consumer_instruction_index=11,
+            ),
+        )
+    )
+
+    with pytest.raises(RuntimeError):
+        coordinator.finish_epoch(
+            actual_executed_instructions=500
+        )
 
 def test_nonpositive_actual_execution_count_is_rejected():
     coordinator, _, _, _ = make_stack()
