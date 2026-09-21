@@ -371,11 +371,25 @@ class BoundedProgramRing:
             <= self.free_words
         )
 
-    def append(
+    def validate_append(
         self,
         block: PlannedStreamBlock,
     ) -> None:
-        if not self.can_append(block):
+        """
+        Validate one block allocation without mutating ring state.
+        """
+        if not isinstance(
+            block,
+            PlannedStreamBlock,
+        ):
+            raise TypeError(
+                "block must be PlannedStreamBlock"
+            )
+
+        if (
+            block.image_word_count
+            > self.free_words
+        ):
             raise StreamPlanningError(
                 "runtime IMEM ring has insufficient free space"
             )
@@ -386,12 +400,23 @@ class BoundedProgramRing:
                 .logical_word_end_exclusive
             )
 
-            if block.logical_word_start != expected_start:
+            if (
+                block.logical_word_start
+                != expected_start
+            ):
                 raise StreamPlanningError(
-                    "stream block logical layout is not contiguous"
+                    "stream block logical layout "
+                    "is not contiguous"
                 )
 
+    def append(
+        self,
+        block: PlannedStreamBlock,
+    ) -> None:
+        self.validate_append(block)
+
         self._blocks.append(block)
+
         self._used_words += (
             block.image_word_count
         )
@@ -528,6 +553,12 @@ class AcceptedStreamTracker:
         self._accepted_count = 0
 
     @property
+    def pending_blocks(
+        self,
+    ) -> Tuple[PlannedStreamBlock, ...]:
+        return tuple(self._blocks)
+
+    @property
     def accepted_count(self) -> int:
         return self._accepted_count
 
@@ -552,10 +583,13 @@ class AcceptedStreamTracker:
 
         return self._blocks[0]
 
-    def enqueue(
+    def validate_enqueue(
         self,
         block: PlannedStreamBlock,
     ) -> None:
+        """
+        Validate stream-order insertion without mutating tracker state.
+        """
         if not isinstance(
             block,
             PlannedStreamBlock,
@@ -593,15 +627,21 @@ class AcceptedStreamTracker:
             != expected_first_index
         ):
             raise StreamExecutionMismatch(
-                "block executed-index layout is not contiguous: "
+                "block executed-index layout "
+                "is not contiguous: "
                 f"expected={expected_first_index}, "
                 f"observed="
                 f"{block.first_executed_instruction_index}"
             )
 
-        self._blocks.append(
-            block
-        )
+
+    def enqueue(
+        self,
+        block: PlannedStreamBlock,
+    ) -> None:
+        self.validate_enqueue(block)
+
+        self._blocks.append(block)
 
     def observe(
         self,
@@ -723,6 +763,356 @@ class AcceptedStreamTracker:
             accepted_instruction_count=(
                 accepted_count
             ),
+        )
+
+@dataclass(frozen=True)
+class ReleasedStreamBlock:
+    """
+    One stream block that has completed accepted execution and is now
+    safe for logical ring reclamation.
+    """
+
+    block: PlannedStreamBlock
+    accepted: AcceptedBlockResult
+
+    def __post_init__(self) -> None:
+        if (
+            self.block.template_instance_id
+            != self.accepted.template_instance_id
+        ):
+            raise ValueError(
+                "released block and accepted result "
+                "refer to different template instances"
+            )
+
+
+class RuntimeStreamWindow:
+    """
+    Coordinate committed runtime-IMEM blocks with accepted execution.
+
+    Important lifecycle:
+
+        external IMEM patch succeeds
+            -> commit_patched_block()
+            -> exact witnesses become live
+            -> accepted instructions execute
+            -> all L2 hits for current event are processed
+            -> finalize_accepted_event()
+            -> provenance/live validation state is pruned
+            -> completed block is released
+
+    This class does not drive cocotb signals. RTL patching remains
+    outside this pure-Python state machine.
+    """
+
+    def __init__(
+        self,
+        *,
+        coordinator: AdaptiveEpochCoordinator,
+        ring: BoundedProgramRing,
+        accepted_tracker: AcceptedStreamTracker,
+    ) -> None:
+        if not isinstance(
+            coordinator,
+            AdaptiveEpochCoordinator,
+        ):
+            raise TypeError(
+                "coordinator must be AdaptiveEpochCoordinator"
+            )
+
+        if not isinstance(
+            ring,
+            BoundedProgramRing,
+        ):
+            raise TypeError(
+                "ring must be BoundedProgramRing"
+            )
+
+        if not isinstance(
+            accepted_tracker,
+            AcceptedStreamTracker,
+        ):
+            raise TypeError(
+                "accepted_tracker must be AcceptedStreamTracker"
+            )
+
+        self._coordinator = coordinator
+        self._ring = ring
+        self._accepted_tracker = (
+            accepted_tracker
+        )
+
+    @property
+    def used_words(self) -> int:
+        return self._ring.used_words
+
+    @property
+    def free_words(self) -> int:
+        return self._ring.free_words
+
+    @property
+    def pending_block_count(self) -> int:
+        return self._ring.pending_block_count
+
+    @property
+    def accepted_count(self) -> int:
+        return self._accepted_tracker.accepted_count
+
+    def commit_patched_block(
+        self,
+        block: PlannedStreamBlock,
+    ) -> None:
+        """
+        Commit a block only after all of its image words have been
+        successfully written through the runtime IMEM backdoor.
+
+        Validation is performed before any state mutation.
+        """
+        self._ring.validate_append(
+            block
+        )
+
+        self._accepted_tracker.validate_enqueue(
+            block
+        )
+
+        # Exact provenance becomes eligible only after the RTL image
+        # has actually been patched successfully.
+        self._coordinator.register_attribution_witnesses(
+            block.witnesses
+        )
+
+        self._ring.append(
+            block
+        )
+
+        self._accepted_tracker.enqueue(
+            block
+        )
+
+    def finalize_accepted_event(
+        self,
+        event: ExecutionEvent,
+    ) -> ReleasedStreamBlock | None:
+        """
+        Finalize one already-processed accepted ExecutionEvent.
+
+        CALLING CONTRACT:
+            All L2 hits generated by this event must already have been
+            registered through AdaptiveEpochCoordinator.register_l2_hit().
+
+        This method then performs the required final prune before
+        reclaiming any program-image slots.
+        """
+        if not isinstance(
+            event,
+            ExecutionEvent,
+        ):
+            raise TypeError(
+                "event must be ExecutionEvent"
+            )
+
+        # Must occur after every L2 hit for this consumer has been
+        # processed.
+        self._coordinator.prune_validation_state(
+            latest_instruction_id=(
+                event.instruction_index
+            )
+        )
+
+        completed = (
+            self._accepted_tracker.observe(
+                event
+            )
+        )
+
+        if completed is None:
+            return None
+
+        released = self._ring.release_oldest(
+            template_instance_id=(
+                completed.template_instance_id
+            )
+        )
+
+        return ReleasedStreamBlock(
+            block=released,
+            accepted=completed,
+        )
+
+@dataclass(frozen=True)
+class ReleasedStreamBlock:
+    """
+    One stream block that has completed accepted execution and is now
+    safe for logical ring reclamation.
+    """
+
+    block: PlannedStreamBlock
+    accepted: AcceptedBlockResult
+
+    def __post_init__(self) -> None:
+        if (
+            self.block.template_instance_id
+            != self.accepted.template_instance_id
+        ):
+            raise ValueError(
+                "released block and accepted result "
+                "refer to different template instances"
+            )
+
+
+class RuntimeStreamWindow:
+    """
+    Coordinate committed runtime-IMEM blocks with accepted execution.
+
+    Important lifecycle:
+
+        external IMEM patch succeeds
+            -> commit_patched_block()
+            -> exact witnesses become live
+            -> accepted instructions execute
+            -> all L2 hits for current event are processed
+            -> finalize_accepted_event()
+            -> provenance/live validation state is pruned
+            -> completed block is released
+
+    This class does not drive cocotb signals. RTL patching remains
+    outside this pure-Python state machine.
+    """
+
+    def __init__(
+        self,
+        *,
+        coordinator: AdaptiveEpochCoordinator,
+        ring: BoundedProgramRing,
+        accepted_tracker: AcceptedStreamTracker,
+    ) -> None:
+        if not isinstance(
+            coordinator,
+            AdaptiveEpochCoordinator,
+        ):
+            raise TypeError(
+                "coordinator must be AdaptiveEpochCoordinator"
+            )
+
+        if not isinstance(
+            ring,
+            BoundedProgramRing,
+        ):
+            raise TypeError(
+                "ring must be BoundedProgramRing"
+            )
+
+        if not isinstance(
+            accepted_tracker,
+            AcceptedStreamTracker,
+        ):
+            raise TypeError(
+                "accepted_tracker must be AcceptedStreamTracker"
+            )
+
+        self._coordinator = coordinator
+        self._ring = ring
+        self._accepted_tracker = (
+            accepted_tracker
+        )
+
+    @property
+    def used_words(self) -> int:
+        return self._ring.used_words
+
+    @property
+    def free_words(self) -> int:
+        return self._ring.free_words
+
+    @property
+    def pending_block_count(self) -> int:
+        return self._ring.pending_block_count
+
+    @property
+    def accepted_count(self) -> int:
+        return self._accepted_tracker.accepted_count
+
+    def commit_patched_block(
+        self,
+        block: PlannedStreamBlock,
+    ) -> None:
+        """
+        Commit a block only after all of its image words have been
+        successfully written through the runtime IMEM backdoor.
+
+        Validation is performed before any state mutation.
+        """
+        self._ring.validate_append(
+            block
+        )
+
+        self._accepted_tracker.validate_enqueue(
+            block
+        )
+
+        # Exact provenance becomes eligible only after the RTL image
+        # has actually been patched successfully.
+        self._coordinator.register_attribution_witnesses(
+            block.witnesses
+        )
+
+        self._ring.append(
+            block
+        )
+
+        self._accepted_tracker.enqueue(
+            block
+        )
+
+    def finalize_accepted_event(
+        self,
+        event: ExecutionEvent,
+    ) -> ReleasedStreamBlock | None:
+        """
+        Finalize one already-processed accepted ExecutionEvent.
+
+        CALLING CONTRACT:
+            All L2 hits generated by this event must already have been
+            registered through AdaptiveEpochCoordinator.register_l2_hit().
+
+        This method then performs the required final prune before
+        reclaiming any program-image slots.
+        """
+        if not isinstance(
+            event,
+            ExecutionEvent,
+        ):
+            raise TypeError(
+                "event must be ExecutionEvent"
+            )
+
+        # Must occur after every L2 hit for this consumer has been
+        # processed.
+        self._coordinator.prune_validation_state(
+            latest_instruction_id=(
+                event.instruction_index
+            )
+        )
+
+        completed = (
+            self._accepted_tracker.observe(
+                event
+            )
+        )
+
+        if completed is None:
+            return None
+
+        released = self._ring.release_oldest(
+            template_instance_id=(
+                completed.template_instance_id
+            )
+        )
+
+        return ReleasedStreamBlock(
+            block=released,
+            accepted=completed,
         )
 
 class AdaptiveEpochStreamPlanner:

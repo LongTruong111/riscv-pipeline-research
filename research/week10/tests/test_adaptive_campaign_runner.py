@@ -19,6 +19,8 @@ from research.week10.adaptive.campaign_runner import (
     MAX_STREAM_BLOCK_WORDS,
     StreamExecutionMismatch,
     physical_pc_for_logical_word,
+    ReleasedStreamBlock,
+    RuntimeStreamWindow,
 )
 from research.week10.adaptive.decision_engine import (
     BanditConfig,
@@ -795,3 +797,332 @@ def test_tracker_consumes_multiple_blocks_contiguously():
     )
 
     assert tracker.pending_block_count == 0
+
+def test_runtime_window_commit_registers_block_and_witnesses():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    ring = BoundedProgramRing()
+
+    tracker = AcceptedStreamTracker()
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=ring,
+        accepted_tracker=tracker,
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    assert window.pending_block_count == 1
+
+    assert (
+        window.used_words
+        == block.image_word_count
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == len(block.witnesses)
+    )
+
+
+def test_runtime_window_releases_only_after_complete_block():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=BoundedProgramRing(),
+        accepted_tracker=AcceptedStreamTracker(),
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    first = make_execution_event(
+        instruction_index=1,
+        pc=block.expected_executed_pcs[0],
+        instruction=(
+            block.expected_executed_words[0]
+        ),
+    )
+
+    second = make_execution_event(
+        instruction_index=2,
+        pc=block.expected_executed_pcs[1],
+        instruction=(
+            block.expected_executed_words[1]
+        ),
+    )
+
+    released = window.finalize_accepted_event(
+        first
+    )
+
+    assert released is None
+    assert window.pending_block_count == 1
+
+    released = window.finalize_accepted_event(
+        second
+    )
+
+    assert isinstance(
+        released,
+        ReleasedStreamBlock,
+    )
+
+    assert (
+        released.block.template_instance_id
+        == block.template_instance_id
+    )
+
+    assert window.pending_block_count == 0
+    assert window.used_words == 0
+
+
+def test_runtime_window_prunes_unmatched_witness_on_consumer():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=BoundedProgramRing(),
+        accepted_tracker=AcceptedStreamTracker(),
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 1
+    )
+
+    for index, (
+        pc,
+        word,
+    ) in enumerate(
+        zip(
+            block.expected_executed_pcs,
+            block.expected_executed_words,
+        ),
+        start=1,
+    ):
+        window.finalize_accepted_event(
+            make_execution_event(
+                instruction_index=index,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+    # No L2 hit was registered, so the witness becomes stale when the
+    # consumer instruction has been completely processed.
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
+    )
+
+
+def test_runtime_window_a7_release_ignores_flushed_words():
+    planner, coordinator, _ = make_planner(
+        arm_index=7,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert (
+        block.expected_executed_word_offsets
+        == (0, 3, 4)
+    )
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=BoundedProgramRing(),
+        accepted_tracker=AcceptedStreamTracker(),
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    released = None
+
+    for instruction_index, (
+        pc,
+        word,
+    ) in enumerate(
+        zip(
+            block.expected_executed_pcs,
+            block.expected_executed_words,
+        ),
+        start=1,
+    ):
+        released = (
+            window.finalize_accepted_event(
+                make_execution_event(
+                    instruction_index=(
+                        instruction_index
+                    ),
+                    pc=pc,
+                    instruction=word,
+                )
+            )
+        )
+
+    assert released is not None
+
+    assert (
+        released.accepted.accepted_instruction_count
+        == 3
+    )
+
+    assert window.pending_block_count == 0
+
+
+def test_runtime_window_capacity_failure_does_not_register_witnesses():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=5,
+    )
+
+    planner.begin_epoch()
+
+    first = planner.build_next_block()
+    second = planner.build_next_block()
+
+    ring = BoundedProgramRing(
+        capacity_words=(
+            first.image_word_count
+        )
+    )
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=ring,
+        accepted_tracker=AcceptedStreamTracker(),
+    )
+
+    window.commit_patched_block(
+        first
+    )
+
+    witness_count_before = (
+        coordinator
+        .pending_attribution_witness_count
+    )
+
+    with pytest.raises(RuntimeError):
+        window.commit_patched_block(
+            second
+        )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == witness_count_before
+    )
+
+    assert window.pending_block_count == 1
+
+
+def test_runtime_window_refill_after_release():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=5,
+    )
+
+    planner.begin_epoch()
+
+    first = planner.build_next_block()
+    second = planner.build_next_block()
+
+    ring = BoundedProgramRing(
+        capacity_words=max(
+            first.image_word_count,
+            second.image_word_count,
+        )
+    )
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=ring,
+        accepted_tracker=AcceptedStreamTracker(),
+    )
+
+    window.commit_patched_block(
+        first
+    )
+
+    with pytest.raises(RuntimeError):
+        window.commit_patched_block(
+            second
+        )
+
+    next_index = (
+        first.first_executed_instruction_index
+    )
+
+    released = None
+
+    for pc, word in zip(
+        first.expected_executed_pcs,
+        first.expected_executed_words,
+    ):
+        released = (
+            window.finalize_accepted_event(
+                make_execution_event(
+                    instruction_index=next_index,
+                    pc=pc,
+                    instruction=word,
+                )
+            )
+        )
+
+        next_index += 1
+
+    assert released is not None
+
+    assert window.used_words == 0
+
+    # The same physical capacity is now reclaimable.
+    window.commit_patched_block(
+        second
+    )
+
+    assert window.pending_block_count == 1
+
+    assert (
+        window.used_words
+        == second.image_word_count
+    )
