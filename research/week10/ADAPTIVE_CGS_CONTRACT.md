@@ -376,6 +376,58 @@ Filler must:
 * not intentionally target coverage based on current uncovered bins;
 * preserve protected producer/consumer dependencies where required.
 
+### Deterministic Filler Realization
+
+Campaign background filler and structural template instructions are
+different concepts.
+
+Structural instructions required to realize a template, including the
+independent instruction required for d2, count as targeted-template
+instructions.
+
+Campaign background filler is inserted only between complete template
+instances. It must never be inserted between an intended producer and
+consumer.
+
+The frozen 80:20 campaign composition is implemented deterministically
+as one campaign-filler instruction per four accumulated
+targeted-template instructions.
+
+For cumulative targeted-template count T:
+
+    required_campaign_fillers = floor(T / 4)
+
+The scheduler does not use an independent Bernoulli 20% decision.
+Therefore filler scheduling consumes no RNG state and does not create an
+additional stochastic policy.
+
+A filler instruction must:
+
+- use only the frozen ISA subset;
+- never write x0;
+- never write a protected live register;
+- not redirect control flow;
+- not read a dependency source unnecessarily;
+- not use coverage state when choosing its destination;
+- remain deterministic for identical inputs.
+
+The Week10 default filler realization is a source-independent LUI write
+to an auxiliary positive register not present in the protected-register
+set.
+
+The destination is chosen in canonical ascending register order.
+
+The encoder's NOP representation is not used for Adaptive-CGS filler
+because it encodes ADDI x0,x0,0 and therefore writes x0 architecturally,
+which is unsuitable in the presence of the known x0 DUT defect.
+
+If no legal auxiliary destination exists, filler construction fails
+explicitly rather than using rejection sampling or an unbounded retry
+loop.
+
+Filler scheduling and destination selection do not depend on current
+coverage and therefore do not constitute an adaptive policy.
+
 ---
 
 ## 13. Invalid Template Handling
