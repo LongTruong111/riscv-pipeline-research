@@ -24,6 +24,7 @@ from research.week10.adaptive.campaign_runner import (
     EBD_WORD,
     PlannedBoundaryDelimiter,
     StreamEntry,
+    StreamPlanningError,
 )
 from research.week10.adaptive.decision_engine import (
     BanditConfig,
@@ -124,6 +125,171 @@ def make_planner(
         coverage,
     )
 
+def test_planner_first_epoch_accounts_for_ebd():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    assert planner.next_logical_word_index == 0
+    assert planner.next_executed_instruction_index == 1
+
+    planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
+    assert delimiter.epoch_index == 0
+    assert delimiter.logical_word_index == 0
+
+    assert (
+        delimiter.first_executed_instruction_index
+        == 1
+    )
+
+    assert (
+        planner.planned_epoch_executed_instructions
+        == 1
+    )
+
+    assert planner.next_logical_word_index == 1
+
+    assert (
+        planner.next_executed_instruction_index
+        == 2
+    )
+
+    assert not planner.epoch_plan_complete
+
+def test_planner_nominal_epoch_includes_ebd():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert (
+        block.expected_executed_instruction_count
+        == 2
+    )
+
+    assert (
+        planner.planned_epoch_executed_instructions
+        == 3
+    )
+
+    assert planner.epoch_plan_complete
+
+def test_planner_preseeds_next_ebd_after_complete_payload():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert planner.epoch_plan_complete
+
+    expected_logical = (
+        block.logical_word_end_exclusive
+    )
+
+    expected_instruction_index = (
+        block.first_executed_instruction_index
+        + block.expected_executed_instruction_count
+    )
+
+    delimiter = (
+        planner.plan_next_boundary_delimiter()
+    )
+
+    assert delimiter.epoch_index == 1
+
+    assert (
+        delimiter.logical_word_index
+        == expected_logical
+    )
+
+    assert (
+        delimiter.first_executed_instruction_index
+        == expected_instruction_index
+    )
+
+    assert (
+        delimiter.witnesses
+        == ()
+    )
+
+    assert (
+        planner.pending_boundary_delimiter
+        == delimiter
+    )
+
+    # EBD_1 belongs to the next epoch and therefore must not change the
+    # current epoch's reward denominator.
+    assert (
+        planner.planned_epoch_executed_instructions
+        == 3
+    )
+
+def test_planner_rejects_next_ebd_before_payload_complete():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=5,
+    )
+
+    planner.begin_epoch()
+
+    assert not planner.epoch_plan_complete
+
+    with pytest.raises(
+        RuntimeError,
+        match="incomplete payload",
+    ):
+        planner.plan_next_boundary_delimiter()
+
+def test_planner_rejects_duplicate_pending_ebd():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+    planner.build_next_block()
+
+    planner.plan_next_boundary_delimiter()
+
+    with pytest.raises(
+        RuntimeError,
+        match="already has a pending",
+    ):
+        planner.plan_next_boundary_delimiter()
+
+def test_planner_second_epoch_requires_preseeded_ebd():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+    planner.build_next_block()
+
+    assert planner.epoch_plan_complete
+
+    planner.close_planning_epoch()
+
+    with pytest.raises(
+        RuntimeError,
+        match="requires a preseeded boundary",
+    ):
+        planner.begin_epoch()
 
 def test_physical_pc_wraps_at_128_words():
     assert IMEM_WORD_CAPACITY == 128
@@ -321,7 +487,6 @@ def test_a7_counts_flushed_words_as_targeted_but_not_executed():
         == 4
     )
 
-
 def test_block_witness_indices_ignore_a7_flushed_words():
     planner, _, _ = make_planner(
         arm_index=7,
@@ -338,15 +503,22 @@ def test_block_witness_indices_ignore_a7_flushed_words():
     witness = block.witnesses[0]
 
     assert (
+        block.first_executed_instruction_index
+        == 101
+    )
+
+    assert (
         witness.producer_instruction_index
-        == 100
+        == block.first_executed_instruction_index
     )
 
     assert (
         witness.consumer_instruction_index
-        == 101
+        == (
+            block.first_executed_instruction_index
+            + 1
+        )
     )
-
 
 def test_expected_execution_indices_advance_by_accepted_order():
     planner, _, _ = make_planner(
@@ -362,17 +534,16 @@ def test_expected_execution_indices_advance_by_accepted_order():
 
     assert (
         first.first_executed_instruction_index
-        == 10
+        == 11
     )
 
     assert (
         second.first_executed_instruction_index
         == (
-            10
+            first.first_executed_instruction_index
             + first.expected_executed_instruction_count
         )
     )
-
 
 def test_nominal_epoch_stops_only_after_complete_template_block():
     planner, _, _ = make_planner(
@@ -404,11 +575,11 @@ def test_nominal_epoch_stops_only_after_complete_template_block():
     assert (
         planner.planned_epoch_executed_instructions
         == (
-            first.expected_executed_instruction_count
+            1
+            + first.expected_executed_instruction_count
             + second.expected_executed_instruction_count
         )
     )
-
 
 def test_no_additional_block_after_nominal_plan_complete():
     planner, _, _ = make_planner(
@@ -430,7 +601,7 @@ def test_stream_block_wraps_physical_addresses():
     planner, _, _ = make_planner(
         arm_index=0,
         nominal=2,
-        initial_logical_word_index=127,
+        initial_logical_word_index=126,
     )
 
     planner.begin_epoch()
@@ -656,21 +827,102 @@ def make_execution_event(
         forward_a=0,
         forward_b=0,
     )
-def test_program_ring_accepts_ebd_then_template():
-    delimiter = PlannedBoundaryDelimiter(
-        epoch_index=0,
-        logical_word_index=0,
-        first_executed_instruction_index=1,
+
+def consume_active_boundary_with_tracker(
+    planner,
+    tracker,
+):
+    """
+    Consume the active epoch EBD before a payload-focused tracker test.
+    """
+    delimiter = (
+        planner.active_boundary_delimiter
     )
 
+    assert delimiter is not None
+
+    tracker.enqueue(
+        delimiter
+    )
+
+    completed = tracker.observe(
+        make_execution_event(
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
+            instruction=(
+                delimiter.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert completed is not None
+
+    assert (
+        completed.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    return delimiter
+
+
+def consume_active_boundary_with_window(
+    planner,
+    window,
+):
+    """
+    Commit, execute, and release the active epoch EBD before a
+    payload-focused RuntimeStreamWindow test.
+    """
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
+
+    window.commit_patched_block(
+        delimiter
+    )
+
+    released = window.finalize_accepted_event(
+        make_execution_event(
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
+            instruction=(
+                delimiter.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert released is not None
+
+    assert (
+        released.accepted.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    return delimiter
+
+def test_program_ring_accepts_ebd_then_template():
     planner, _, _ = make_planner(
         arm_index=0,
-        nominal=2,
-        initial_logical_word_index=1,
-        first_executed_instruction_index=2,
+        nominal=3,
     )
 
     planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
 
     block = planner.build_next_block()
 
@@ -685,7 +937,7 @@ def test_program_ring_accepts_ebd_then_template():
     )
 
     assert ring.used_words == (
-        1
+        delimiter.image_word_count
         + block.image_word_count
     )
 
@@ -709,21 +961,20 @@ def test_program_ring_accepts_ebd_then_template():
     assert ring.entries == (
         block,
     )
-def test_accepted_tracker_consumes_ebd_then_template():
-    delimiter = PlannedBoundaryDelimiter(
-        epoch_index=0,
-        logical_word_index=0,
-        first_executed_instruction_index=1,
-    )
 
+def test_accepted_tracker_consumes_ebd_then_template():
     planner, _, _ = make_planner(
         arm_index=0,
-        nominal=2,
-        initial_logical_word_index=1,
-        first_executed_instruction_index=2,
+        nominal=3,
     )
 
     planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
 
     block = planner.build_next_block()
 
@@ -741,8 +992,12 @@ def test_accepted_tracker_consumes_ebd_then_template():
 
     completed = tracker.observe(
         make_execution_event(
-            instruction_index=1,
-            pc=delimiter.expected_executed_pcs[0],
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
             instruction=EBD_WORD,
         )
     )
@@ -756,7 +1011,10 @@ def test_accepted_tracker_consumes_ebd_then_template():
 
     assert tracker.accepted_count == 1
 
-    next_index = 2
+    next_index = (
+        block.first_executed_instruction_index
+    )
+
     completed = None
 
     for pc, word in zip(
@@ -786,21 +1044,20 @@ def test_accepted_tracker_consumes_ebd_then_template():
     )
 
     assert tracker.pending_block_count == 0
-def test_runtime_window_ebd_has_zero_attribution_witnesses():
-    delimiter = PlannedBoundaryDelimiter(
-        epoch_index=0,
-        logical_word_index=0,
-        first_executed_instruction_index=1,
-    )
 
+def test_runtime_window_ebd_has_zero_attribution_witnesses():
     planner, coordinator, _ = make_planner(
         arm_index=0,
-        nominal=2,
-        initial_logical_word_index=1,
-        first_executed_instruction_index=2,
+        nominal=3,
     )
 
     planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
 
     block = planner.build_next_block()
 
@@ -838,14 +1095,18 @@ def test_runtime_window_ebd_has_zero_attribution_witnesses():
     assert window.pending_block_count == 2
 
     assert window.used_words == (
-        1
+        delimiter.image_word_count
         + block.image_word_count
     )
 
     released = window.finalize_accepted_event(
         make_execution_event(
-            instruction_index=1,
-            pc=delimiter.expected_executed_pcs[0],
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
             instruction=EBD_WORD,
         )
     )
@@ -864,7 +1125,247 @@ def test_runtime_window_ebd_has_zero_attribution_witnesses():
     assert window.used_words == (
         block.image_word_count
     )
+
 def test_accepted_tracker_consumes_exact_block():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
+
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    tracker.enqueue(
+        delimiter
+    )
+
+    tracker.enqueue(
+        block
+    )
+
+    delimiter_completed = tracker.observe(
+        make_execution_event(
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
+            instruction=(
+                delimiter.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert delimiter_completed is not None
+
+    assert (
+        delimiter_completed.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    completed = None
+
+    instruction_index = (
+        block.first_executed_instruction_index
+    )
+
+    for pc, word in zip(
+        block.expected_executed_pcs,
+        block.expected_executed_words,
+    ):
+        completed = tracker.observe(
+            make_execution_event(
+                instruction_index=instruction_index,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+        instruction_index += 1
+
+    assert completed is not None
+
+    assert (
+        completed.stream_entry_key
+        == block.stream_entry_key
+    )
+
+    assert (
+        completed.template_instance_id
+        == block.template_instance_id
+    )
+
+    assert (
+        completed.first_instruction_index
+        == block.first_executed_instruction_index
+    )
+
+    assert (
+        completed.accepted_instruction_count
+        == block.expected_executed_instruction_count
+    )
+
+    assert tracker.pending_block_count == 0
+
+    assert (
+        tracker.accepted_count
+        == (
+            delimiter.expected_executed_instruction_count
+            + block.expected_executed_instruction_count
+        )
+    )
+
+def test_accepted_tracker_rejects_wrong_instruction_index():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
+
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    tracker.enqueue(
+        delimiter
+    )
+
+    tracker.enqueue(
+        block
+    )
+
+    delimiter_completed = tracker.observe(
+        make_execution_event(
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
+            instruction=(
+                delimiter.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert delimiter_completed is not None
+
+    assert (
+        delimiter_completed.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    with pytest.raises(
+        StreamExecutionMismatch,
+        match="instruction_index mismatch",
+    ):
+        tracker.observe(
+            make_execution_event(
+                instruction_index=(
+                    block.first_executed_instruction_index
+                    + 1
+                ),
+                pc=(
+                    block.expected_executed_pcs[0]
+                ),
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
+            )
+        )
+
+def test_accepted_tracker_rejects_wrong_pc():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
+
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    tracker.enqueue(
+        delimiter
+    )
+
+    tracker.enqueue(
+        block
+    )
+
+    delimiter_completed = tracker.observe(
+        make_execution_event(
+            instruction_index=(
+                delimiter.first_executed_instruction_index
+            ),
+            pc=(
+                delimiter.expected_executed_pcs[0]
+            ),
+            instruction=(
+                delimiter.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert delimiter_completed is not None
+
+    assert (
+        delimiter_completed.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    wrong_pc = (
+        block.expected_executed_pcs[0]
+        + 4
+    ) & 0x1FF
+
+    with pytest.raises(
+        StreamExecutionMismatch,
+        match="accepted PC diverged",
+    ):
+        tracker.observe(
+            make_execution_event(
+                instruction_index=(
+                    block.first_executed_instruction_index
+                ),
+                pc=wrong_pc,
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
+            )
+        )
+
+def test_accepted_tracker_rejects_wrong_word():
     planner, _, _ = make_planner(
         arm_index=0,
         nominal=2,
@@ -877,123 +1378,35 @@ def test_accepted_tracker_consumes_exact_block():
     tracker = AcceptedStreamTracker(
         first_expected_instruction_index=1
     )
-
-    tracker.enqueue(block)
-
-    for offset, (
-        pc,
-        word,
-    ) in enumerate(
-        zip(
-            block.expected_executed_pcs,
-            block.expected_executed_words,
-        )
-    ):
-        result = tracker.observe(
-            make_execution_event(
-                instruction_index=1 + offset,
-                pc=pc,
-                instruction=word,
-            )
-        )
-
-        if (
-            offset
-            < block.expected_executed_instruction_count - 1
-        ):
-            assert result is None
-
-    assert result is not None
-
-    assert (
-        result.template_instance_id
-        == block.template_instance_id
+    consume_active_boundary_with_tracker(
+        planner,
+        tracker,
     )
 
-    assert (
-        result.accepted_instruction_count
-        == block.expected_executed_instruction_count
+    tracker.enqueue(
+        block
     )
 
-    assert tracker.accepted_count == 2
-    assert tracker.pending_block_count == 0
-
-
-def test_accepted_tracker_rejects_wrong_instruction_index():
-    planner, _, _ = make_planner(
-        arm_index=0,
-        nominal=2,
+    wrong_word = (
+        block.expected_executed_words[0]
+        ^ 0x00000001
     )
-
-    planner.begin_epoch()
-    block = planner.build_next_block()
-
-    tracker = AcceptedStreamTracker()
-    tracker.enqueue(block)
 
     with pytest.raises(
-        StreamExecutionMismatch
+        StreamExecutionMismatch,
+        match="instruction word diverged",
     ):
         tracker.observe(
             make_execution_event(
-                instruction_index=2,
-                pc=block.expected_executed_pcs[0],
-                instruction=(
-                    block.expected_executed_words[0]
+                instruction_index=(
+                    block.first_executed_instruction_index
                 ),
-            )
-        )
-
-
-def test_accepted_tracker_rejects_wrong_pc():
-    planner, _, _ = make_planner(
-        arm_index=0,
-        nominal=2,
-    )
-
-    planner.begin_epoch()
-    block = planner.build_next_block()
-
-    tracker = AcceptedStreamTracker()
-    tracker.enqueue(block)
-
-    with pytest.raises(
-        StreamExecutionMismatch
-    ):
-        tracker.observe(
-            make_execution_event(
-                instruction_index=1,
-                pc=4,
-                instruction=(
-                    block.expected_executed_words[0]
+                pc=(
+                    block.expected_executed_pcs[0]
                 ),
+                instruction=wrong_word,
             )
         )
-
-
-def test_accepted_tracker_rejects_wrong_word():
-    planner, _, _ = make_planner(
-        arm_index=0,
-        nominal=2,
-    )
-
-    planner.begin_epoch()
-    block = planner.build_next_block()
-
-    tracker = AcceptedStreamTracker()
-    tracker.enqueue(block)
-
-    with pytest.raises(
-        StreamExecutionMismatch
-    ):
-        tracker.observe(
-            make_execution_event(
-                instruction_index=1,
-                pc=block.expected_executed_pcs[0],
-                instruction=0xFFFFFFFF,
-            )
-        )
-
 
 def test_a7_tracker_skips_flushed_image_words():
     planner, _, _ = make_planner(
@@ -1015,79 +1428,139 @@ def test_a7_tracker_skips_flushed_image_words():
         first_expected_instruction_index=10
     )
 
-    tracker.enqueue(block)
-
-    events = [
-        make_execution_event(
-            instruction_index=10 + offset,
-            pc=pc,
-            instruction=word,
-        )
-        for offset, (
-            pc,
-            word,
-        ) in enumerate(
-            zip(
-                block.expected_executed_pcs,
-                block.expected_executed_words,
-            )
-        )
-    ]
-
-    assert tracker.observe(events[0]) is None
-    assert tracker.observe(events[1]) is None
-
-    completed = tracker.observe(
-        events[2]
+    consume_active_boundary_with_tracker(
+        planner,
+        tracker,
     )
 
+    tracker.enqueue(
+        block
+    )
+
+    assert (
+        block.first_executed_instruction_index
+        == 11
+    )
+
+    completed = None
+
+    instruction_index = (
+        block.first_executed_instruction_index
+    )
+
+    for pc, word in zip(
+        block.expected_executed_pcs,
+        block.expected_executed_words,
+    ):
+        completed = tracker.observe(
+            make_execution_event(
+                instruction_index=instruction_index,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+        instruction_index += 1
+
     assert completed is not None
-    assert completed.accepted_instruction_count == 3
 
-    assert tracker.accepted_count == 3
+    assert (
+        completed.stream_entry_key
+        == block.stream_entry_key
+    )
 
+    assert (
+        completed.first_instruction_index
+        == 11
+    )
+
+    assert (
+        completed.last_instruction_index
+        == 13
+    )
+
+    assert (
+        completed.accepted_instruction_count
+        == 3
+    )
+
+    assert tracker.pending_block_count == 0
+
+    assert tracker.accepted_count == 4
 
 def test_tracker_handles_physical_pc_wrap():
     planner, _, _ = make_planner(
         arm_index=0,
         nominal=2,
-        initial_logical_word_index=127,
+        initial_logical_word_index=126,
     )
 
     planner.begin_epoch()
 
+    delimiter = (
+        planner.active_boundary_delimiter
+    )
+
+    assert delimiter is not None
+
     block = planner.build_next_block()
 
-    assert block.expected_executed_pcs == (
-        508,
-        0,
+    assert (
+        delimiter.expected_executed_pcs
+        == (504,)
     )
 
-    tracker = AcceptedStreamTracker()
-    tracker.enqueue(block)
-
-    assert tracker.observe(
-        make_execution_event(
-            instruction_index=1,
-            pc=508,
-            instruction=(
-                block.expected_executed_words[0]
-            ),
-        )
-    ) is None
-
-    completed = tracker.observe(
-        make_execution_event(
-            instruction_index=2,
-            pc=0,
-            instruction=(
-                block.expected_executed_words[1]
-            ),
+    assert (
+        block.expected_executed_pcs
+        == (
+            508,
+            0,
         )
     )
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    consume_active_boundary_with_tracker(
+        planner,
+        tracker,
+    )
+
+    tracker.enqueue(
+        block
+    )
+
+    completed = None
+
+    instruction_index = (
+        block.first_executed_instruction_index
+    )
+
+    for pc, word in zip(
+        block.expected_executed_pcs,
+        block.expected_executed_words,
+    ):
+        completed = tracker.observe(
+            make_execution_event(
+                instruction_index=instruction_index,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+        instruction_index += 1
 
     assert completed is not None
 
+    assert (
+        completed.stream_entry_key
+        == block.stream_entry_key
+    )
+
+    assert tracker.pending_block_count == 0
+
+    assert tracker.accepted_count == 3
 
 def test_tracker_consumes_multiple_blocks_contiguously():
     planner, _, _ = make_planner(
@@ -1100,51 +1573,97 @@ def test_tracker_consumes_multiple_blocks_contiguously():
     first = planner.build_next_block()
     second = planner.build_next_block()
 
-    tracker = AcceptedStreamTracker()
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
 
-    tracker.enqueue(first)
-    tracker.enqueue(second)
+    consume_active_boundary_with_tracker(
+        planner,
+        tracker,
+    )
 
-    next_index = 1
-    completed_ids = []
+    tracker.enqueue(
+        first
+    )
 
-    for block in (
-        first,
-        second,
+    tracker.enqueue(
+        second
+    )
+
+    assert (
+        second.first_executed_instruction_index
+        == (
+            first.first_executed_instruction_index
+            + first.expected_executed_instruction_count
+        )
+    )
+
+    completed_first = None
+
+    instruction_index = (
+        first.first_executed_instruction_index
+    )
+
+    for pc, word in zip(
+        first.expected_executed_pcs,
+        first.expected_executed_words,
     ):
-        for pc, word in zip(
-            block.expected_executed_pcs,
-            block.expected_executed_words,
-        ):
-            completed = tracker.observe(
-                make_execution_event(
-                    instruction_index=next_index,
-                    pc=pc,
-                    instruction=word,
-                )
+        completed_first = tracker.observe(
+            make_execution_event(
+                instruction_index=instruction_index,
+                pc=pc,
+                instruction=word,
             )
+        )
 
-            next_index += 1
+        instruction_index += 1
 
-            if completed is not None:
-                completed_ids.append(
-                    completed.template_instance_id
-                )
+    assert completed_first is not None
 
-    assert completed_ids == [
-        first.template_instance_id,
-        second.template_instance_id,
-    ]
+    assert (
+        completed_first.stream_entry_key
+        == first.stream_entry_key
+    )
+
+    assert tracker.pending_block_count == 1
+
+    completed_second = None
+
+    instruction_index = (
+        second.first_executed_instruction_index
+    )
+
+    for pc, word in zip(
+        second.expected_executed_pcs,
+        second.expected_executed_words,
+    ):
+        completed_second = tracker.observe(
+            make_execution_event(
+                instruction_index=instruction_index,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+        instruction_index += 1
+
+    assert completed_second is not None
+
+    assert (
+        completed_second.stream_entry_key
+        == second.stream_entry_key
+    )
+
+    assert tracker.pending_block_count == 0
 
     assert (
         tracker.accepted_count
         == (
-            first.expected_executed_instruction_count
+            1
+            + first.expected_executed_instruction_count
             + second.expected_executed_instruction_count
         )
     )
-
-    assert tracker.pending_block_count == 0
 
 def test_runtime_window_commit_registers_block_and_witnesses():
     planner, coordinator, _ = make_planner(
@@ -1158,7 +1677,9 @@ def test_runtime_window_commit_registers_block_and_witnesses():
 
     ring = BoundedProgramRing()
 
-    tracker = AcceptedStreamTracker()
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
 
     window = RuntimeStreamWindow(
         coordinator=coordinator,
@@ -1171,8 +1692,23 @@ def test_runtime_window_commit_registers_block_and_witnesses():
         == 0
     )
 
+    consume_active_boundary_with_window(
+        planner,
+        window,
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
+    )
+
     window.commit_patched_block(
         block
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == len(block.witnesses)
     )
 
     assert window.pending_block_count == 1
@@ -1183,10 +1719,9 @@ def test_runtime_window_commit_registers_block_and_witnesses():
     )
 
     assert (
-        coordinator.pending_attribution_witness_count
-        == len(block.witnesses)
+        tracker.pending_block_count
+        == 1
     )
-
 
 def test_runtime_window_releases_only_after_complete_block():
     planner, coordinator, _ = make_planner(
@@ -1201,53 +1736,82 @@ def test_runtime_window_releases_only_after_complete_block():
     window = RuntimeStreamWindow(
         coordinator=coordinator,
         ring=BoundedProgramRing(),
-        accepted_tracker=AcceptedStreamTracker(),
-    )
-
-    window.commit_patched_block(
-        block
-    )
-
-    first = make_execution_event(
-        instruction_index=1,
-        pc=block.expected_executed_pcs[0],
-        instruction=(
-            block.expected_executed_words[0]
+        accepted_tracker=AcceptedStreamTracker(
+            first_expected_instruction_index=1
         ),
     )
 
-    second = make_execution_event(
-        instruction_index=2,
-        pc=block.expected_executed_pcs[1],
-        instruction=(
-            block.expected_executed_words[1]
-        ),
-    )
-
-    released = window.finalize_accepted_event(
-        first
-    )
-
-    assert released is None
-    assert window.pending_block_count == 1
-
-    released = window.finalize_accepted_event(
-        second
-    )
-
-    assert isinstance(
-        released,
-        ReleasedStreamBlock,
-    )
-
-    assert (
-        released.block.template_instance_id
-        == block.template_instance_id
+    consume_active_boundary_with_window(
+        planner,
+        window,
     )
 
     assert window.pending_block_count == 0
     assert window.used_words == 0
 
+    window.commit_patched_block(
+        block
+    )
+
+    assert window.pending_block_count == 1
+
+    assert (
+        window.used_words
+        == block.image_word_count
+    )
+
+    first_result = window.finalize_accepted_event(
+        make_execution_event(
+            instruction_index=(
+                block.first_executed_instruction_index
+            ),
+            pc=(
+                block.expected_executed_pcs[0]
+            ),
+            instruction=(
+                block.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert first_result is None
+
+    assert window.pending_block_count == 1
+
+    assert (
+        window.used_words
+        == block.image_word_count
+    )
+
+    final_result = window.finalize_accepted_event(
+        make_execution_event(
+            instruction_index=(
+                block.first_executed_instruction_index
+                + 1
+            ),
+            pc=(
+                block.expected_executed_pcs[1]
+            ),
+            instruction=(
+                block.expected_executed_words[1]
+            ),
+        )
+    )
+
+    assert final_result is not None
+
+    assert (
+        final_result.block.stream_entry_key
+        == block.stream_entry_key
+    )
+
+    assert (
+        final_result.accepted.stream_entry_key
+        == block.stream_entry_key
+    )
+
+    assert window.pending_block_count == 0
+    assert window.used_words == 0
 
 def test_runtime_window_prunes_unmatched_witness_on_consumer():
     planner, coordinator, _ = make_planner(
@@ -1262,42 +1826,86 @@ def test_runtime_window_prunes_unmatched_witness_on_consumer():
     window = RuntimeStreamWindow(
         coordinator=coordinator,
         ring=BoundedProgramRing(),
-        accepted_tracker=AcceptedStreamTracker(),
+        accepted_tracker=AcceptedStreamTracker(
+            first_expected_instruction_index=1
+        ),
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
     )
 
     window.commit_patched_block(
         block
     )
 
+    assert len(block.witnesses) == 1
+
     assert (
         coordinator.pending_attribution_witness_count
         == 1
     )
 
-    for index, (
-        pc,
-        word,
-    ) in enumerate(
-        zip(
-            block.expected_executed_pcs,
-            block.expected_executed_words,
-        ),
-        start=1,
-    ):
+    producer_result = (
         window.finalize_accepted_event(
             make_execution_event(
-                instruction_index=index,
-                pc=pc,
-                instruction=word,
+                instruction_index=(
+                    block.first_executed_instruction_index
+                ),
+                pc=(
+                    block.expected_executed_pcs[0]
+                ),
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
             )
         )
+    )
 
-    # No L2 hit was registered, so the witness becomes stale when the
-    # consumer instruction has been completely processed.
+    assert producer_result is None
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 1
+    )
+
+    consumer_result = (
+        window.finalize_accepted_event(
+            make_execution_event(
+                instruction_index=(
+                    block.first_executed_instruction_index
+                    + 1
+                ),
+                pc=(
+                    block.expected_executed_pcs[1]
+                ),
+                instruction=(
+                    block.expected_executed_words[1]
+                ),
+            )
+        )
+    )
+
+    assert consumer_result is not None
+
+    assert (
+        consumer_result.block.stream_entry_key
+        == block.stream_entry_key
+    )
+
     assert (
         coordinator.pending_attribution_witness_count
         == 0
     )
+
+    assert window.pending_block_count == 0
+    assert window.used_words == 0
 
 
 def test_runtime_window_a7_release_ignores_flushed_words():
@@ -1318,19 +1926,34 @@ def test_runtime_window_a7_release_ignores_flushed_words():
     window = RuntimeStreamWindow(
         coordinator=coordinator,
         ring=BoundedProgramRing(),
-        accepted_tracker=AcceptedStreamTracker(),
+        accepted_tracker=AcceptedStreamTracker(
+            first_expected_instruction_index=1
+        ),
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
     )
 
     window.commit_patched_block(
         block
     )
 
+    assert window.pending_block_count == 1
+
+    assert (
+        window.used_words
+        == block.image_word_count
+    )
+
+    instruction_index = (
+        block.first_executed_instruction_index
+    )
+
     released = None
 
-    for instruction_index, (
-        pc,
-        word,
-    ) in enumerate(
+    for event_number, (pc, word) in enumerate(
         zip(
             block.expected_executed_pcs,
             block.expected_executed_words,
@@ -1349,14 +1972,51 @@ def test_runtime_window_a7_release_ignores_flushed_words():
             )
         )
 
+        instruction_index += 1
+
+        if (
+            event_number
+            < block.expected_executed_instruction_count
+        ):
+            assert released is None
+            assert window.pending_block_count == 1
+
     assert released is not None
 
     assert (
+        released.block.stream_entry_key
+        == block.stream_entry_key
+    )
+
+    assert (
         released.accepted.accepted_instruction_count
-        == 3
+        == block.expected_executed_instruction_count
+    )
+
+    assert (
+        released.accepted.first_instruction_index
+        == block.first_executed_instruction_index
+    )
+
+    assert (
+        released.accepted.last_instruction_index
+        == (
+            block.first_executed_instruction_index
+            + block.expected_executed_instruction_count
+            - 1
+        )
     )
 
     assert window.pending_block_count == 0
+    assert window.used_words == 0
+
+    assert (
+        window.accepted_count
+        == (
+            1
+            + block.expected_executed_instruction_count
+        )
+    )
 
 
 def test_runtime_window_capacity_failure_does_not_register_witnesses():
@@ -1379,29 +2039,60 @@ def test_runtime_window_capacity_failure_does_not_register_witnesses():
     window = RuntimeStreamWindow(
         coordinator=coordinator,
         ring=ring,
-        accepted_tracker=AcceptedStreamTracker(),
+        accepted_tracker=AcceptedStreamTracker(
+            first_expected_instruction_index=1
+        ),
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
+    )
+
+    assert window.used_words == 0
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
     )
 
     window.commit_patched_block(
         first
     )
 
-    witness_count_before = (
-        coordinator
-        .pending_attribution_witness_count
+    witness_count_before_failure = (
+        coordinator.pending_attribution_witness_count
     )
 
-    with pytest.raises(RuntimeError):
+    assert (
+        witness_count_before_failure
+        == len(first.witnesses)
+    )
+
+    assert (
+        window.used_words
+        == first.image_word_count
+    )
+
+    with pytest.raises(
+        StreamPlanningError,
+        match="insufficient free space",
+    ):
         window.commit_patched_block(
             second
         )
 
     assert (
         coordinator.pending_attribution_witness_count
-        == witness_count_before
+        == witness_count_before_failure
     )
 
     assert window.pending_block_count == 1
+
+    assert (
+        window.used_words
+        == first.image_word_count
+    )
 
 
 def test_runtime_window_refill_after_release():
@@ -1425,45 +2116,56 @@ def test_runtime_window_refill_after_release():
     window = RuntimeStreamWindow(
         coordinator=coordinator,
         ring=ring,
-        accepted_tracker=AcceptedStreamTracker(),
+        accepted_tracker=AcceptedStreamTracker(
+            first_expected_instruction_index=1
+        ),
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
     )
 
     window.commit_patched_block(
         first
     )
 
-    with pytest.raises(RuntimeError):
-        window.commit_patched_block(
-            second
-        )
+    assert window.pending_block_count == 1
 
-    next_index = (
+    released_first = None
+
+    instruction_index = (
         first.first_executed_instruction_index
     )
-
-    released = None
 
     for pc, word in zip(
         first.expected_executed_pcs,
         first.expected_executed_words,
     ):
-        released = (
+        released_first = (
             window.finalize_accepted_event(
                 make_execution_event(
-                    instruction_index=next_index,
+                    instruction_index=(
+                        instruction_index
+                    ),
                     pc=pc,
                     instruction=word,
                 )
             )
         )
 
-        next_index += 1
+        instruction_index += 1
 
-    assert released is not None
+    assert released_first is not None
 
+    assert (
+        released_first.block.stream_entry_key
+        == first.stream_entry_key
+    )
+
+    assert window.pending_block_count == 0
     assert window.used_words == 0
 
-    # The same physical capacity is now reclaimable.
     window.commit_patched_block(
         second
     )
@@ -1473,4 +2175,47 @@ def test_runtime_window_refill_after_release():
     assert (
         window.used_words
         == second.image_word_count
+    )
+
+    released_second = None
+
+    instruction_index = (
+        second.first_executed_instruction_index
+    )
+
+    for pc, word in zip(
+        second.expected_executed_pcs,
+        second.expected_executed_words,
+    ):
+        released_second = (
+            window.finalize_accepted_event(
+                make_execution_event(
+                    instruction_index=(
+                        instruction_index
+                    ),
+                    pc=pc,
+                    instruction=word,
+                )
+            )
+        )
+
+        instruction_index += 1
+
+    assert released_second is not None
+
+    assert (
+        released_second.block.stream_entry_key
+        == second.stream_entry_key
+    )
+
+    assert window.pending_block_count == 0
+    assert window.used_words == 0
+
+    assert (
+        window.accepted_count
+        == (
+            1
+            + first.expected_executed_instruction_count
+            + second.expected_executed_instruction_count
+        )
     )

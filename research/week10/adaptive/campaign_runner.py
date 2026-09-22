@@ -1376,6 +1376,22 @@ class AdaptiveEpochStreamPlanner:
 
         self._next_template_instance_id = 1
 
+        # EBD numbering is zero-based and independent of arm selection.
+        #
+        # A boundary may be planned before the coordinator is allowed to
+        # begin the corresponding adaptive epoch. This is required by the
+        # one-instruction fetch lookahead at an epoch transition.
+        self._next_boundary_epoch_index = 0
+        self._next_epoch_to_begin = 0
+
+        self._pending_boundary_delimiter: (
+            PlannedBoundaryDelimiter | None
+        ) = None
+
+        self._active_boundary_delimiter: (
+            PlannedBoundaryDelimiter | None
+        ) = None
+
         self._epoch_start: EpochStart | None = None
         self._planned_epoch_executed = 0
 
@@ -1408,6 +1424,24 @@ class AdaptiveEpochStreamPlanner:
         )
 
     @property
+    def pending_boundary_delimiter(
+        self,
+    ) -> PlannedBoundaryDelimiter | None:
+        """
+        Arm-independent EBD reserved for the next adaptive epoch.
+        """
+        return self._pending_boundary_delimiter
+
+    @property
+    def active_boundary_delimiter(
+        self,
+    ) -> PlannedBoundaryDelimiter | None:
+        """
+        EBD owned by the currently active adaptive epoch.
+        """
+        return self._active_boundary_delimiter
+
+    @property
     def epoch_plan_complete(self) -> bool:
         return (
             self.active
@@ -1415,16 +1449,116 @@ class AdaptiveEpochStreamPlanner:
             >= self._nominal_epoch_instructions
         )
 
+    def plan_next_boundary_delimiter(
+        self,
+    ) -> PlannedBoundaryDelimiter:
+        """
+        Reserve exactly one arm-independent EBD for the next epoch.
+
+        The reservation advances logical-image and executed-order
+        continuity, but does not consume RNG state, select an arm,
+        register attribution provenance, or affect the 80:20 filler
+        scheduler.
+        """
+        if self._pending_boundary_delimiter is not None:
+            raise RuntimeError(
+                "next epoch already has a pending "
+                "boundary delimiter"
+            )
+
+        if (
+            self.active
+            and not self.epoch_plan_complete
+        ):
+            raise RuntimeError(
+                "cannot place next epoch boundary "
+                "inside an incomplete payload"
+            )
+
+        delimiter = PlannedBoundaryDelimiter(
+            epoch_index=(
+                self._next_boundary_epoch_index
+            ),
+            logical_word_index=(
+                self._next_logical_word_index
+            ),
+            first_executed_instruction_index=(
+                self._next_executed_instruction_index
+            ),
+        )
+
+        self._next_logical_word_index += (
+            delimiter.image_word_count
+        )
+
+        self._next_executed_instruction_index += (
+            delimiter.expected_executed_instruction_count
+        )
+
+        self._next_boundary_epoch_index += 1
+
+        self._pending_boundary_delimiter = (
+            delimiter
+        )
+
+        return delimiter
+
     def begin_epoch(self) -> EpochStart:
         if self._epoch_start is not None:
             raise RuntimeError(
                 "stream planner already has an active epoch"
             )
 
+        # EBD_0 may be created immediately before the first epoch because
+        # no previous epoch exists whose fetch lookahead must be protected.
+        #
+        # Every later epoch requires its EBD to have been explicitly
+        # preplanned before begin_epoch().
+        if self._pending_boundary_delimiter is None:
+            if self._next_epoch_to_begin != 0:
+                raise RuntimeError(
+                    "next adaptive epoch requires a "
+                    "preseeded boundary delimiter"
+                )
+
+            self.plan_next_boundary_delimiter()
+
+        delimiter = (
+            self._pending_boundary_delimiter
+        )
+
+        if delimiter is None:
+            raise RuntimeError(
+                "missing pending boundary delimiter"
+            )
+
+        if (
+            delimiter.epoch_index
+            != self._next_epoch_to_begin
+        ):
+            raise RuntimeError(
+                "boundary delimiter epoch ownership mismatch"
+            )
+
+        # Coordinator state is changed only after all planner-local
+        # preconditions have passed.
         start = self._coordinator.begin_epoch()
 
         self._epoch_start = start
-        self._planned_epoch_executed = 0
+
+        self._active_boundary_delimiter = (
+            delimiter
+        )
+
+        self._pending_boundary_delimiter = None
+
+        # The EBD is a real architecturally executed instruction and is
+        # therefore the first instruction in this epoch's denominator.
+        self._planned_epoch_executed = (
+            delimiter.expected_executed_instruction_count
+        )
+
+        self._next_epoch_to_begin += 1
 
         return start
 
@@ -1607,3 +1741,4 @@ class AdaptiveEpochStreamPlanner:
 
         self._epoch_start = None
         self._planned_epoch_executed = 0
+        self._active_boundary_delimiter = None
