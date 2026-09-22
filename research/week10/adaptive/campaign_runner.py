@@ -713,6 +713,45 @@ class BoundedProgramRing:
 
         return oldest
 
+    def discard_all_for_termination(
+        self,
+    ) -> Tuple[StreamEntry, ...]:
+        """
+        Reclaim every resident stream entry at final campaign
+        termination.
+
+        Unlike ordinary FIFO release, the resident head may have been
+        only partially executed. No execution is fabricated here.
+        """
+        if not self._blocks:
+            raise StreamPlanningError(
+                "cannot discard termination suffix "
+                "from an empty program ring"
+            )
+
+        entries = tuple(
+            self._blocks
+        )
+
+        expected_used_words = sum(
+            entry.image_word_count
+            for entry in entries
+        )
+
+        if (
+            expected_used_words
+            != self._used_words
+        ):
+            raise RuntimeError(
+                "program-ring resident word accounting "
+                "is inconsistent before termination"
+            )
+
+        self._blocks.clear()
+        self._used_words = 0
+
+        return entries
+
 @dataclass(frozen=True)
 class AcceptedBlockResult:
     """
@@ -885,6 +924,12 @@ class AcceptedStreamTracker:
     @property
     def pending_block_count(self) -> int:
         return len(self._blocks)
+
+    @property
+    def current_block_progress(
+        self,
+    ) -> int:
+        return self._block_progress
 
     @property
     def current_block(
@@ -1085,6 +1130,68 @@ class AcceptedStreamTracker:
             ),
         )
 
+    def discard_pending_for_termination(
+        self,
+    ) -> Tuple[StreamEntry, ...]:
+        """
+        Forget the architecturally unexecuted planned suffix.
+
+        accepted_count and next_expected_instruction_index deliberately
+        remain unchanged because no synthetic execution occurs.
+        """
+        if not self._blocks:
+            raise StreamExecutionMismatch(
+                "cannot discard termination suffix "
+                "without pending stream entries"
+            )
+
+        head = self._blocks[0]
+
+        if (
+            self._block_progress < 0
+            or self._block_progress
+            >= head.expected_executed_instruction_count
+        ):
+            raise RuntimeError(
+                "accepted-stream partial progress "
+                "is invalid at termination"
+            )
+
+        entries = tuple(
+            self._blocks
+        )
+
+        accepted_count_before = (
+            self._accepted_count
+        )
+
+        next_expected_before = (
+            self._next_expected_instruction_index
+        )
+
+        self._blocks.clear()
+        self._block_progress = 0
+
+        if (
+            self._accepted_count
+            != accepted_count_before
+        ):
+            raise RuntimeError(
+                "termination cleanup modified "
+                "accepted instruction count"
+            )
+
+        if (
+            self._next_expected_instruction_index
+            != next_expected_before
+        ):
+            raise RuntimeError(
+                "termination cleanup modified "
+                "next expected instruction index"
+            )
+
+        return entries
+
 @dataclass(frozen=True)
 class ReleasedStreamBlock:
     """
@@ -1103,6 +1210,47 @@ class ReleasedStreamBlock:
             raise ValueError(
                 "released entry and accepted result "
                 "refer to different stream entries"
+            )
+
+@dataclass(frozen=True)
+class DiscardedStreamSuffix:
+    """
+    Immutable record of final runtime-window reclamation.
+
+    `reclaimed_resident_word_count` includes the complete resident image
+    of a partially executed head entry. It must not be interpreted as a
+    count of architecturally unexecuted instructions.
+    """
+
+    entries: Tuple[StreamEntry, ...]
+    first_logical_word_index: int
+    reclaimed_resident_word_count: int
+    first_unexecuted_instruction_index: int
+    accepted_count_at_termination: int
+    head_accepted_instruction_count: int
+    discarded_expected_instruction_count: int
+    discarded_attribution_witness_count: int
+
+    def __post_init__(
+        self,
+    ) -> None:
+        if not self.entries:
+            raise ValueError(
+                "discarded suffix must contain "
+                "at least one resident entry"
+            )
+
+        if (
+            self.first_logical_word_index < 0
+            or self.reclaimed_resident_word_count <= 0
+            or self.first_unexecuted_instruction_index <= 0
+            or self.accepted_count_at_termination <= 0
+            or self.head_accepted_instruction_count < 0
+            or self.discarded_expected_instruction_count <= 0
+            or self.discarded_attribution_witness_count < 0
+        ):
+            raise ValueError(
+                "invalid discarded stream suffix accounting"
             )
 
 class RuntimeStreamWindow:
@@ -1160,6 +1308,7 @@ class RuntimeStreamWindow:
         self._accepted_tracker = (
             accepted_tracker
         )
+        self._terminated = False
 
     @property
     def used_words(self) -> int:
@@ -1187,6 +1336,10 @@ class RuntimeStreamWindow:
 
         Validation is performed before any state mutation.
         """
+        if self._terminated:
+            raise RuntimeError(
+                "runtime stream window is terminated"
+            )
         self._ring.validate_append(
             entry
         )
@@ -1226,6 +1379,10 @@ class RuntimeStreamWindow:
         This method then performs the required final prune before
         reclaiming any program-image slots.
         """
+        if self._terminated:
+            raise RuntimeError(
+                "runtime stream window is terminated"
+            )
         if not isinstance(
             event,
             ExecutionEvent,
@@ -1259,6 +1416,227 @@ class RuntimeStreamWindow:
         return ReleasedStreamBlock(
             block=released,
             accepted=completed,
+        )
+
+    def discard_unexecuted_suffix(
+        self,
+        *,
+        last_executed_instruction_index: int,
+    ) -> DiscardedStreamSuffix:
+        """
+        Terminate the runtime stream at an exact architectural hard cap.
+
+        The final accepted event must already have completed its normal
+        post-instruction cut before this method is called.
+
+        No ExecutionEvent is synthesized. Accepted execution accounting
+        remains frozen at the hard cap.
+        """
+        if self._terminated:
+            raise RuntimeError(
+                "runtime stream window is already terminated"
+            )
+
+        if (
+            isinstance(
+                last_executed_instruction_index,
+                bool,
+            )
+            or not isinstance(
+                last_executed_instruction_index,
+                int,
+            )
+            or last_executed_instruction_index <= 0
+        ):
+            raise ValueError(
+                "last_executed_instruction_index "
+                "must be a positive integer"
+            )
+
+        pending_ring = (
+            self._ring.entries
+        )
+
+        pending_tracker = (
+            self._accepted_tracker.pending_entries
+        )
+
+        if not pending_ring:
+            raise RuntimeError(
+                "no resident stream suffix exists "
+                "at campaign termination"
+            )
+
+        if (
+            pending_ring
+            != pending_tracker
+        ):
+            raise RuntimeError(
+                "runtime ring and accepted tracker "
+                "disagree before termination"
+            )
+
+        if (
+            self._accepted_tracker
+            .next_expected_instruction_index
+            != (
+                last_executed_instruction_index
+                + 1
+            )
+        ):
+            raise RuntimeError(
+                "termination instruction index "
+                "does not match accepted stream state"
+            )
+
+        accepted_count_before = (
+            self._accepted_tracker.accepted_count
+        )
+
+        next_expected_before = (
+            self._accepted_tracker
+            .next_expected_instruction_index
+        )
+
+        head_progress = (
+            self._accepted_tracker
+            .current_block_progress
+        )
+
+        head = pending_tracker[0]
+
+        if (
+            head_progress
+            >= head.expected_executed_instruction_count
+        ):
+            raise RuntimeError(
+                "termination head entry is already complete"
+            )
+
+        reclaimed_words = sum(
+            entry.image_word_count
+            for entry in pending_ring
+        )
+
+        if (
+            reclaimed_words
+            != self._ring.used_words
+        ):
+            raise RuntimeError(
+                "runtime resident-word accounting "
+                "is inconsistent at termination"
+            )
+
+        discarded_expected = (
+            sum(
+                entry.expected_executed_instruction_count
+                for entry in pending_tracker
+            )
+            - head_progress
+        )
+
+        if discarded_expected <= 0:
+            raise RuntimeError(
+                "termination produced no unexecuted "
+                "architectural suffix"
+            )
+
+        first_logical_word_index = (
+            pending_ring[0].logical_word_start
+        )
+
+        discarded_witnesses = (
+            self._coordinator
+            .discard_unexecuted_attribution_witnesses(
+                last_executed_instruction_id=(
+                    last_executed_instruction_index
+                )
+            )
+        )
+
+        tracker_entries = (
+            self._accepted_tracker
+            .discard_pending_for_termination()
+        )
+
+        ring_entries = (
+            self._ring
+            .discard_all_for_termination()
+        )
+
+        if (
+            tracker_entries
+            != pending_tracker
+            or ring_entries
+            != pending_ring
+        ):
+            raise RuntimeError(
+                "termination cleanup changed "
+                "resident entry identity"
+            )
+
+        if (
+            self._accepted_tracker.accepted_count
+            != accepted_count_before
+        ):
+            raise RuntimeError(
+                "termination cleanup changed "
+                "accepted instruction count"
+            )
+
+        if (
+            self._accepted_tracker
+            .next_expected_instruction_index
+            != next_expected_before
+        ):
+            raise RuntimeError(
+                "termination cleanup changed "
+                "next expected instruction index"
+            )
+
+        if (
+            self._ring.used_words != 0
+            or self._ring.pending_block_count != 0
+            or self._accepted_tracker.pending_block_count != 0
+        ):
+            raise RuntimeError(
+                "termination cleanup left resident stream state"
+            )
+
+        if (
+            self._coordinator
+            .pending_attribution_witness_count
+            != 0
+        ):
+            raise RuntimeError(
+                "termination cleanup left attribution witnesses"
+            )
+
+        self._terminated = True
+
+        return DiscardedStreamSuffix(
+            entries=pending_ring,
+            first_logical_word_index=(
+                first_logical_word_index
+            ),
+            reclaimed_resident_word_count=(
+                reclaimed_words
+            ),
+            first_unexecuted_instruction_index=(
+                next_expected_before
+            ),
+            accepted_count_at_termination=(
+                accepted_count_before
+            ),
+            head_accepted_instruction_count=(
+                head_progress
+            ),
+            discarded_expected_instruction_count=(
+                discarded_expected
+            ),
+            discarded_attribution_witness_count=(
+                discarded_witnesses
+            ),
         )
 
 class AdaptiveEpochStreamPlanner:

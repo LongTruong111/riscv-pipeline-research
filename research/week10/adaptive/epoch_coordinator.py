@@ -471,6 +471,33 @@ class AdaptiveEpochCoordinator:
             latest_instruction_index=latest_instruction_id
         )
 
+    def discard_unexecuted_attribution_witnesses(
+        self,
+        *,
+        last_executed_instruction_id: int,
+    ) -> int:
+        """
+        Remove attribution witnesses belonging only to the final
+        architecturally unexecuted campaign suffix.
+
+        The final executed instruction must already have completed its
+        normal L2 processing and prune_validation_state() cut.
+
+        This method does not modify global coverage, reward observations,
+        accepted execution count, or bandit state.
+        """
+        if self._active is None:
+            raise RuntimeError(
+                "cannot discard attribution witnesses "
+                "without an active epoch"
+            )
+
+        return self._attribution.discard_future_after(
+            last_executed_instruction_index=(
+                last_executed_instruction_id
+            )
+        )
+
     def finish_epoch(
         self,
         *,

@@ -514,3 +514,69 @@ class AttributionRegistry:
                     removed += 1
 
         return removed
+
+    def discard_future_after(
+        self,
+        *,
+        last_executed_instruction_index: int,
+    ) -> int:
+        """
+        Discard all still-pending attribution witnesses at final campaign
+        termination.
+
+        Calling contract:
+            prune(last_executed_instruction_index) must already have run
+            after all L2 hits for the final executed instruction were
+            processed.
+
+        Therefore every witness still present here must belong strictly
+        to the architecturally unexecuted future suffix.
+
+        Returns the number of discarded witnesses.
+
+        Complexity is O(P), where P is the bounded number of resident
+        pending witnesses, hence O(1) with respect to campaign length N.
+        """
+        if (
+            isinstance(
+                last_executed_instruction_index,
+                bool,
+            )
+            or not isinstance(
+                last_executed_instruction_index,
+                int,
+            )
+            or last_executed_instruction_index <= 0
+        ):
+            raise ValueError(
+                "last_executed_instruction_index "
+                "must be a positive integer"
+            )
+
+        nonfuture_consumers = tuple(
+            sorted(
+                consumer
+                for consumer
+                in self._keys_by_consumer
+                if (
+                    consumer
+                    <= last_executed_instruction_index
+                )
+            )
+        )
+
+        if nonfuture_consumers:
+            raise RuntimeError(
+                "cannot discard campaign suffix while "
+                "non-future attribution witnesses remain: "
+                f"{nonfuture_consumers}"
+            )
+
+        removed = len(
+            self._by_key
+        )
+
+        self._by_key.clear()
+        self._keys_by_consumer.clear()
+
+        return removed

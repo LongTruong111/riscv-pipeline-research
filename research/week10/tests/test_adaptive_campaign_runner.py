@@ -25,6 +25,7 @@ from research.week10.adaptive.campaign_runner import (
     PlannedBoundaryDelimiter,
     StreamEntry,
     StreamPlanningError,
+    DiscardedStreamSuffix,
 )
 from research.week10.adaptive.decision_engine import (
     BanditConfig,
@@ -2218,4 +2219,355 @@ def test_runtime_window_refill_after_release():
             + first.expected_executed_instruction_count
             + second.expected_executed_instruction_count
         )
+    )
+
+def test_runtime_window_exact_n_termination_inside_template():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=5,
+    )
+
+    planner.begin_epoch()
+
+    first = planner.build_next_block()
+    second = planner.build_next_block()
+
+    ring = BoundedProgramRing()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=ring,
+        accepted_tracker=tracker,
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
+    )
+
+    window.commit_patched_block(
+        first
+    )
+
+    window.commit_patched_block(
+        second
+    )
+
+    assert (
+        first.expected_executed_instruction_count
+        == 2
+    )
+
+    assert (
+        second.expected_executed_instruction_count
+        == 3
+    )
+
+    assert (
+        second.background_filler_count
+        == 1
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 2
+    )
+
+    hard_cap = (
+        first.first_executed_instruction_index
+    )
+
+    result = window.finalize_accepted_event(
+        make_execution_event(
+            instruction_index=hard_cap,
+            pc=first.expected_executed_pcs[0],
+            instruction=(
+                first.expected_executed_words[0]
+            ),
+        )
+    )
+
+    assert result is None
+
+    accepted_before = (
+        window.accepted_count
+    )
+
+    assert accepted_before == hard_cap
+
+    assert (
+        tracker.next_expected_instruction_index
+        == hard_cap + 1
+    )
+
+    discarded = (
+        window.discard_unexecuted_suffix(
+            last_executed_instruction_index=(
+                hard_cap
+            )
+        )
+    )
+
+    assert isinstance(
+        discarded,
+        DiscardedStreamSuffix,
+    )
+
+    assert discarded.entries == (
+        first,
+        second,
+    )
+
+    assert (
+        discarded.first_logical_word_index
+        == first.logical_word_start
+    )
+
+    assert (
+        discarded.reclaimed_resident_word_count
+        == (
+            first.image_word_count
+            + second.image_word_count
+        )
+    )
+
+    assert (
+        discarded.first_unexecuted_instruction_index
+        == hard_cap + 1
+    )
+
+    assert (
+        discarded.accepted_count_at_termination
+        == accepted_before
+    )
+
+    assert (
+        discarded.head_accepted_instruction_count
+        == 1
+    )
+
+    assert (
+        discarded.discarded_expected_instruction_count
+        == 4
+    )
+
+    assert (
+        discarded.discarded_attribution_witness_count
+        == 2
+    )
+
+    assert (
+        window.accepted_count
+        == accepted_before
+    )
+
+    assert (
+        tracker.next_expected_instruction_index
+        == hard_cap + 1
+    )
+
+    assert window.pending_block_count == 0
+    assert window.used_words == 0
+
+    assert tracker.pending_block_count == 0
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
+    )
+
+    completion = coordinator.finish_epoch(
+        actual_executed_instructions=(
+            accepted_before
+        )
+    )
+
+    assert completion is not None
+    assert not coordinator.active
+
+    with pytest.raises(
+        RuntimeError,
+        match="none is active",
+    ):
+        coordinator.finish_epoch(
+            actual_executed_instructions=(
+                accepted_before
+            )
+        )
+
+
+def test_runtime_window_termination_is_one_shot():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=BoundedProgramRing(),
+        accepted_tracker=tracker,
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    hard_cap = (
+        block.first_executed_instruction_index
+    )
+
+    assert (
+        window.finalize_accepted_event(
+            make_execution_event(
+                instruction_index=hard_cap,
+                pc=block.expected_executed_pcs[0],
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
+            )
+        )
+        is None
+    )
+
+    accepted_before = (
+        window.accepted_count
+    )
+
+    window.discard_unexecuted_suffix(
+        last_executed_instruction_index=(
+            hard_cap
+        )
+    )
+
+    assert (
+        window.accepted_count
+        == accepted_before
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="already terminated",
+    ):
+        window.discard_unexecuted_suffix(
+            last_executed_instruction_index=(
+                hard_cap
+            )
+        )
+
+    with pytest.raises(
+        RuntimeError,
+        match="window is terminated",
+    ):
+        window.finalize_accepted_event(
+            make_execution_event(
+                instruction_index=(
+                    hard_cap + 1
+                ),
+                pc=block.expected_executed_pcs[1],
+                instruction=(
+                    block.expected_executed_words[1]
+                ),
+            )
+        )
+
+    assert (
+        window.accepted_count
+        == accepted_before
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="window is terminated",
+    ):
+        window.commit_patched_block(
+            block
+        )
+
+
+def test_runtime_window_termination_requires_postcut_prune():
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    ring = BoundedProgramRing()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=ring,
+        accepted_tracker=tracker,
+    )
+
+    consume_active_boundary_with_window(
+        planner,
+        window,
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    producer_index = (
+        block.first_executed_instruction_index
+    )
+
+    assert (
+        window.finalize_accepted_event(
+            make_execution_event(
+                instruction_index=producer_index,
+                pc=block.expected_executed_pcs[0],
+                instruction=(
+                    block.expected_executed_words[0]
+                ),
+            )
+        )
+        is None
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 1
+    )
+
+    discarded = (
+        window.discard_unexecuted_suffix(
+            last_executed_instruction_index=(
+                producer_index
+            )
+        )
+    )
+
+    assert (
+        discarded.discarded_attribution_witness_count
+        == 1
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
     )
