@@ -3611,3 +3611,768 @@ async def test_intra_epoch_streaming_b500(
     )
 
     assert not coordinator.active
+
+@cocotb.test()
+async def test_exact_n_hard_cap_termination(
+    dut,
+):
+    """
+    T10.9h-3 proof obligation:
+
+        exact architectural hard cap
+          -> final instruction completes normal timing/architecture/L2 cut
+          -> no accepted instruction beyond Nmax
+          -> clock stops HIGH without reset
+          -> partially consumed resident template is not fake-executed
+          -> unexecuted stream suffix is discarded explicitly
+          -> timing ownership is released for the same resident suffix
+          -> accepted count remains exactly Nmax
+          -> final partial adaptive epoch receives exactly one finish/update
+
+    This gate deliberately terminates after the first accepted payload
+    instruction, so Nmax lies strictly inside the first payload template.
+    """
+
+    # ----------------------------------------------------------
+    # Verification interface initialization.
+    # ----------------------------------------------------------
+    dut.clk.value = 0
+    dut.reset.value = 1
+
+    dut.imem_patch_strobe.value = 0
+    dut.imem_patch_addr.value = 0
+    dut.imem_patch_data.value = 0
+
+    await Timer(
+        1,
+        units="ns",
+    )
+
+    # Nominal size is deliberately much larger than the chosen hard cap.
+    # Two payload entries therefore remain valid complete planner entries
+    # while architectural execution terminates inside the first one.
+    (
+        l2_coverage,
+        coverage,
+        decision_engine,
+        coordinator,
+        planner,
+        window,
+    ) = build_adaptive_stack(
+        nominal_epoch_instructions=16,
+    )
+
+    # ----------------------------------------------------------
+    # Begin one adaptive epoch.
+    # ----------------------------------------------------------
+    epoch_start = planner.begin_epoch()
+
+    active_boundary = (
+        planner.active_boundary_delimiter
+    )
+
+    assert active_boundary is not None
+    assert active_boundary.epoch_index == 0
+
+    assert (
+        active_boundary
+        .first_executed_instruction_index
+        == 1
+    )
+
+    # ----------------------------------------------------------
+    # Patch EBD_0 first and construct the live timing oracle.
+    # ----------------------------------------------------------
+    (
+        initial_fragment,
+        initial_image_words,
+    ) = await patch_stream_entries(
+        dut,
+        entries=(active_boundary,),
+        window=window,
+        timing_oracle=None,
+    )
+
+    assert initial_image_words == 1
+
+    timing_oracle = (
+        WrapAwareMutableTimingOracleV1(
+            initial_fragment
+        )
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    # ----------------------------------------------------------
+    # Plan and patch two complete payload entries.
+    #
+    # Hard termination will occur inside the first entry.  The second
+    # entry proves that later fully resident stream state is also
+    # discarded without execution.
+    # ----------------------------------------------------------
+    first_payload = (
+        planner.build_next_block()
+    )
+
+    second_payload = (
+        planner.build_next_block()
+    )
+
+    assert (
+        first_payload
+        .expected_executed_instruction_count
+        >= 2
+    )
+
+    assert (
+        second_payload
+        .expected_executed_instruction_count
+        >= 2
+    )
+
+    assert planner.active
+
+    assert not planner.epoch_plan_complete
+
+    (
+        _payload_fragment,
+        patched_payload_words,
+    ) = await patch_stream_entries(
+        dut,
+        entries=(
+            first_payload,
+            second_payload,
+        ),
+        window=window,
+        timing_oracle=timing_oracle,
+    )
+
+    assert patched_payload_words == (
+        first_payload.image_word_count
+        + second_payload.image_word_count
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        <= IMEM_WORD_CAPACITY
+    )
+
+    # EBD_0 is instruction 1.  Therefore the first accepted payload
+    # instruction is instruction 2.
+    hard_cap = (
+        first_payload
+        .first_executed_instruction_index
+    )
+
+    assert hard_cap == 2
+
+    # Cutting after the first instruction must be strictly inside the
+    # current payload entry.
+    assert (
+        hard_cap
+        < (
+            first_payload
+            .first_executed_instruction_index
+            + first_payload
+            .expected_executed_instruction_count
+        )
+    )
+
+    # ----------------------------------------------------------
+    # Continuous reference state.
+    # ----------------------------------------------------------
+    architectural_model = (
+        WrapAwareRV32ArchitecturalModel()
+    )
+
+    adapter = ExecutionEventAdapter()
+
+    events_by_index = {}
+
+    l2_observed_count = 0
+
+    pending_next_pc = None
+
+    measurement_start_ns = (
+        time.perf_counter_ns()
+    )
+
+    # ----------------------------------------------------------
+    # Exactly one live clock owner.
+    # ----------------------------------------------------------
+    clock = Clock(
+        dut.clk,
+        CLOCK_NS,
+        units="ns",
+    )
+
+    clock_task = cocotb.start_soon(
+        clock.start()
+    )
+
+    await reset_active_high(
+        dut,
+        cycles=3,
+    )
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    max_cycles = 128
+    cycle = 0
+
+    hard_cap_event = None
+
+    # ----------------------------------------------------------
+    # Execute exactly through Nmax.
+    # ----------------------------------------------------------
+    while True:
+        if cycle >= max_cycles:
+            raise AssertionError(
+                "exact-N RTL termination exceeded "
+                "the bounded cycle budget"
+            )
+
+        # ------------------------------------------------------
+        # FALLING EDGE + ReadOnly.
+        # ------------------------------------------------------
+        await FallingEdge(
+            dut.clk
+        )
+
+        await ReadOnly()
+
+        cycle += 1
+
+        snapshot = PreEdgeSnapshot(
+            cycle=cycle,
+            reset=bool(
+                signal_int(
+                    dut.reset
+                )
+            ),
+            stall=bool(
+                signal_int(
+                    dut.probe_stall
+                )
+            ),
+            flush_redirect=bool(
+                signal_int(
+                    dut.probe_flush
+                )
+            ),
+            pc=signal_int(
+                dut.probe_a_pc
+            ),
+            instruction=signal_int(
+                dut.probe_a_instr
+            ),
+        )
+
+        pending = (
+            adapter.observe_pre_edge(
+                snapshot
+            )
+        )
+
+        # ------------------------------------------------------
+        # RISING EDGE + ReadOnly.
+        # ------------------------------------------------------
+        await RisingEdge(
+            dut.clk
+        )
+
+        await ReadOnly()
+
+        if pending is None:
+            continue
+
+        assert (
+            signal_int(
+                dut.probe_b_pc
+            )
+            == pending.pc
+        )
+
+        assert (
+            signal_int(
+                dut.probe_b_instr
+            )
+            == pending.instruction
+        )
+
+        event = (
+            adapter.finalize_post_edge(
+                pending,
+                forward_a=signal_int(
+                    dut.probe_fwd_a
+                ),
+                forward_b=signal_int(
+                    dut.probe_fwd_b
+                ),
+            )
+        )
+
+        # The DUT must never architecturally accept beyond Nmax.
+        assert (
+            event.instruction_index
+            <= hard_cap
+        )
+
+        # ------------------------------------------------------
+        # Wrap-aware timing ownership.
+        # ------------------------------------------------------
+        logical_owner = (
+            timing_oracle
+            .logical_owner_for_pc(
+                event.pc
+            )
+        )
+
+        assert logical_owner is not None
+
+        assert (
+            event.pc
+            == timing_oracle
+            .physical_pc_for_logical_word(
+                logical_owner
+            )
+        )
+
+        expectation = (
+            timing_oracle.observe_accept(
+                event
+            )
+        )
+
+        wall_ns = (
+            time.perf_counter_ns()
+            - measurement_start_ns
+        )
+
+        # ------------------------------------------------------
+        # Resolve predecessor next-PC evidence.
+        # ------------------------------------------------------
+        if pending_next_pc is not None:
+            (
+                predecessor_id,
+                predecessor_next_pc,
+            ) = pending_next_pc
+
+            coordinator.record_successor_pc(
+                predecessor_instruction_id=(
+                    predecessor_id
+                ),
+                expected_next_pc=(
+                    predecessor_next_pc
+                ),
+                successor=event,
+                cycle=cycle,
+                wall_ns=wall_ns,
+            )
+
+        # ------------------------------------------------------
+        # Independent wrap-aware architectural model.
+        # ------------------------------------------------------
+        architectural_step = (
+            architectural_model.step(
+                event
+            )
+        )
+
+        coordinator.record_architectural_result(
+            instruction_id=(
+                event.instruction_index
+            ),
+            kind="pc",
+            passed=(
+                architectural_step.pc_match
+            ),
+            cycle=cycle,
+            wall_ns=wall_ns,
+        )
+
+        assert architectural_step.pc_match
+
+        pending_next_pc = (
+            event.instruction_index,
+            architectural_step.next_pc,
+        )
+
+        # ------------------------------------------------------
+        # Post-instruction consistent coverage cut.
+        # ------------------------------------------------------
+        def observe_l2_for_event():
+            events_by_index[
+                event.instruction_index
+            ] = event
+
+            hits = l2_coverage.observe(
+                event
+            )
+
+            for hit in hits:
+                producer_event = (
+                    events_by_index[
+                        hit.producer_instruction_index
+                    ]
+                )
+
+                coordinator.register_l2_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expectation,
+                    cycle=cycle,
+                    wall_ns=wall_ns,
+                )
+
+        l2_observed_count = (
+            complete_post_instruction_cut(
+                observed_count=(
+                    l2_observed_count
+                ),
+                instruction_index=(
+                    event.instruction_index
+                ),
+                cycle=cycle,
+                coverage=coverage,
+                observe_coverage=(
+                    observe_l2_for_event
+                ),
+            )
+        )
+
+        stale_event_id = (
+            event.instruction_index
+            - 2
+        )
+
+        if stale_event_id > 0:
+            events_by_index.pop(
+                stale_event_id,
+                None,
+            )
+
+        # ------------------------------------------------------
+        # RuntimeStreamWindow remains the sole final prune owner.
+        # ------------------------------------------------------
+        released = (
+            window.finalize_accepted_event(
+                event
+            )
+        )
+
+        if released is not None:
+            released_block = (
+                released.block
+            )
+
+            timing_oracle.release_logical_words(
+                first_logical_word_index=(
+                    released_block
+                    .logical_word_start
+                ),
+                word_count=(
+                    released_block
+                    .image_word_count
+                ),
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+        assert (
+            window.accepted_count
+            == coverage.executed_instructions
+        )
+
+        assert (
+            l2_observed_count
+            == coverage.executed_instructions
+        )
+
+        # ------------------------------------------------------
+        # Exact hard-cap boundary.
+        #
+        # The event at Nmax has already completed:
+        #   timing
+        #   architectural evidence
+        #   L2 observation
+        #   post-instruction cut
+        #   runtime final prune
+        #
+        # No subsequent architectural edge is allowed.
+        # ------------------------------------------------------
+        if (
+            event.instruction_index
+            == hard_cap
+        ):
+            hard_cap_event = event
+
+            # We deliberately stop inside first_payload.
+            assert released is None
+
+            break
+
+    assert hard_cap_event is not None
+
+    assert (
+        hard_cap_event.instruction_index
+        == hard_cap
+    )
+
+    assert (
+        window.accepted_count
+        == hard_cap
+    )
+
+    assert (
+        coverage.executed_instructions
+        == hard_cap
+    )
+
+    assert (
+        l2_observed_count
+        == hard_cap
+    )
+
+    # ----------------------------------------------------------
+    # Stop sole clock owner HIGH before any next architectural edge.
+    # ----------------------------------------------------------
+    clock_task.kill()
+
+    assert clock_task.done()
+
+    assert signal_int(
+        dut.clk
+    ) == 1
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    # Exit ReadOnly without creating a clock edge.
+    await Timer(
+        1,
+        units="ns",
+    )
+
+    assert signal_int(
+        dut.clk
+    ) == 1
+
+    accepted_at_stop = (
+        window.accepted_count
+    )
+
+    coverage_at_stop = (
+        coverage.executed_instructions
+    )
+
+    resident_words_before_cleanup = (
+        window.used_words
+    )
+
+    timing_words_before_cleanup = (
+        timing_oracle.resident_word_count
+    )
+
+    assert (
+        accepted_at_stop
+        == hard_cap
+    )
+
+    assert (
+        coverage_at_stop
+        == hard_cap
+    )
+
+    assert resident_words_before_cleanup > 0
+
+    assert (
+        timing_words_before_cleanup
+        == resident_words_before_cleanup
+    )
+
+    # EBD_0 must already have completed and been released.  Therefore
+    # the FIFO-oldest resident logical word belongs to first_payload.
+    assert (
+        timing_oracle
+        .next_release_logical_word_index
+        == first_payload.logical_word_start
+    )
+
+    # ----------------------------------------------------------
+    # Exact-N resident suffix termination.
+    # ----------------------------------------------------------
+    discarded = (
+        window.discard_unexecuted_suffix(
+            last_executed_instruction_index=(
+                hard_cap
+            )
+        )
+    )
+
+    assert (
+        discarded.entries[0]
+        == first_payload
+    )
+
+    assert (
+        discarded.entries[1]
+        == second_payload
+    )
+
+    assert (
+        discarded.first_logical_word_index
+        == first_payload.logical_word_start
+    )
+
+    assert (
+        discarded.reclaimed_resident_word_count
+        == resident_words_before_cleanup
+    )
+
+    assert (
+        discarded.first_unexecuted_instruction_index
+        == hard_cap + 1
+    )
+
+    assert (
+        discarded.accepted_count_at_termination
+        == hard_cap
+    )
+
+    assert (
+        discarded.head_accepted_instruction_count
+        == 1
+    )
+
+    assert (
+        discarded
+        .discarded_expected_instruction_count
+        >= 1
+    )
+
+    # Runtime cleanup must never fabricate execution.
+    assert (
+        window.accepted_count
+        == accepted_at_stop
+    )
+
+    assert (
+        coverage.executed_instructions
+        == coverage_at_stop
+    )
+
+    assert window.pending_block_count == 0
+
+    assert window.used_words == 0
+
+    assert (
+        coordinator
+        .pending_attribution_witness_count
+        == 0
+    )
+
+    # ----------------------------------------------------------
+    # Mirror exactly the same reclaimed resident range into timing.
+    # ----------------------------------------------------------
+    timing_oracle.release_logical_words(
+        first_logical_word_index=(
+            discarded
+            .first_logical_word_index
+        ),
+        word_count=(
+            discarded
+            .reclaimed_resident_word_count
+        ),
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == 0
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    assert (
+        timing_oracle
+        .next_release_logical_word_index
+        == timing_oracle
+        .next_append_logical_word_index
+    )
+
+    # ----------------------------------------------------------
+    # Keep simulated time moving while the clock is dead.
+    #
+    # This proves there is no hidden Nmax+1 architectural edge.
+    # ----------------------------------------------------------
+    await Timer(
+        CLOCK_NS * 2,
+        units="ns",
+    )
+
+    assert signal_int(
+        dut.clk
+    ) == 1
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    assert (
+        window.accepted_count
+        == hard_cap
+    )
+
+    assert (
+        coverage.executed_instructions
+        == hard_cap
+    )
+
+    assert (
+        l2_observed_count
+        == hard_cap
+    )
+
+    # ----------------------------------------------------------
+    # Finalize the partial adaptive epoch exactly once.
+    #
+    # Epoch 0 begins at instruction 1, so its actual denominator equals
+    # the global accepted count at this test's hard cap.
+    # ----------------------------------------------------------
+    completion = coordinator.finish_epoch(
+        actual_executed_instructions=(
+            hard_cap
+        )
+    )
+
+    assert completion is not None
+
+    assert (
+        completion.start
+        == epoch_start
+    )
+
+    assert not coordinator.active
+
+    # No DUT reset occurred during terminal cleanup.
+    assert signal_int(
+        dut.reset
+    ) == 0
