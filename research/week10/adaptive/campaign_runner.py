@@ -6,6 +6,9 @@ from typing import Iterable, Tuple
 from research.week5.impl.execution_event import (
     ExecutionEvent,
 )
+from research.week5.impl.rv32_encode import (
+    bne,
+)
 from research.week10.adaptive.epoch_coordinator import (
     AdaptiveEpochCoordinator,
     EpochStart,
@@ -43,6 +46,34 @@ MAX_STREAM_BLOCK_WORDS = (
     MAX_TEMPLATE_IMAGE_WORDS
     + MAX_BACKGROUND_FILLERS_PER_TEMPLATE
 )
+# ---------------------------------------------------------------------
+# Epoch-boundary delimiter (EBD).
+#
+# Frozen by EPOCH_BOUNDARY_DELIMITER_AMENDMENT.md:
+#
+#     bne x0, x0, +4
+#
+# The branch is architecturally not taken, writes no GPR, reads no
+# positive register, and provides exactly one arm-independent executed
+# instruction at every adaptive feedback boundary.
+# ---------------------------------------------------------------------
+
+EBD_BRANCH_OFFSET = 4
+
+EBD_WORD = bne(
+    0,
+    0,
+    EBD_BRANCH_OFFSET,
+)
+
+EXPECTED_EBD_WORD = 0x00001263
+
+if EBD_WORD != EXPECTED_EBD_WORD:
+    raise RuntimeError(
+        "epoch-boundary delimiter encoding changed: "
+        f"expected=0x{EXPECTED_EBD_WORD:08x}, "
+        f"observed=0x{EBD_WORD:08x}"
+    )
 
 
 def _positive_targets(
@@ -85,7 +116,138 @@ def physical_pc_for_logical_word(
         % IMEM_WORD_CAPACITY
     ) * INSTRUCTION_BYTES
 
+@dataclass(frozen=True)
+class PlannedBoundaryDelimiter:
+    """
+    One deterministic epoch-boundary delimiter in logical program order.
 
+    The delimiter is a real executed instruction but is deliberately
+    outside:
+
+      - selected-arm template accounting;
+      - campaign 80:20 filler accounting;
+      - attribution-witness generation;
+      - adaptive RNG consumption.
+
+    It occupies exactly one IMEM word and exactly one executed-program
+    instruction index.
+    """
+
+    epoch_index: int
+    logical_word_index: int
+    first_executed_instruction_index: int
+    word: int = EBD_WORD
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.epoch_index, bool)
+            or not isinstance(self.epoch_index, int)
+            or self.epoch_index < 0
+        ):
+            raise ValueError(
+                "epoch_index must be a non-negative integer"
+            )
+
+        if (
+            isinstance(self.logical_word_index, bool)
+            or not isinstance(self.logical_word_index, int)
+            or self.logical_word_index < 0
+        ):
+            raise ValueError(
+                "logical_word_index must be a non-negative integer"
+            )
+
+        if (
+            isinstance(
+                self.first_executed_instruction_index,
+                bool,
+            )
+            or not isinstance(
+                self.first_executed_instruction_index,
+                int,
+            )
+            or self.first_executed_instruction_index <= 0
+        ):
+            raise ValueError(
+                "first_executed_instruction_index "
+                "must be positive"
+            )
+
+        if self.word != EBD_WORD:
+            raise ValueError(
+                "boundary delimiter word must equal "
+                f"0x{EBD_WORD:08x}"
+            )
+
+    @property
+    def stream_entry_key(
+        self,
+    ) -> Tuple[str, int]:
+        """
+        Stable identity in the planned runtime stream.
+
+        EBD identity is intentionally separate from template-instance
+        identity.
+        """
+        return (
+            "EBD",
+            self.epoch_index,
+        )
+    @property
+    def logical_word_start(self) -> int:
+        return self.logical_word_index
+
+    @property
+    def logical_word_end_exclusive(self) -> int:
+        return self.logical_word_index + 1
+
+    @property
+    def image_words(self) -> Tuple[int, ...]:
+        return (self.word,)
+
+    @property
+    def image_word_count(self) -> int:
+        return 1
+
+    @property
+    def physical_word_addresses(
+        self,
+    ) -> Tuple[int, ...]:
+        return (
+            physical_pc_for_logical_word(
+                self.logical_word_index
+            ),
+        )
+
+    @property
+    def expected_executed_word_offsets(
+        self,
+    ) -> Tuple[int, ...]:
+        return (0,)
+
+    @property
+    def expected_executed_pcs(
+        self,
+    ) -> Tuple[int, ...]:
+        return self.physical_word_addresses
+
+    @property
+    def expected_executed_words(
+        self,
+    ) -> Tuple[int, ...]:
+        return (self.word,)
+
+    @property
+    def expected_executed_instruction_count(
+        self,
+    ) -> int:
+        return 1
+
+    @property
+    def witnesses(
+        self,
+    ) -> Tuple[AttributionWitness, ...]:
+        return ()
 @dataclass(frozen=True)
 class PlannedStreamBlock:
     """
@@ -231,6 +393,17 @@ class PlannedStreamBlock:
                 )
 
     @property
+    def stream_entry_key(
+        self,
+    ) -> Tuple[str, int]:
+        """
+        Stable identity in the planned runtime stream.
+        """
+        return (
+            "TEMPLATE",
+            self.template_instance_id,
+        )
+    @property
     def image_word_count(self) -> int:
         return len(self.image_words)
 
@@ -291,7 +464,11 @@ class PlannedStreamBlock:
             in self.expected_executed_word_offsets
         )
 
-
+StreamEntry = (
+    PlannedBoundaryDelimiter
+    | PlannedStreamBlock
+)
+StreamEntryKey = Tuple[str, int]
 class StreamPlanningError(RuntimeError):
     """Raised when bounded stream planning becomes inconsistent."""
 
@@ -328,7 +505,7 @@ class BoundedProgramRing:
             )
 
         self._capacity_words = capacity_words
-        self._blocks: list[PlannedStreamBlock] = []
+        self._blocks: list[StreamEntry] = []
         self._used_words = 0
 
     @property
@@ -351,43 +528,59 @@ class BoundedProgramRing:
         return len(self._blocks)
 
     @property
-    def blocks(self) -> Tuple[PlannedStreamBlock, ...]:
+    def blocks(self) -> Tuple[StreamEntry, ...]:
+        return tuple(self._blocks)
+
+    @property
+    def entries(self) -> Tuple[StreamEntry, ...]:
+        """
+        Generic runtime-stream view.
+
+        `blocks` is retained temporarily for compatibility with existing
+        Week10 tests while EBD integration is staged.
+        """
         return tuple(self._blocks)
 
     def can_append(
         self,
-        block: PlannedStreamBlock,
+        entry: StreamEntry,
     ) -> bool:
         if not isinstance(
-            block,
-            PlannedStreamBlock,
+            entry,
+            (
+                PlannedBoundaryDelimiter,
+                PlannedStreamBlock,
+            ),
         ):
             raise TypeError(
-                "block must be PlannedStreamBlock"
+                "entry must be a StreamEntry"
             )
 
         return (
-            block.image_word_count
+            entry.image_word_count
             <= self.free_words
         )
 
     def validate_append(
         self,
-        block: PlannedStreamBlock,
+        entry: StreamEntry,
     ) -> None:
         """
-        Validate one block allocation without mutating ring state.
+        Validate one stream-entry allocation without mutating ring state.
         """
         if not isinstance(
-            block,
-            PlannedStreamBlock,
+            entry,
+            (
+                PlannedBoundaryDelimiter,
+                PlannedStreamBlock,
+            ),
         ):
             raise TypeError(
-                "block must be PlannedStreamBlock"
+                "entry must be a StreamEntry"
             )
 
         if (
-            block.image_word_count
+            entry.image_word_count
             > self.free_words
         ):
             raise StreamPlanningError(
@@ -401,41 +594,107 @@ class BoundedProgramRing:
             )
 
             if (
-                block.logical_word_start
+                entry.logical_word_start
                 != expected_start
             ):
                 raise StreamPlanningError(
-                    "stream block logical layout "
+                    "stream entry logical layout "
                     "is not contiguous"
                 )
-
     def append(
         self,
-        block: PlannedStreamBlock,
+        entry: StreamEntry,
     ) -> None:
-        self.validate_append(block)
+        self.validate_append(entry)
 
-        self._blocks.append(block)
+        self._blocks.append(entry)
 
         self._used_words += (
-            block.image_word_count
+            entry.image_word_count
         )
 
     def release_oldest(
         self,
         *,
-        template_instance_id: int,
-    ) -> PlannedStreamBlock:
+        stream_entry_key: StreamEntryKey | None = None,
+        template_instance_id: int | None = None,
+    ) -> StreamEntry:
+        """
+        Release exactly the FIFO-oldest stream entry.
+
+        `template_instance_id` is retained as a compatibility path for
+        existing template-only tests. New generic code must use
+        `stream_entry_key`.
+        """
         if not self._blocks:
             raise StreamPlanningError(
                 "cannot release from an empty program ring"
             )
 
+        if (
+            stream_entry_key is None
+            and template_instance_id is None
+        ):
+             raise ValueError(
+                 "one stream-entry identity must be provided"
+            )
+
+        if (
+            stream_entry_key is not None
+            and template_instance_id is not None
+        ):
+            raise ValueError(
+                "provide stream_entry_key or "
+                "template_instance_id, not both"
+            )
+
+        if template_instance_id is not None:
+            if (
+                isinstance(template_instance_id, bool)
+                or not isinstance(
+                    template_instance_id,
+                    int,
+                )
+                or template_instance_id <= 0
+            ):
+                raise ValueError(
+                    "template_instance_id must be positive"
+                )
+
+            expected_key: StreamEntryKey = (
+                "TEMPLATE",
+                template_instance_id,
+            )
+        else:
+            assert stream_entry_key is not None
+
+            if (
+                not isinstance(stream_entry_key, tuple)
+                or len(stream_entry_key) != 2
+                or not isinstance(
+                    stream_entry_key[0],
+                    str,
+                )
+                or isinstance(
+                    stream_entry_key[1],
+                    bool,
+                )
+                or not isinstance(
+                    stream_entry_key[1],
+                    int,
+                )
+            ):
+                raise ValueError(
+                    "invalid stream_entry_key"
+                )
+
+            expected_key = stream_entry_key
+
         oldest = self._blocks[0]
 
         if (
-            oldest.template_instance_id
-            != template_instance_id
+            oldest.stream_entry_key
+            != expected_key
         ):
             raise StreamPlanningError(
                 "program-ring release must preserve FIFO order"
@@ -457,18 +716,47 @@ class BoundedProgramRing:
 @dataclass(frozen=True)
 class AcceptedBlockResult:
     """
-    Immutable completion record for one fully consumed stream block.
+    Immutable completion record for one fully consumed stream entry.
     """
 
-    template_instance_id: int
+    stream_entry_key: StreamEntryKey
     first_instruction_index: int
     last_instruction_index: int
     accepted_instruction_count: int
 
     def __post_init__(self) -> None:
-        if self.template_instance_id <= 0:
+        if (
+            not isinstance(
+                self.stream_entry_key,
+                tuple,
+            )
+            or len(self.stream_entry_key) != 2
+            or self.stream_entry_key[0]
+            not in (
+                "EBD",
+                "TEMPLATE",
+            )
+            or isinstance(
+                self.stream_entry_key[1],
+                bool,
+            )
+            or not isinstance(
+                self.stream_entry_key[1],
+                int,
+            )
+            or self.stream_entry_key[1] < 0
+        ):
             raise ValueError(
-                "template_instance_id must be positive"
+                "invalid stream_entry_key"
+            )
+
+        if (
+            self.stream_entry_key[0]
+            == "TEMPLATE"
+            and self.stream_entry_key[1] <= 0
+        ):
+            raise ValueError(
+                "template stream-entry id must be positive"
             )
 
         if self.first_instruction_index <= 0:
@@ -499,24 +787,42 @@ class AcceptedBlockResult:
                 "accepted instruction range is not contiguous"
             )
 
+    @property
+    def template_instance_id(
+        self,
+    ) -> int:
+        """
+        Compatibility view for template completions.
+
+        EBD completion has no template-instance identity.
+        """
+        kind, identifier = (
+            self.stream_entry_key
+        )
+
+        if kind != "TEMPLATE":
+            raise AttributeError(
+                "EBD completion has no "
+                "template_instance_id"
+            )
+
+        return identifier
 
 class StreamExecutionMismatch(RuntimeError):
     """
     Raised when RTL accepted-program order diverges from the planned
     stream.
     """
-
-
 class AcceptedStreamTracker:
     """
-    Validate planned stream blocks against the architectural accepted
+    Validate planned stream entries against the architectural accepted
     ExecutionEvent stream.
 
     This tracker uses only executed-program-order events. Clock cycles,
     stalls, and flushed/wrong-path instructions do not advance it.
 
-    Memory usage is bounded by the blocks currently resident in the
-    runtime IMEM ring.
+    Both adaptive template blocks and epoch-boundary delimiters are
+    first-class StreamEntry objects.
     """
 
     def __init__(
@@ -541,7 +847,7 @@ class AcceptedStreamTracker:
             )
 
         self._blocks: list[
-            PlannedStreamBlock
+            StreamEntry
         ] = []
 
         self._block_progress = 0
@@ -555,7 +861,13 @@ class AcceptedStreamTracker:
     @property
     def pending_blocks(
         self,
-    ) -> Tuple[PlannedStreamBlock, ...]:
+    ) -> Tuple[StreamEntry, ...]:
+        return tuple(self._blocks)
+
+    @property
+    def pending_entries(
+        self,
+    ) -> Tuple[StreamEntry, ...]:
         return tuple(self._blocks)
 
     @property
@@ -577,7 +889,7 @@ class AcceptedStreamTracker:
     @property
     def current_block(
         self,
-    ) -> PlannedStreamBlock | None:
+    ) -> StreamEntry | None:
         if not self._blocks:
             return None
 
@@ -585,17 +897,20 @@ class AcceptedStreamTracker:
 
     def validate_enqueue(
         self,
-        block: PlannedStreamBlock,
+        entry: StreamEntry,
     ) -> None:
         """
         Validate stream-order insertion without mutating tracker state.
         """
         if not isinstance(
-            block,
-            PlannedStreamBlock,
+            entry,
+            (
+                PlannedBoundaryDelimiter,
+                PlannedStreamBlock,
+            ),
         ):
             raise TypeError(
-                "block must be PlannedStreamBlock"
+                "entry must be a StreamEntry"
             )
 
         if self._blocks:
@@ -606,11 +921,11 @@ class AcceptedStreamTracker:
             )
 
             if (
-                block.logical_word_start
+                entry.logical_word_start
                 != expected_logical_start
             ):
                 raise StreamExecutionMismatch(
-                    "accepted-stream blocks are not "
+                    "accepted-stream entries are not "
                     "logically contiguous"
                 )
 
@@ -623,25 +938,28 @@ class AcceptedStreamTracker:
         )
 
         if (
-            block.first_executed_instruction_index
+            entry.first_executed_instruction_index
             != expected_first_index
         ):
             raise StreamExecutionMismatch(
-                "block executed-index layout "
+                "stream-entry executed-index layout "
                 "is not contiguous: "
                 f"expected={expected_first_index}, "
                 f"observed="
-                f"{block.first_executed_instruction_index}"
+                f"{entry.first_executed_instruction_index}"
             )
-
 
     def enqueue(
         self,
-        block: PlannedStreamBlock,
+        entry: StreamEntry,
     ) -> None:
-        self.validate_enqueue(block)
+        self.validate_enqueue(
+            entry
+        )
 
-        self._blocks.append(block)
+        self._blocks.append(
+            entry
+        )
 
     def observe(
         self,
@@ -651,7 +969,7 @@ class AcceptedStreamTracker:
         Consume exactly one architecturally accepted instruction.
 
         Returns AcceptedBlockResult only when the event completes the
-        current stream block.
+        current stream entry.
         """
         if not isinstance(
             event,
@@ -664,7 +982,7 @@ class AcceptedStreamTracker:
         if not self._blocks:
             raise StreamExecutionMismatch(
                 "accepted instruction arrived with "
-                "no planned stream block"
+                "no planned stream entry"
             )
 
         if (
@@ -678,14 +996,14 @@ class AcceptedStreamTracker:
                 f"observed={event.instruction_index}"
             )
 
-        block = self._blocks[0]
+        entry = self._blocks[0]
 
         expected_pcs = (
-            block.expected_executed_pcs
+            entry.expected_executed_pcs
         )
 
         expected_words = (
-            block.expected_executed_words
+            entry.expected_executed_words
         )
 
         if (
@@ -693,7 +1011,7 @@ class AcceptedStreamTracker:
             >= len(expected_pcs)
         ):
             raise RuntimeError(
-                "stream block progress overflow"
+                "stream-entry progress overflow"
             )
 
         expected_pc = expected_pcs[
@@ -723,12 +1041,14 @@ class AcceptedStreamTracker:
             )
 
         self._accepted_count += 1
+
         self._next_expected_instruction_index += 1
+
         self._block_progress += 1
 
         if (
             self._block_progress
-            != block.expected_executed_instruction_count
+            != entry.expected_executed_instruction_count
         ):
             return None
 
@@ -751,8 +1071,8 @@ class AcceptedStreamTracker:
         self._block_progress = 0
 
         return AcceptedBlockResult(
-            template_instance_id=(
-                completed.template_instance_id
+            stream_entry_key=(
+                completed.stream_entry_key
             ),
             first_instruction_index=(
                 first_index
@@ -768,23 +1088,22 @@ class AcceptedStreamTracker:
 @dataclass(frozen=True)
 class ReleasedStreamBlock:
     """
-    One stream block that has completed accepted execution and is now
+    One stream entry that has completed accepted execution and is now
     safe for logical ring reclamation.
     """
 
-    block: PlannedStreamBlock
+    block: StreamEntry
     accepted: AcceptedBlockResult
 
     def __post_init__(self) -> None:
         if (
-            self.block.template_instance_id
-            != self.accepted.template_instance_id
+            self.block.stream_entry_key
+            != self.accepted.stream_entry_key
         ):
             raise ValueError(
-                "released block and accepted result "
-                "refer to different template instances"
+                "released entry and accepted result "
+                "refer to different stream entries"
             )
-
 
 class RuntimeStreamWindow:
     """
@@ -860,34 +1179,37 @@ class RuntimeStreamWindow:
 
     def commit_patched_block(
         self,
-        block: PlannedStreamBlock,
+        entry: StreamEntry,
     ) -> None:
         """
-        Commit a block only after all of its image words have been
-        successfully written through the runtime IMEM backdoor.
+        Commit a stream entry only after all of its image words have
+        been successfully written through the runtime IMEM backdoor.
 
         Validation is performed before any state mutation.
         """
         self._ring.validate_append(
-            block
+            entry
         )
 
         self._accepted_tracker.validate_enqueue(
-            block
+            entry
         )
 
-        # Exact provenance becomes eligible only after the RTL image
-        # has actually been patched successfully.
-        self._coordinator.register_attribution_witnesses(
-            block.witnesses
-        )
+        # EBD carries no attribution witnesses.
+        #
+        # Template provenance becomes eligible only after the complete
+        # RTL image has been patched successfully.
+        if entry.witnesses:
+            self._coordinator.register_attribution_witnesses(
+                entry.witnesses
+            )
 
         self._ring.append(
-            block
+            entry
         )
 
         self._accepted_tracker.enqueue(
-            block
+            entry
         )
 
     def finalize_accepted_event(
@@ -930,11 +1252,10 @@ class RuntimeStreamWindow:
             return None
 
         released = self._ring.release_oldest(
-            template_instance_id=(
-                completed.template_instance_id
+            stream_entry_key=(
+                completed.stream_entry_key
             )
         )
-
         return ReleasedStreamBlock(
             block=released,
             accepted=completed,

@@ -21,6 +21,9 @@ from research.week10.adaptive.campaign_runner import (
     physical_pc_for_logical_word,
     ReleasedStreamBlock,
     RuntimeStreamWindow,
+    EBD_WORD,
+    PlannedBoundaryDelimiter,
+    StreamEntry,
 )
 from research.week10.adaptive.decision_engine import (
     BanditConfig,
@@ -140,6 +143,92 @@ def test_physical_pc_wraps_at_128_words():
     assert physical_pc_for_logical_word(
         129
     ) == 4
+
+def test_ebd_encoding_is_frozen():
+    assert EBD_WORD == 0x00001263
+
+
+def test_planned_ebd_has_exact_single_word_semantics():
+    delimiter = PlannedBoundaryDelimiter(
+        epoch_index=3,
+        logical_word_index=129,
+        first_executed_instruction_index=700,
+    )
+
+    assert delimiter.epoch_index == 3
+    assert delimiter.word == EBD_WORD
+
+    assert delimiter.logical_word_start == 129
+    assert delimiter.logical_word_end_exclusive == 130
+
+    assert delimiter.image_words == (
+        EBD_WORD,
+    )
+
+    assert delimiter.image_word_count == 1
+
+    # Logical word 129 wraps physically to word 1 -> PC 4.
+    assert delimiter.physical_word_addresses == (
+        4,
+    )
+
+    assert delimiter.expected_executed_word_offsets == (
+        0,
+    )
+
+    assert delimiter.expected_executed_pcs == (
+        4,
+    )
+
+    assert delimiter.expected_executed_words == (
+        EBD_WORD,
+    )
+
+    assert (
+        delimiter.expected_executed_instruction_count
+        == 1
+    )
+
+    assert delimiter.witnesses == ()
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    (
+        {
+            "epoch_index": -1,
+            "logical_word_index": 0,
+            "first_executed_instruction_index": 1,
+        },
+        {
+            "epoch_index": 0,
+            "logical_word_index": -1,
+            "first_executed_instruction_index": 1,
+        },
+        {
+            "epoch_index": 0,
+            "logical_word_index": 0,
+            "first_executed_instruction_index": 0,
+        },
+    ),
+)
+def test_planned_ebd_rejects_invalid_indices(
+    kwargs,
+):
+    with pytest.raises(ValueError):
+        PlannedBoundaryDelimiter(
+            **kwargs
+        )
+
+
+def test_planned_ebd_rejects_nonfrozen_word():
+    with pytest.raises(ValueError):
+        PlannedBoundaryDelimiter(
+            epoch_index=0,
+            logical_word_index=0,
+            first_executed_instruction_index=1,
+            word=0x00000013,
+        )
 
 
 def test_planner_requires_active_epoch():
@@ -493,6 +582,57 @@ def test_stream_block_never_exceeds_bounded_maximum():
                 block.image_word_count
                 <= MAX_STREAM_BLOCK_WORDS
             )
+def test_ebd_stream_entry_key_is_namespaced():
+    delimiter = PlannedBoundaryDelimiter(
+        epoch_index=4,
+        logical_word_index=20,
+        first_executed_instruction_index=30,
+    )
+
+    assert delimiter.stream_entry_key == (
+        "EBD",
+        4,
+    )
+
+
+def test_template_stream_entry_key_is_namespaced():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert block.stream_entry_key == (
+        "TEMPLATE",
+        block.template_instance_id,
+    )
+
+
+def test_ebd_and_template_keys_cannot_alias():
+    delimiter = PlannedBoundaryDelimiter(
+        epoch_index=1,
+        logical_word_index=0,
+        first_executed_instruction_index=1,
+    )
+
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+        initial_logical_word_index=1,
+        first_executed_instruction_index=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert (
+        delimiter.stream_entry_key
+        != block.stream_entry_key
+    )
 def make_execution_event(
     *,
     instruction_index,
@@ -515,6 +655,214 @@ def make_execution_event(
         stall_cycles_before_accept=0,
         forward_a=0,
         forward_b=0,
+    )
+def test_program_ring_accepts_ebd_then_template():
+    delimiter = PlannedBoundaryDelimiter(
+        epoch_index=0,
+        logical_word_index=0,
+        first_executed_instruction_index=1,
+    )
+
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+        initial_logical_word_index=1,
+        first_executed_instruction_index=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    ring = BoundedProgramRing()
+
+    ring.append(
+        delimiter
+    )
+
+    ring.append(
+        block
+    )
+
+    assert ring.used_words == (
+        1
+        + block.image_word_count
+    )
+
+    assert ring.entries == (
+        delimiter,
+        block,
+    )
+
+    released = ring.release_oldest(
+        stream_entry_key=(
+            delimiter.stream_entry_key
+        )
+    )
+
+    assert released == delimiter
+
+    assert ring.used_words == (
+        block.image_word_count
+    )
+
+    assert ring.entries == (
+        block,
+    )
+def test_accepted_tracker_consumes_ebd_then_template():
+    delimiter = PlannedBoundaryDelimiter(
+        epoch_index=0,
+        logical_word_index=0,
+        first_executed_instruction_index=1,
+    )
+
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+        initial_logical_word_index=1,
+        first_executed_instruction_index=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    tracker = AcceptedStreamTracker(
+        first_expected_instruction_index=1
+    )
+
+    tracker.enqueue(
+        delimiter
+    )
+
+    tracker.enqueue(
+        block
+    )
+
+    completed = tracker.observe(
+        make_execution_event(
+            instruction_index=1,
+            pc=delimiter.expected_executed_pcs[0],
+            instruction=EBD_WORD,
+        )
+    )
+
+    assert completed is not None
+
+    assert (
+        completed.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    assert tracker.accepted_count == 1
+
+    next_index = 2
+    completed = None
+
+    for pc, word in zip(
+        block.expected_executed_pcs,
+        block.expected_executed_words,
+    ):
+        completed = tracker.observe(
+            make_execution_event(
+                instruction_index=next_index,
+                pc=pc,
+                instruction=word,
+            )
+        )
+
+        next_index += 1
+
+    assert completed is not None
+
+    assert (
+        completed.stream_entry_key
+        == block.stream_entry_key
+    )
+
+    assert (
+        completed.template_instance_id
+        == block.template_instance_id
+    )
+
+    assert tracker.pending_block_count == 0
+def test_runtime_window_ebd_has_zero_attribution_witnesses():
+    delimiter = PlannedBoundaryDelimiter(
+        epoch_index=0,
+        logical_word_index=0,
+        first_executed_instruction_index=1,
+    )
+
+    planner, coordinator, _ = make_planner(
+        arm_index=0,
+        nominal=2,
+        initial_logical_word_index=1,
+        first_executed_instruction_index=2,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    window = RuntimeStreamWindow(
+        coordinator=coordinator,
+        ring=BoundedProgramRing(),
+        accepted_tracker=AcceptedStreamTracker(
+            first_expected_instruction_index=1
+        ),
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
+    )
+
+    window.commit_patched_block(
+        delimiter
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == 0
+    )
+
+    window.commit_patched_block(
+        block
+    )
+
+    assert (
+        coordinator.pending_attribution_witness_count
+        == len(block.witnesses)
+    )
+
+    assert window.pending_block_count == 2
+
+    assert window.used_words == (
+        1
+        + block.image_word_count
+    )
+
+    released = window.finalize_accepted_event(
+        make_execution_event(
+            instruction_index=1,
+            pc=delimiter.expected_executed_pcs[0],
+            instruction=EBD_WORD,
+        )
+    )
+
+    assert released is not None
+
+    assert released.block == delimiter
+
+    assert (
+        released.accepted.stream_entry_key
+        == delimiter.stream_entry_key
+    )
+
+    assert window.pending_block_count == 1
+
+    assert window.used_words == (
+        block.image_word_count
     )
 def test_accepted_tracker_consumes_exact_block():
     planner, _, _ = make_planner(
