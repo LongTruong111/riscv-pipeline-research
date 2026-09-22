@@ -64,7 +64,9 @@ from research.week10.adaptive.template_realizer import (
 from research.week10.l2_live_coordinator import (
     L2LiveCoordinator,
 )
-
+from research.week10.adaptive.post_instruction_cut import (
+    complete_post_instruction_cut,
+)
 
 CLOCK_NS = 10
 
@@ -934,6 +936,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
     adapter = ExecutionEventAdapter()
 
     events_by_index = {}
+    l2_observed_count = 0
 
     pending_next_pc = None
 
@@ -1135,47 +1138,44 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
             architectural_step.next_pc,
         )
 
-        # ------------------------------------------------------
-        # Authoritative executed-instruction accounting.
-        # ------------------------------------------------------
-        assert (
-            event.instruction_index
-            == coverage.executed_instructions + 1
-        )
-
-        coverage.record_instruction(
-            instruction_id=(
+        def observe_l2_for_event():
+            events_by_index[
                 event.instruction_index
-            ),
-            cycle=cycle,
-        )
+            ] = event
 
-        # ------------------------------------------------------
-        # Global L2 Intent classification.
-        # ------------------------------------------------------
-        events_by_index[
-            event.instruction_index
-        ] = event
-
-        hits = l2_coverage.observe(
-            event
-        )
-
-        for hit in hits:
-            producer_event = (
-                events_by_index[
-                    hit.producer_instruction_index
-                ]
+            hits = l2_coverage.observe(
+                event
             )
 
-            coordinator.register_l2_hit(
-                hit,
-                producer=producer_event,
-                consumer=event,
-                expectation=expectation,
+            for hit in hits:
+                producer_event = (
+                    events_by_index[
+                        hit.producer_instruction_index
+                    ]
+                )
+
+                coordinator.register_l2_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expectation,
+                    cycle=cycle,
+                    wall_ns=wall_ns,
+                )
+
+        l2_observed_count = (
+            complete_post_instruction_cut(
+                observed_count=l2_observed_count,
+                instruction_index=(
+                    event.instruction_index
+                ),
                 cycle=cycle,
-                wall_ns=wall_ns,
+                coverage=coverage,
+                observe_coverage=(
+                    observe_l2_for_event
+                ),
             )
+        )
 
         # Only d1/d2 producer history is required.
         stale_event_id = (
@@ -1371,6 +1371,11 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
     )
 
     assert (
+        l2_observed_count
+        == coverage.executed_instructions
+    )
+
+    assert (
         planner.next_executed_instruction_index
         == coverage.executed_instructions + 1
     )
@@ -1482,6 +1487,7 @@ async def test_multi_epoch_adaptive_rtl_continuity(
 
     # Must remain live across epoch boundaries.
     events_by_index = {}
+    l2_observed_count = 0
     pending_next_pc = None
 
     cycle = 0
@@ -1796,47 +1802,50 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             )
 
             # ----------------------------------------------
-            # Global accepted-instruction accounting is never
-            # reset at an epoch boundary.
+            # T10.9f post-instruction consistent coverage cut.
+            #
+            # This state is continuous across epoch boundaries.
             # ----------------------------------------------
-            assert (
-                event.instruction_index
-                == coverage.executed_instructions + 1
-            )
-
-            coverage.record_instruction(
-                instruction_id=(
+            def observe_l2_for_event():
+                events_by_index[
                     event.instruction_index
-                ),
-                cycle=cycle,
-            )
+                ] = event
 
-            # ----------------------------------------------
-            # Global L2 dependency state is also continuous.
-            # ----------------------------------------------
-            events_by_index[
-                event.instruction_index
-            ] = event
-
-            hits = l2_coverage.observe(
-                event
-            )
-
-            for hit in hits:
-                producer_event = (
-                    events_by_index[
-                        hit.producer_instruction_index
-                    ]
+                hits = l2_coverage.observe(
+                    event
                 )
 
-                coordinator.register_l2_hit(
-                    hit,
-                    producer=producer_event,
-                    consumer=event,
-                    expectation=expectation,
+                for hit in hits:
+                    producer_event = (
+                        events_by_index[
+                            hit.producer_instruction_index
+                        ]
+                    )
+
+                    coordinator.register_l2_hit(
+                        hit,
+                        producer=producer_event,
+                        consumer=event,
+                        expectation=expectation,
+                        cycle=cycle,
+                        wall_ns=wall_ns,
+                    )
+
+            l2_observed_count = (
+                complete_post_instruction_cut(
+                    observed_count=(
+                        l2_observed_count
+                    ),
+                    instruction_index=(
+                        event.instruction_index
+                    ),
                     cycle=cycle,
-                    wall_ns=wall_ns,
+                    coverage=coverage,
+                    observe_coverage=(
+                        observe_l2_for_event
+                    ),
                 )
+            )
 
             stale_event_id = (
                 event.instruction_index
@@ -2288,6 +2297,11 @@ async def test_multi_epoch_adaptive_rtl_continuity(
 
     assert (
         window.accepted_count
+        == coverage.executed_instructions
+    )
+
+    assert (
+        l2_observed_count
         == coverage.executed_instructions
     )
 
