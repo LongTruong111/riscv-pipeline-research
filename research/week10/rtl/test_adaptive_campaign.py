@@ -26,8 +26,11 @@ from research.week5.impl.signal_adapter import (
 from research.week9.benchmark.streaming_timing import (
     StreamingTimingOracleV1,
 )
-from research.week10.adaptive.mutable_timing_oracle import (
-    BoundedMutableTimingOracleV1,
+from research.week10.adaptive.wrap_aware_architectural_model import (
+    WrapAwareRV32ArchitecturalModel,
+)
+from research.week10.adaptive.wrap_aware_timing_oracle import (
+    WrapAwareMutableTimingOracleV1,
 )
 from research.week10.adaptive.reward_engine import (
     attribution_targets_for,
@@ -81,11 +84,10 @@ E1_REALIZATION_SEED = 30303
 E1_EPSILON = 0.10
 E1_ALPHA = 0.30
 E1_Q_FLOOR = 0.05
-# Multi-epoch integration gate.
-#
-# Two 24-instruction nominal epochs remain comfortably below the
-# 128-word physical IMEM boundary even for the largest A7 stream shape.
-E2_EPOCH_COUNT = 2
+# Six nominal adaptive epochs intentionally cross the 128-word
+# physical IMEM boundary, exercising bounded slot release/reuse
+# without resetting DUT, timing, architectural, coverage, or Q state.
+E2_EPOCH_COUNT = 6
 
 INSTRUCTION_BYTES = 4
 MAX_PATCH_ADDRESS = 508
@@ -318,11 +320,19 @@ def build_epoch_program_fragment(
     blocks,
 ) -> dict[int, int]:
     """
-    Build one non-wrapping physical program fragment.
+    Build one bounded physical program fragment.
 
-    Unlike build_static_epoch_program(), this helper does not require
-    PC 0 because later adaptive epochs begin at the next physical PC.
+    Logical stream order may cross the 128-word IMEM boundary, e.g.
+
+        logical 126 -> PC 504
+        logical 127 -> PC 508
+        logical 128 -> PC   0
+        logical 129 -> PC   4
+
+    A single fragment must not contain two simultaneously-live logical
+    words that alias the same physical IMEM address.
     """
+
     program: dict[int, int] = {}
 
     for block in blocks:
@@ -332,8 +342,10 @@ def build_epoch_program_fragment(
         ):
             if address in program:
                 raise AssertionError(
-                    "e-2c epoch fragment unexpectedly reused "
-                    f"physical PC 0x{address:03x}"
+                    "adaptive epoch fragment reused one "
+                    "physical IMEM address while both logical "
+                    "owners are live: "
+                    f"pc=0x{address:03x}"
                 )
 
             program[address] = word
@@ -341,6 +353,11 @@ def build_epoch_program_fragment(
     if not program:
         raise AssertionError(
             "adaptive epoch produced an empty program fragment"
+        )
+
+    if len(program) > IMEM_WORD_CAPACITY:
+        raise AssertionError(
+            "adaptive epoch fragment exceeds physical IMEM capacity"
         )
 
     return program
@@ -351,10 +368,21 @@ async def prepare_adaptive_epoch(
     planner,
     window,
     preseed_next_boundary: bool,
+    allow_physical_wrap: bool = False,
+    timing_oracle=None,
 ):
     """
     Plan and patch exactly one adaptive epoch while preserving the
     one-instruction EBD lookahead required by the RTL fetch pipeline.
+
+    In wrap-aware mode:
+
+      * logical word indices remain monotonic;
+      * physical PCs wrap modulo the 128-word IMEM;
+      * an old physical owner must already have been released before
+        that physical slot can be patched for a new logical generation;
+      * the mutable timing oracle is extended only after the RTL image
+        and RuntimeStreamWindow have accepted the new fragment.
 
     First epoch:
         EBD_t is created by begin_epoch(), then patched here.
@@ -362,10 +390,8 @@ async def prepare_adaptive_epoch(
     Later epochs:
         EBD_t was already preseeded and committed during preparation of
         the preceding epoch. begin_epoch() only claims its ownership.
-
-    If preseed_next_boundary is True, EBD_(t+1) is planned, patched, and
-    committed before payload_t starts executing.
     """
+
     if not isinstance(
         preseed_next_boundary,
         bool,
@@ -374,17 +400,52 @@ async def prepare_adaptive_epoch(
             "preseed_next_boundary must be bool"
         )
 
+    if not isinstance(
+        allow_physical_wrap,
+        bool,
+    ):
+        raise TypeError(
+            "allow_physical_wrap must be bool"
+        )
+
+    if (
+        timing_oracle is not None
+        and not isinstance(
+            timing_oracle,
+            WrapAwareMutableTimingOracleV1,
+        )
+    ):
+        raise TypeError(
+            "timing_oracle must be "
+            "WrapAwareMutableTimingOracleV1"
+        )
+
+    if (
+        timing_oracle is not None
+        and not allow_physical_wrap
+    ):
+        raise ValueError(
+            "timing_oracle extension requires "
+            "allow_physical_wrap=True"
+        )
+
     pending_before_begin = (
         planner.pending_boundary_delimiter
     )
 
+    if (
+        allow_physical_wrap
+        and pending_before_begin is not None
+        and timing_oracle is None
+    ):
+        raise ValueError(
+            "later wrap-aware epochs require the live timing oracle"
+        )
+
     if pending_before_begin is None:
-        # Initial epoch: no resident stream entry exists yet.
         assert window.pending_block_count == 0
         assert window.used_words == 0
     else:
-        # Later epoch: exactly one preseeded EBD must remain resident
-        # from the preceding epoch.
         assert window.pending_block_count == 1
 
         assert (
@@ -444,21 +505,20 @@ async def prepare_adaptive_epoch(
 
         assert next_boundary.witnesses == ()
 
-    # The e-2c/d gate remains deliberately non-wrapping.
     if (
-        planner.next_logical_word_index
+        not allow_physical_wrap
+        and planner.next_logical_word_index
         > IMEM_WORD_CAPACITY
     ):
         raise AssertionError(
-            "T10.9e-2d exceeded the non-wrapping "
-            "128-word IMEM proof boundary"
+            "non-wrapping adaptive RTL gate exceeded "
+            "the 128-word IMEM proof boundary"
         )
 
     newly_patched_entries = []
 
-    # Initial EBD has not yet been committed. For later epochs the active
-    # EBD is already resident from the previous epoch and must NOT be
-    # patched or committed a second time.
+    # For the first epoch EBD_0 is new.
+    # For later epochs active_boundary was already patched/preseeded.
     if pending_before_begin is None:
         newly_patched_entries.append(
             active_boundary
@@ -472,6 +532,8 @@ async def prepare_adaptive_epoch(
         newly_patched_entries.append(
             next_boundary
         )
+
+    assert newly_patched_entries
 
     fragment = build_epoch_program_fragment(
         newly_patched_entries
@@ -487,6 +549,79 @@ async def prepare_adaptive_epoch(
         == patched_image_words
     )
 
+    fragment_first_logical_word = (
+        newly_patched_entries[
+            0
+        ].logical_word_start
+    )
+
+    expected_logical_word = (
+        fragment_first_logical_word
+    )
+
+    # ----------------------------------------------------------
+    # Prove logical continuity and, in wrap-aware mode, prove that
+    # every physical slot is free in the timing backing store before
+    # the RTL backdoor overwrites it.
+    # ----------------------------------------------------------
+    for entry in newly_patched_entries:
+        assert (
+            entry.logical_word_start
+            == expected_logical_word
+        )
+
+        for offset, address in enumerate(
+            entry.physical_word_addresses
+        ):
+            logical_word_index = (
+                entry.logical_word_start
+                + offset
+            )
+
+            expected_physical_pc = (
+                WrapAwareMutableTimingOracleV1
+                .physical_pc_for_logical_word(
+                    logical_word_index
+                )
+            )
+
+            assert (
+                address
+                == expected_physical_pc
+            )
+
+            if timing_oracle is not None:
+                existing_owner = (
+                    timing_oracle
+                    .logical_owner_for_pc(
+                        address
+                    )
+                )
+
+                assert existing_owner is None, (
+                    "attempted RTL patch before old timing "
+                    "owner was released: "
+                    f"pc=0x{address:03x}, "
+                    f"new_logical_word="
+                    f"{logical_word_index}, "
+                    f"old_logical_word="
+                    f"{existing_owner}"
+                )
+
+        expected_logical_word = (
+            entry.logical_word_end_exclusive
+        )
+
+    if timing_oracle is not None:
+        assert (
+            timing_oracle
+            .next_append_logical_word_index
+            == fragment_first_logical_word
+        )
+
+    # ----------------------------------------------------------
+    # Physical RTL patch first, then RuntimeStreamWindow commit.
+    # ----------------------------------------------------------
     for entry in newly_patched_entries:
         for address, word in zip(
             entry.physical_word_addresses,
@@ -534,6 +669,31 @@ async def prepare_adaptive_epoch(
         window.used_words
         == expected_resident_words
     )
+
+    assert (
+        window.used_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    # The first epoch constructs the oracle immediately after this
+    # helper returns. Later epochs extend that same live oracle.
+    if timing_oracle is not None:
+        timing_oracle.append_program(
+            fragment,
+            first_logical_word_index=(
+                fragment_first_logical_word
+            ),
+        )
+
+        assert (
+            timing_oracle.resident_word_count
+            == window.used_words
+        )
+
+        assert (
+            timing_oracle.resident_word_count
+            <= IMEM_WORD_CAPACITY
+        )
 
     planner.close_planning_epoch()
 
@@ -1229,24 +1389,23 @@ async def test_multi_epoch_adaptive_rtl_continuity(
     dut,
 ):
     """
-    T10.9e-2c proof obligation:
+    T10.9e-2e-4 wrap-aware adaptive RTL proof obligation:
 
-        epoch 1 RTL execution
-          -> attributable reward
-          -> Q update
-          -> pause sole clock owner
-          -> begin epoch 2 from retained coverage/Q state
-          -> runtime patch without reset
-          -> mutable timing-oracle append
-          -> resume same clock phase
+        multi-epoch RTL execution
+          -> continuous adaptive Q/coverage state
+          -> runtime IMEM patch without DUT reset
+          -> bounded physical-slot release and reuse
+          -> logical instruction order remains monotonic
+          -> physical fetch PC wraps modulo 512 bytes
+          -> mutable timing state survives physical-PC reuse
           -> continuous ExecutionEvent numbering
           -> continuous architectural/L2 state
-          -> second reward/Q update
+          -> generation-1 logical instructions execute after wrap
 
-    This gate deliberately remains below the 128-word physical IMEM
-    wrap boundary. Wrap-aware adaptive campaigns are a later gate.
+    The campaign intentionally crosses the frozen 128-word physical
+    instruction-memory boundary while retaining at most 128 resident
+    physical program words.
     """
-
     # ----------------------------------------------------------
     # Static verification-interface initialization.
     # ----------------------------------------------------------
@@ -1289,6 +1448,7 @@ async def test_multi_epoch_adaptive_rtl_continuity(
         preseed_next_boundary=(
             E2_EPOCH_COUNT > 1
         ),
+        allow_physical_wrap=True,
     )
     assert current_boundary.epoch_index == 0
 
@@ -1304,7 +1464,7 @@ async def test_multi_epoch_adaptive_rtl_continuity(
     )
 
     timing_oracle = (
-        BoundedMutableTimingOracleV1(
+        WrapAwareMutableTimingOracleV1(
             first_fragment
         )
     )
@@ -1315,7 +1475,7 @@ async def test_multi_epoch_adaptive_rtl_continuity(
     )
 
     architectural_model = (
-        RV32ArchitecturalModel()
+        WrapAwareRV32ArchitecturalModel()
     )
 
     adapter = ExecutionEventAdapter()
@@ -1328,6 +1488,21 @@ async def test_multi_epoch_adaptive_rtl_continuity(
 
     total_image_words = (
         current_image_words
+    )
+
+    max_timing_resident_words = (
+        timing_oracle.resident_word_count
+    )
+
+    max_executed_logical_word_index = -1
+
+    observed_generation_one_execution = False
+
+    positive_reward_epoch_count = 0
+
+    assert (
+        timing_oracle.next_append_logical_word_index
+        == total_image_words
     )
 
     previous_epoch_snapshot = None
@@ -1406,7 +1581,8 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             - current_start.covered_at_epoch_start
         )
 
-        assert expected_new_target_bins
+        if expected_new_target_bins:
+            positive_reward_epoch_count += 1
 
         epoch_cycle_budget = (
             current_planned_executed
@@ -1514,6 +1690,48 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             # ----------------------------------------------
             # Timing state is continuous across epochs.
             # ----------------------------------------------
+            logical_owner = (
+                timing_oracle
+                .logical_owner_for_pc(
+                    event.pc
+                )
+            )
+
+            assert logical_owner is not None, (
+                "accepted RTL instruction has no "
+                "resident logical timing owner: "
+                f"pc=0x{event.pc:03x}"
+            )
+
+            assert (
+                event.pc
+                == timing_oracle
+                .physical_pc_for_logical_word(
+                    logical_owner
+                )
+            )
+
+            assert (
+                timing_oracle
+                .generation_for_pc(
+                    event.pc
+                )
+                == (
+                    logical_owner
+                    // IMEM_WORD_CAPACITY
+                )
+            )
+
+            max_executed_logical_word_index = max(
+                max_executed_logical_word_index,
+                logical_owner,
+            )
+
+            if (
+                logical_owner
+                >= IMEM_WORD_CAPACITY
+            ):
+                observed_generation_one_execution = True
             expectation = (
                 timing_oracle.observe_accept(
                     event
@@ -1641,6 +1859,52 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             if released is not None:
                 released_this_epoch += 1
 
+                released_block = (
+                    released.block
+                )
+
+                timing_oracle.release_logical_words(
+                    first_logical_word_index=(
+                        released_block
+                        .logical_word_start
+                    ),
+                    word_count=(
+                        released_block
+                        .image_word_count
+                    ),
+                )
+
+                assert (
+                    timing_oracle
+                    .resident_word_count
+                    == window.used_words
+                )
+
+                assert (
+                    timing_oracle
+                    .resident_word_count
+                    <= IMEM_WORD_CAPACITY
+                )
+
+                for logical_word_index in range(
+                    released_block.logical_word_start,
+                    released_block.logical_word_end_exclusive,
+                ):
+                    physical_pc = (
+                        timing_oracle
+                        .physical_pc_for_logical_word(
+                            logical_word_index
+                        )
+                    )
+
+                    assert (
+                        timing_oracle
+                        .logical_owner_for_pc(
+                            physical_pc
+                        )
+                        is None
+                    )
+
             assert (
                 window.accepted_count
                 == coverage.executed_instructions
@@ -1685,6 +1949,7 @@ async def test_multi_epoch_adaptive_rtl_continuity(
                 window.used_words
                 == current_next_boundary.image_word_count
             )
+
         else:
             assert (
                 current_next_boundary
@@ -1697,6 +1962,28 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             )
 
             assert window.used_words == 0
+
+        assert (
+            timing_oracle.resident_word_count
+            == window.used_words
+        )
+
+        max_timing_resident_words = max(
+            max_timing_resident_words,
+            timing_oracle.resident_word_count,
+        )
+
+        assert (
+            max_timing_resident_words
+            <= IMEM_WORD_CAPACITY
+        )
+
+        assert (
+            coordinator
+            .pending_attribution_witness_count
+            == 0
+        )
+
         assert (
             coordinator
             .pending_attribution_witness_count
@@ -1927,9 +2214,8 @@ async def test_multi_epoch_adaptive_rtl_continuity(
                 epoch_number + 1
                 < E2_EPOCH_COUNT
             ),
-        )
-        first_next_pc = min(
-            next_fragment
+            allow_physical_wrap=True,
+            timing_oracle=timing_oracle,
         )
 
         total_image_words += (
@@ -1944,18 +2230,28 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             )
         )
 
+        # Timing oracle state is NOT reconstructed.
+        # prepare_adaptive_epoch() already appended the new logical
+        # fragment after proving old physical owners had been released.
         assert (
-            total_image_words
-            <= IMEM_WORD_CAPACITY
+            timing_oracle
+            .next_append_logical_word_index
+            == total_image_words
         )
 
-        # Timing oracle state is NOT reconstructed.
-        timing_oracle.append_program(
-            next_fragment
-        )
         assert (
-            timing_oracle.program_word_count
-            == total_image_words
+            timing_oracle.resident_word_count
+            == window.used_words
+        )
+
+        max_timing_resident_words = max(
+            max_timing_resident_words,
+            timing_oracle.resident_word_count,
+        )
+
+        assert (
+            max_timing_resident_words
+            <= IMEM_WORD_CAPACITY
         )
 
         # DUT reset must remain deasserted during the complete transition.
@@ -2014,6 +2310,64 @@ async def test_multi_epoch_adaptive_rtl_continuity(
         coordinator
         .pending_attribution_witness_count
         == 0
+    )
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+    # ----------------------------------------------------------
+    # T10.9e-2e-4 physical-wrap closure.
+    # ----------------------------------------------------------
+
+    assert (
+        total_image_words
+        > IMEM_WORD_CAPACITY
+    ), (
+        "RTL adaptive campaign did not cross "
+        "the physical IMEM wrap boundary"
+    )
+
+    assert (
+        planner.next_logical_word_index
+        == total_image_words
+    )
+
+    assert (
+        timing_oracle
+        .next_append_logical_word_index
+        == total_image_words
+    )
+
+    assert (
+        timing_oracle
+        .next_release_logical_word_index
+        == total_image_words
+    )
+
+    assert observed_generation_one_execution
+
+    assert (
+        max_executed_logical_word_index
+        >= IMEM_WORD_CAPACITY
+    )
+
+    assert (
+        max_timing_resident_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == 0
+    )
+
+    assert window.used_words == 0
+
+    assert window.pending_block_count == 0
+
+    assert (
+        positive_reward_epoch_count
+        >= 1
     )
 
     assert signal_int(
