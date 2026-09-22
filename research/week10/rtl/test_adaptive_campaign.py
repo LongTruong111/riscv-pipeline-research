@@ -26,6 +26,12 @@ from research.week5.impl.signal_adapter import (
 from research.week9.benchmark.streaming_timing import (
     StreamingTimingOracleV1,
 )
+from research.week10.adaptive.mutable_timing_oracle import (
+    BoundedMutableTimingOracleV1,
+)
+from research.week10.adaptive.reward_engine import (
+    attribution_targets_for,
+)
 from research.week9.coverage_collector import (
     CoverageCollector,
 )
@@ -75,6 +81,11 @@ E1_REALIZATION_SEED = 30303
 E1_EPSILON = 0.10
 E1_ALPHA = 0.30
 E1_Q_FLOOR = 0.05
+# Multi-epoch integration gate.
+#
+# Two 24-instruction nominal epochs remain comfortably below the
+# 128-word physical IMEM boundary even for the largest A7 stream shape.
+E2_EPOCH_COUNT = 2
 
 INSTRUCTION_BYTES = 4
 MAX_PATCH_ADDRESS = 508
@@ -303,6 +314,286 @@ def build_static_epoch_program(
 
     return program
 
+def build_epoch_program_fragment(
+    blocks,
+) -> dict[int, int]:
+    """
+    Build one non-wrapping physical program fragment.
+
+    Unlike build_static_epoch_program(), this helper does not require
+    PC 0 because later adaptive epochs begin at the next physical PC.
+    """
+    program: dict[int, int] = {}
+
+    for block in blocks:
+        for address, word in zip(
+            block.physical_word_addresses,
+            block.image_words,
+        ):
+            if address in program:
+                raise AssertionError(
+                    "e-2c epoch fragment unexpectedly reused "
+                    f"physical PC 0x{address:03x}"
+                )
+
+            program[address] = word
+
+    if not program:
+        raise AssertionError(
+            "adaptive epoch produced an empty program fragment"
+        )
+
+    return program
+
+async def prepare_adaptive_epoch(
+    dut,
+    *,
+    planner,
+    window,
+    preseed_next_boundary: bool,
+):
+    """
+    Plan and patch exactly one adaptive epoch while preserving the
+    one-instruction EBD lookahead required by the RTL fetch pipeline.
+
+    First epoch:
+        EBD_t is created by begin_epoch(), then patched here.
+
+    Later epochs:
+        EBD_t was already preseeded and committed during preparation of
+        the preceding epoch. begin_epoch() only claims its ownership.
+
+    If preseed_next_boundary is True, EBD_(t+1) is planned, patched, and
+    committed before payload_t starts executing.
+    """
+    if not isinstance(
+        preseed_next_boundary,
+        bool,
+    ):
+        raise TypeError(
+            "preseed_next_boundary must be bool"
+        )
+
+    pending_before_begin = (
+        planner.pending_boundary_delimiter
+    )
+
+    if pending_before_begin is None:
+        # Initial epoch: no resident stream entry exists yet.
+        assert window.pending_block_count == 0
+        assert window.used_words == 0
+    else:
+        # Later epoch: exactly one preseeded EBD must remain resident
+        # from the preceding epoch.
+        assert window.pending_block_count == 1
+
+        assert (
+            window.used_words
+            == pending_before_begin.image_word_count
+        )
+
+    epoch_start = planner.begin_epoch()
+
+    active_boundary = (
+        planner.active_boundary_delimiter
+    )
+
+    assert active_boundary is not None
+
+    if pending_before_begin is not None:
+        assert (
+            active_boundary.stream_entry_key
+            == pending_before_begin.stream_entry_key
+        )
+
+    blocks = []
+
+    while not planner.epoch_plan_complete:
+        blocks.append(
+            planner.build_next_block()
+        )
+
+    assert blocks
+
+    payload_executed = sum(
+        block.expected_executed_instruction_count
+        for block in blocks
+    )
+
+    planned_executed = (
+        active_boundary.expected_executed_instruction_count
+        + payload_executed
+    )
+
+    assert (
+        planned_executed
+        == planner.planned_epoch_executed_instructions
+    )
+
+    next_boundary = None
+
+    if preseed_next_boundary:
+        next_boundary = (
+            planner.plan_next_boundary_delimiter()
+        )
+
+        assert (
+            next_boundary.epoch_index
+            == active_boundary.epoch_index + 1
+        )
+
+        assert next_boundary.witnesses == ()
+
+    # The e-2c/d gate remains deliberately non-wrapping.
+    if (
+        planner.next_logical_word_index
+        > IMEM_WORD_CAPACITY
+    ):
+        raise AssertionError(
+            "T10.9e-2d exceeded the non-wrapping "
+            "128-word IMEM proof boundary"
+        )
+
+    newly_patched_entries = []
+
+    # Initial EBD has not yet been committed. For later epochs the active
+    # EBD is already resident from the previous epoch and must NOT be
+    # patched or committed a second time.
+    if pending_before_begin is None:
+        newly_patched_entries.append(
+            active_boundary
+        )
+
+    newly_patched_entries.extend(
+        blocks
+    )
+
+    if next_boundary is not None:
+        newly_patched_entries.append(
+            next_boundary
+        )
+
+    fragment = build_epoch_program_fragment(
+        newly_patched_entries
+    )
+
+    patched_image_words = sum(
+        entry.image_word_count
+        for entry in newly_patched_entries
+    )
+
+    assert (
+        len(fragment)
+        == patched_image_words
+    )
+
+    for entry in newly_patched_entries:
+        for address, word in zip(
+            entry.physical_word_addresses,
+            entry.image_words,
+        ):
+            await patch_word(
+                dut,
+                address=address,
+                word=word,
+            )
+
+        window.commit_patched_block(
+            entry
+        )
+
+    expected_pending_entries = (
+        1
+        + len(blocks)
+        + (
+            1
+            if next_boundary is not None
+            else 0
+        )
+    )
+
+    assert (
+        window.pending_block_count
+        == expected_pending_entries
+    )
+
+    expected_resident_words = (
+        active_boundary.image_word_count
+        + sum(
+            block.image_word_count
+            for block in blocks
+        )
+        + (
+            next_boundary.image_word_count
+            if next_boundary is not None
+            else 0
+        )
+    )
+
+    assert (
+        window.used_words
+        == expected_resident_words
+    )
+
+    planner.close_planning_epoch()
+
+    assert not planner.active
+
+    return (
+        epoch_start,
+        active_boundary,
+        tuple(blocks),
+        planned_executed,
+        patched_image_words,
+        fragment,
+        next_boundary,
+    )
+
+async def resume_clock_from_high_to_falling(
+    dut,
+    clock,
+):
+    """
+    Restart a killed Cocotb Clock while preserving the frozen
+    FallingEdge -> ReadOnly pre-edge sampling point.
+
+    A waiter is armed before clock.start(start_high=False), avoiding
+    loss of the immediate HIGH->LOW transition.
+    """
+    assert signal_int(
+        dut.clk
+    ) == 1
+
+    async def wait_for_falling():
+        await FallingEdge(
+            dut.clk
+        )
+
+    falling_waiter = cocotb.start_soon(
+        wait_for_falling()
+    )
+
+    # Give the waiter a simulation-time opportunity to arm while the
+    # killed clock remains stable HIGH.
+    await Timer(
+        1,
+        units="ns",
+    )
+
+    clock_task = cocotb.start_soon(
+        clock.start(
+            start_high=False
+        )
+    )
+
+    await falling_waiter
+    await ReadOnly()
+
+    assert signal_int(
+        dut.clk
+    ) == 0
+
+    return clock_task
 
 @cocotb.test()
 async def test_one_epoch_adaptive_rtl_end_to_end(
@@ -313,8 +604,8 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
 
         bandit decision
           -> uncovered-first target
-          -> concrete adaptive templates
-          -> deterministic 80:20 filler
+          -> EBD + concrete adaptive templates
+          -> deterministic 80:20 payload filler
           -> runtime IMEM patch
           -> exact provenance registration
           -> real RTL execution
@@ -327,9 +618,12 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
 
     Exactly one adaptive epoch is executed.
 
-    This test deliberately does not exercise multi-epoch live refill;
-    that requires a dynamically updateable timing-oracle program view
-    and belongs to T10.9e-2.
+    Frozen EBD accounting:
+
+        N_epoch = 1 EBD + architecturally accepted payload
+
+    No lookahead EBD is required because this is the final and only
+    epoch of the integration gate.
     """
 
     # ----------------------------------------------------------
@@ -357,32 +651,62 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
     ) = build_adaptive_stack()
 
     # ----------------------------------------------------------
-    # ADAPTATION / GENERATION:
-    # select one arm and construct complete templates until the
-    # nominal executed-instruction target is reached or exceeded.
+    # ADAPTATION / GENERATION / PATCH.
+    #
+    # Reuse the same EBD-aware preparation path as the multi-epoch
+    # gate. With preseed_next_boundary=False the resulting physical
+    # stream is:
+    #
+    #     EBD_0 + payload_0
+    #
+    # and nothing from a hypothetical epoch 1 is generated.
     # ----------------------------------------------------------
-    epoch_start = (
-        planner.begin_epoch()
+    (
+        epoch_start,
+        active_boundary,
+        blocks,
+        planned_executed,
+        planned_image_words,
+        program,
+        next_boundary,
+    ) = await prepare_adaptive_epoch(
+        dut,
+        planner=planner,
+        window=window,
+        preseed_next_boundary=False,
     )
 
     assert coordinator.active
+    assert not planner.active
 
-    blocks = []
+    assert active_boundary.epoch_index == 0
 
-    while not planner.epoch_plan_complete:
-        block = planner.build_next_block()
-        blocks.append(block)
+    assert (
+        active_boundary.expected_executed_instruction_count
+        == 1
+    )
+
+    assert next_boundary is None
 
     assert blocks
 
-    planned_executed = sum(
+    payload_executed = sum(
         block.expected_executed_instruction_count
         for block in blocks
     )
 
-    planned_image_words = sum(
-        block.image_word_count
-        for block in blocks
+    assert (
+        planned_executed
+        == (
+            active_boundary.expected_executed_instruction_count
+            + payload_executed
+        )
+    )
+
+    assert (
+        planned_executed
+        == planner.planned_epoch_executed_instructions
+        or not planner.active
     )
 
     assert (
@@ -393,43 +717,35 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
     # Complete-template overshoot is allowed by the frozen protocol.
     assert (
         planned_executed
-        == planner.planned_epoch_executed_instructions
+        >= E1_NOMINAL_EXECUTED
     )
 
-    # e-1 must remain wholly resident in one physical IMEM image.
+    assert min(program) == 0
+
+    assert (
+        len(program)
+        == planned_image_words
+    )
+
     assert (
         planned_image_words
         <= IMEM_WORD_CAPACITY
     )
 
-    program = build_static_epoch_program(
-        blocks
+    assert (
+        planner.next_executed_instruction_index
+        == planned_executed + 1
     )
 
-    # ----------------------------------------------------------
-    # IMEM PATCH + COMMIT.
-    #
-    # Each block becomes live in provenance/ring state only AFTER all
-    # of its image words have successfully been written.
-    # ----------------------------------------------------------
-    for block in blocks:
-        for address, word in zip(
-            block.physical_word_addresses,
-            block.image_words,
-        ):
-            await patch_word(
-                dut,
-                address=address,
-                word=word,
-            )
-
-        window.commit_patched_block(
-            block
-        )
-
+    # The complete epoch is resident before execution starts.
     assert (
         window.pending_block_count
-        == len(blocks)
+        == 1 + len(blocks)
+    )
+
+    assert (
+        window.used_words
+        == planned_image_words
     )
 
     assert (
@@ -438,22 +754,12 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         > 0
     )
 
-    # Important:
-    # do NOT call planner.register_block_witnesses().
-    # RuntimeStreamWindow.commit_patched_block() already owns witness
-    # registration.
-
-    planner.close_planning_epoch()
-
-    assert not planner.active
-    assert coordinator.active
-
     # ----------------------------------------------------------
     # Independent streaming reference models.
     #
-    # Timing oracle owns a separate architectural model internally.
-    # The explicit architectural model below independently supplies
-    # architectural evidence to L2 validation.
+    # EBD participates in both timing and architectural streams.
+    # It has no selected-arm attribution witness and therefore cannot
+    # contribute to the reward numerator.
     # ----------------------------------------------------------
     timing_oracle = (
         StreamingTimingOracleV1(
@@ -471,7 +777,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
 
     pending_next_pc = None
 
-    released_block_count = 0
+    released_entry_count = 0
 
     measurement_start_ns = (
         time.perf_counter_ns()
@@ -486,7 +792,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         units="ns",
     )
 
-    cocotb.start_soon(
+    clock_task = cocotb.start_soon(
         clock.start()
     )
 
@@ -512,7 +818,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         max_cycles + 1,
     ):
         # ------------------------------------------------------
-        # FALLING EDGE + ReadOnly
+        # FALLING EDGE + ReadOnly.
         # ------------------------------------------------------
         await FallingEdge(
             dut.clk
@@ -552,7 +858,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         )
 
         # ------------------------------------------------------
-        # RISING EDGE + ReadOnly
+        # RISING EDGE + ReadOnly.
         # ------------------------------------------------------
         await RisingEdge(
             dut.clk
@@ -608,15 +914,14 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
             )
         )
 
-        # ------------------------------------------------------
-        # Resolve predecessor next-PC evidence before processing
-        # current architectural state.
-        # ------------------------------------------------------
         wall_ns = (
             time.perf_counter_ns()
             - measurement_start_ns
         )
 
+        # ------------------------------------------------------
+        # Resolve predecessor next-PC evidence.
+        # ------------------------------------------------------
         if pending_next_pc is not None:
             (
                 predecessor_id,
@@ -686,7 +991,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         )
 
         # ------------------------------------------------------
-        # L2 Intent classification.
+        # Global L2 Intent classification.
         # ------------------------------------------------------
         events_by_index[
             event.instruction_index
@@ -725,9 +1030,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
             )
 
         # ------------------------------------------------------
-        # EXACT OWNER OF PRUNE + BLOCK RELEASE.
-        #
-        # Do not call coordinator.prune_validation_state() separately.
+        # Exact owner of witness pruning + StreamEntry release.
         # ------------------------------------------------------
         released = (
             window.finalize_accepted_event(
@@ -736,7 +1039,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         )
 
         if released is not None:
-            released_block_count += 1
+            released_entry_count += 1
 
         assert (
             window.accepted_count
@@ -756,7 +1059,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         window.accepted_count
         == planned_executed
     ), (
-        "RTL did not consume the complete planned epoch: "
+        "RTL did not consume the complete EBD-aware epoch: "
         f"planned={planned_executed}, "
         f"accepted={window.accepted_count}"
     )
@@ -766,9 +1069,10 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         == planned_executed
     )
 
+    # One EBD StreamEntry plus every adaptive payload block.
     assert (
-        released_block_count
-        == len(blocks)
+        released_entry_count
+        == 1 + len(blocks)
     )
 
     assert (
@@ -789,6 +1093,8 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
 
     # ----------------------------------------------------------
     # Reward + bandit update.
+    #
+    # EBD is included in the reward denominator.
     # ----------------------------------------------------------
     completion = (
         coordinator.finish_epoch(
@@ -822,8 +1128,8 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
 
     # Epoch starts from completely uncovered L2 Intent.
     #
-    # Every single-distance adaptive arm therefore contributes exactly
-    # one new attributable target bin; A4 contributes two.
+    # Single-distance adaptive arms contribute one attributable target;
+    # A4 contributes two. EBD contributes zero attributable targets.
     expected_new_bins = (
         2
         if epoch_start.target.is_dual
@@ -850,7 +1156,7 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
 
     # Q_old = 0 at epoch zero:
     #
-    # Q_new = 0 + alpha * reward
+    # Q_new = alpha * reward
     expected_q = (
         E1_ALPHA
         * expected_reward
@@ -899,7 +1205,817 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         >= expected_new_bins
     )
 
+    assert (
+        window.accepted_count
+        == coverage.executed_instructions
+    )
+
+    assert (
+        planner.next_executed_instruction_index
+        == coverage.executed_instructions + 1
+    )
+
     # No reset occurred between execution start and epoch completion.
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    clock_task.kill()
+
+    assert clock_task.done()
+
+@cocotb.test()
+async def test_multi_epoch_adaptive_rtl_continuity(
+    dut,
+):
+    """
+    T10.9e-2c proof obligation:
+
+        epoch 1 RTL execution
+          -> attributable reward
+          -> Q update
+          -> pause sole clock owner
+          -> begin epoch 2 from retained coverage/Q state
+          -> runtime patch without reset
+          -> mutable timing-oracle append
+          -> resume same clock phase
+          -> continuous ExecutionEvent numbering
+          -> continuous architectural/L2 state
+          -> second reward/Q update
+
+    This gate deliberately remains below the 128-word physical IMEM
+    wrap boundary. Wrap-aware adaptive campaigns are a later gate.
+    """
+
+    # ----------------------------------------------------------
+    # Static verification-interface initialization.
+    # ----------------------------------------------------------
+    dut.clk.value = 0
+    dut.reset.value = 1
+
+    dut.imem_patch_strobe.value = 0
+    dut.imem_patch_addr.value = 0
+    dut.imem_patch_data.value = 0
+
+    await Timer(
+        1,
+        units="ns",
+    )
+
+    (
+        l2_coverage,
+        coverage,
+        decision_engine,
+        coordinator,
+        planner,
+        window,
+    ) = build_adaptive_stack()
+
+    # ----------------------------------------------------------
+    # Prepare epoch 1 before the clock starts.
+    # ----------------------------------------------------------
+    (
+        current_start,
+        current_boundary,
+        current_blocks,
+        current_planned_executed,
+        current_image_words,
+        first_fragment,
+        current_next_boundary,
+    ) = await prepare_adaptive_epoch(
+        dut,
+        planner=planner,
+        window=window,
+        preseed_next_boundary=(
+            E2_EPOCH_COUNT > 1
+        ),
+    )
+    assert current_boundary.epoch_index == 0
+
+    assert current_next_boundary is not None
+
+    assert (
+        current_next_boundary.epoch_index
+        == 1
+    )
+    assert (
+        min(first_fragment)
+        == 0
+    )
+
+    timing_oracle = (
+        BoundedMutableTimingOracleV1(
+            first_fragment
+        )
+    )
+
+    assert (
+        timing_oracle.program_word_count
+        == current_image_words
+    )
+
+    architectural_model = (
+        RV32ArchitecturalModel()
+    )
+
+    adapter = ExecutionEventAdapter()
+
+    # Must remain live across epoch boundaries.
+    events_by_index = {}
+    pending_next_pc = None
+
+    cycle = 0
+
+    total_image_words = (
+        current_image_words
+    )
+
+    previous_epoch_snapshot = None
+
+    expected_pull_counts = {}
+
+    measurement_start_ns = (
+        time.perf_counter_ns()
+    )
+
+    # ----------------------------------------------------------
+    # Exactly one live clock owner.
+    # ----------------------------------------------------------
+    clock = Clock(
+        dut.clk,
+        CLOCK_NS,
+        units="ns",
+    )
+
+    clock_task = cocotb.start_soon(
+        clock.start()
+    )
+
+    await reset_active_high(
+        dut,
+        cycles=3,
+    )
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    # Normally an epoch begins by awaiting FallingEdge.
+    #
+    # After a pause/resume transition the helper already returns at
+    # FallingEdge + ReadOnly, so the first iteration must consume that
+    # already-reached pre-edge point instead of waiting for another.
+    pre_edge_ready = False
+
+    for epoch_number in range(
+        1,
+        E2_EPOCH_COUNT + 1,
+    ):
+        accepted_before_epoch = (
+            window.accepted_count
+        )
+
+        released_this_epoch = 0
+
+        q_values_before = (
+            decision_engine.q_values()
+        )
+
+        if previous_epoch_snapshot is not None:
+            assert (
+                previous_epoch_snapshot
+                <= current_start.covered_at_epoch_start
+            )
+
+        previous_epoch_snapshot = (
+            current_start.covered_at_epoch_start
+        )
+
+        # Independent expected reward target:
+        # only bins attributable to this selected arm/target and not
+        # already globally covered at epoch start may contribute.
+        attributable_targets = (
+            attribution_targets_for(
+                current_start.decision.arm_id,
+                current_start.target,
+            )
+        )
+
+        expected_new_target_bins = (
+            attributable_targets
+            - current_start.covered_at_epoch_start
+        )
+
+        assert expected_new_target_bins
+
+        epoch_cycle_budget = (
+            current_planned_executed
+            * 8
+            + 32
+        )
+
+        epoch_cycles = 0
+
+        while (
+            window.accepted_count
+            - accepted_before_epoch
+            < current_planned_executed
+        ):
+            if epoch_cycles >= epoch_cycle_budget:
+                raise AssertionError(
+                    "multi-epoch RTL execution exceeded "
+                    "the bounded cycle budget"
+                )
+
+            # --------------------------------------------------
+            # FALLING EDGE + ReadOnly.
+            # --------------------------------------------------
+            if pre_edge_ready:
+                pre_edge_ready = False
+            else:
+                await FallingEdge(
+                    dut.clk
+                )
+
+                await ReadOnly()
+
+            cycle += 1
+            epoch_cycles += 1
+
+            snapshot = PreEdgeSnapshot(
+                cycle=cycle,
+                reset=bool(
+                    signal_int(
+                        dut.reset
+                    )
+                ),
+                stall=bool(
+                    signal_int(
+                        dut.probe_stall
+                    )
+                ),
+                flush_redirect=bool(
+                    signal_int(
+                        dut.probe_flush
+                    )
+                ),
+                pc=signal_int(
+                    dut.probe_a_pc
+                ),
+                instruction=signal_int(
+                    dut.probe_a_instr
+                ),
+            )
+
+            pending = (
+                adapter.observe_pre_edge(
+                    snapshot
+                )
+            )
+
+            # --------------------------------------------------
+            # RISING EDGE + ReadOnly.
+            # --------------------------------------------------
+            await RisingEdge(
+                dut.clk
+            )
+
+            await ReadOnly()
+
+            if pending is None:
+                continue
+
+            assert (
+                signal_int(
+                    dut.probe_b_pc
+                )
+                == pending.pc
+            )
+
+            assert (
+                signal_int(
+                    dut.probe_b_instr
+                )
+                == pending.instruction
+            )
+
+            event = (
+                adapter.finalize_post_edge(
+                    pending,
+                    forward_a=signal_int(
+                        dut.probe_fwd_a
+                    ),
+                    forward_b=signal_int(
+                        dut.probe_fwd_b
+                    ),
+                )
+            )
+
+            # ----------------------------------------------
+            # Timing state is continuous across epochs.
+            # ----------------------------------------------
+            expectation = (
+                timing_oracle.observe_accept(
+                    event
+                )
+            )
+
+            wall_ns = (
+                time.perf_counter_ns()
+                - measurement_start_ns
+            )
+
+            # ----------------------------------------------
+            # Resolve previous instruction's next-PC evidence.
+            #
+            # pending_next_pc is intentionally NOT cleared at
+            # epoch boundaries, proving cross-epoch architectural
+            # continuity.
+            # ----------------------------------------------
+            if pending_next_pc is not None:
+                (
+                    predecessor_id,
+                    predecessor_next_pc,
+                ) = pending_next_pc
+
+                coordinator.record_successor_pc(
+                    predecessor_instruction_id=(
+                        predecessor_id
+                    ),
+                    expected_next_pc=(
+                        predecessor_next_pc
+                    ),
+                    successor=event,
+                    cycle=cycle,
+                    wall_ns=wall_ns,
+                )
+
+            architectural_step = (
+                architectural_model.step(
+                    event
+                )
+            )
+
+            coordinator.record_architectural_result(
+                instruction_id=(
+                    event.instruction_index
+                ),
+                kind="pc",
+                passed=(
+                    architectural_step.pc_match
+                ),
+                cycle=cycle,
+                wall_ns=wall_ns,
+            )
+
+            assert (
+                architectural_step.pc_match
+            )
+
+            pending_next_pc = (
+                event.instruction_index,
+                architectural_step.next_pc,
+            )
+
+            # ----------------------------------------------
+            # Global accepted-instruction accounting is never
+            # reset at an epoch boundary.
+            # ----------------------------------------------
+            assert (
+                event.instruction_index
+                == coverage.executed_instructions + 1
+            )
+
+            coverage.record_instruction(
+                instruction_id=(
+                    event.instruction_index
+                ),
+                cycle=cycle,
+            )
+
+            # ----------------------------------------------
+            # Global L2 dependency state is also continuous.
+            # ----------------------------------------------
+            events_by_index[
+                event.instruction_index
+            ] = event
+
+            hits = l2_coverage.observe(
+                event
+            )
+
+            for hit in hits:
+                producer_event = (
+                    events_by_index[
+                        hit.producer_instruction_index
+                    ]
+                )
+
+                coordinator.register_l2_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expectation,
+                    cycle=cycle,
+                    wall_ns=wall_ns,
+                )
+
+            stale_event_id = (
+                event.instruction_index
+                - 2
+            )
+
+            if stale_event_id > 0:
+                events_by_index.pop(
+                    stale_event_id,
+                    None,
+                )
+
+            # Only RuntimeStreamWindow owns final pruning.
+            released = (
+                window.finalize_accepted_event(
+                    event
+                )
+            )
+
+            if released is not None:
+                released_this_epoch += 1
+
+            assert (
+                window.accepted_count
+                == coverage.executed_instructions
+            )
+
+        # ------------------------------------------------------
+        # Exact complete-template epoch boundary.
+        # ------------------------------------------------------
+        actual_executed = (
+            window.accepted_count
+            - accepted_before_epoch
+        )
+
+        assert (
+            actual_executed
+            == current_planned_executed
+        )
+
+        assert (
+            released_this_epoch
+            == (
+                1
+                + len(current_blocks)
+            )
+        )
+
+        if (
+            epoch_number
+            < E2_EPOCH_COUNT
+        ):
+            assert (
+                current_next_boundary
+                is not None
+            )
+
+            assert (
+                window.pending_block_count
+                == 1
+            )
+
+            assert (
+                window.used_words
+                == current_next_boundary.image_word_count
+            )
+        else:
+            assert (
+                current_next_boundary
+                is None
+            )
+
+            assert (
+                window.pending_block_count
+                == 0
+            )
+
+            assert window.used_words == 0
+        assert (
+            coordinator
+            .pending_attribution_witness_count
+            == 0
+        )
+
+        completion = (
+            coordinator.finish_epoch(
+                actual_executed_instructions=(
+                    actual_executed
+                )
+            )
+        )
+
+        assert (
+            completion.start
+            == current_start
+        )
+
+        assert (
+            completion.bandit_update.arm_id
+            is current_start.decision.arm_id
+        )
+
+        selected_arm = (
+            current_start.decision.arm_id
+        )
+
+        expected_pull_counts[
+            selected_arm
+        ] = (
+            expected_pull_counts.get(
+                selected_arm,
+                0,
+            )
+            + 1
+        )
+
+        assert (
+            completion.bandit_update.pull_count
+            == expected_pull_counts[
+                selected_arm
+            ]
+        )
+
+        assert (
+            decision_engine.epoch_index
+            == epoch_number
+        )
+
+        expected_reward = (
+            1000.0
+            * len(
+                expected_new_target_bins
+            )
+            / actual_executed
+        )
+
+        assert math.isclose(
+            completion.reward_result.reward,
+            expected_reward,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        ), (
+            "multi-epoch attributable reward mismatch: "
+            f"epoch={epoch_number}, "
+            f"expected={expected_reward}, "
+            f"observed="
+            f"{completion.reward_result.reward}"
+        )
+
+        old_q = q_values_before[
+            selected_arm
+        ]
+
+        expected_q = (
+            old_q
+            + E1_ALPHA
+            * (
+                expected_reward
+                - old_q
+            )
+        )
+
+        assert math.isclose(
+            completion.bandit_update.old_q,
+            old_q,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        )
+
+        assert math.isclose(
+            completion.bandit_update.new_q,
+            expected_q,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        )
+
+        q_values_after = (
+            decision_engine.q_values()
+        )
+
+        for arm_id, q_before in (
+            q_values_before.items()
+        ):
+            if arm_id is selected_arm:
+                assert math.isclose(
+                    q_values_after[
+                        arm_id
+                    ],
+                    expected_q,
+                    rel_tol=0.0,
+                    abs_tol=1e-12,
+                )
+            else:
+                assert (
+                    q_values_after[
+                        arm_id
+                    ]
+                    == q_before
+                )
+
+        # ------------------------------------------------------
+        # Final epoch: stop here.
+        # ------------------------------------------------------
+        if (
+            epoch_number
+            == E2_EPOCH_COUNT
+        ):
+            clock_task.kill()
+
+            assert (
+                clock_task.done()
+            )
+
+            break
+
+        # ------------------------------------------------------
+        # Epoch transition synchronization.
+        #
+        # We are currently at RisingEdge + ReadOnly, therefore clk is
+        # HIGH. Kill the sole owner before any Timer-based patching.
+        # ------------------------------------------------------
+        clock_task.kill()
+
+        assert (
+            clock_task.done()
+        )
+
+        assert signal_int(
+            dut.clk
+        ) == 1
+
+        assert not coordinator.active
+        assert not planner.active
+
+        assert (
+            current_next_boundary
+            is not None
+        )
+
+        expected_boundary_pc = (
+            current_next_boundary
+            .expected_executed_pcs[0]
+        )
+
+        expected_boundary_word = (
+            current_next_boundary
+            .expected_executed_words[0]
+        )
+
+        assert (
+            signal_int(
+                dut.probe_a_pc
+            )
+            == expected_boundary_pc
+        ), (
+            "preseeded EBD was not latched into stage A: "
+            f"expected_pc=0x{expected_boundary_pc:03x}, "
+            f"observed_pc="
+            f"0x{signal_int(dut.probe_a_pc):03x}"
+        )
+
+        assert (
+            signal_int(
+                dut.probe_a_instr
+            )
+            == expected_boundary_word
+        ), (
+            "preseeded EBD word mismatch in stage A: "
+            f"expected=0x{expected_boundary_word:08x}, "
+            f"observed="
+            f"0x{signal_int(dut.probe_a_instr):08x}"
+        )
+        # We arrived here from RisingEdge + ReadOnly.
+        #
+        # Cocotb forbids signal writes while still in the read-only phase.
+        # Advance simulation time with the clock task killed so that:
+        #   - clk remains HIGH;
+        #   - no architectural edge occurs;
+        #   - runtime IMEM patch writes become legal.
+        await Timer(
+            1,
+            units="ns",
+        )
+
+        assert signal_int(
+            dut.clk
+        ) == 1
+
+        assert signal_int(
+            dut.reset
+        ) == 0
+
+        (
+            current_start,
+            current_boundary,
+            current_blocks,
+            current_planned_executed,
+            current_image_words,
+            next_fragment,
+            current_next_boundary,
+        ) = await prepare_adaptive_epoch(
+            dut,
+            planner=planner,
+            window=window,
+            preseed_next_boundary=(
+                epoch_number + 1
+                < E2_EPOCH_COUNT
+            ),
+        )
+        first_next_pc = min(
+            next_fragment
+        )
+
+        total_image_words += (
+            current_image_words
+        )
+
+        assert (
+            current_boundary.stream_entry_key
+            == (
+                "EBD",
+                epoch_number,
+            )
+        )
+
+        assert (
+            total_image_words
+            <= IMEM_WORD_CAPACITY
+        )
+
+        # Timing oracle state is NOT reconstructed.
+        timing_oracle.append_program(
+            next_fragment
+        )
+        assert (
+            timing_oracle.program_word_count
+            == total_image_words
+        )
+
+        # DUT reset must remain deasserted during the complete transition.
+        assert signal_int(
+            dut.reset
+        ) == 0
+
+        # ------------------------------------------------------
+        # Arm a FallingEdge waiter first, then restart the clock from
+        # HIGH using start_high=False.
+        # ------------------------------------------------------
+        clock_task = (
+            await resume_clock_from_high_to_falling(
+                dut,
+                clock,
+            )
+        )
+
+        # The helper already returned at FallingEdge + ReadOnly.
+        pre_edge_ready = True
+    # ----------------------------------------------------------
+    # Campaign-level continuity invariants.
+    # ----------------------------------------------------------
+
+    assert (
+        decision_engine.epoch_index
+        == E2_EPOCH_COUNT
+    )
+
+    assert (
+        timing_oracle.generated_count
+        == coverage.executed_instructions
+    )
+
+    assert (
+        window.accepted_count
+        == coverage.executed_instructions
+    )
+
+    assert (
+        planner.next_executed_instruction_index
+        == coverage.executed_instructions + 1
+    )
+
+    assert (
+        window.pending_block_count
+        == 0
+    )
+
+    assert (
+        window.used_words
+        == 0
+    )
+
+    assert (
+        coordinator
+        .pending_attribution_witness_count
+        == 0
+    )
+
     assert signal_int(
         dut.reset
     ) == 0
