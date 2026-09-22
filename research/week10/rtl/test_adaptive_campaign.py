@@ -199,15 +199,33 @@ async def reset_active_high(
 
     await ReadOnly()
 
-
-def build_adaptive_stack():
+def build_adaptive_stack(
+    *,
+    nominal_epoch_instructions: int = E1_NOMINAL_EXECUTED,
+):
     """
-    Construct the complete pure-Python adaptive stack used by e-1.
+    Construct the complete pure-Python adaptive stack used by the RTL
+    integration gates.
 
     RNG streams are deliberately independent so one subsystem's draw
-    count cannot silently perturb another subsystem in this integration
-    gate.
+    count cannot silently perturb another subsystem.
+
+    The default preserves the historical small integration-gate batch.
+    Larger proof obligations, including the frozen b=500 engineering
+    configuration, must request their nominal epoch size explicitly.
     """
+    if (
+        isinstance(nominal_epoch_instructions, bool)
+        or not isinstance(
+            nominal_epoch_instructions,
+            int,
+        )
+        or nominal_epoch_instructions <= 0
+    ):
+        raise ValueError(
+            "nominal_epoch_instructions must be positive"
+        )
+
     l2_coverage = L2CoverageCollector()
 
     coverage = CoverageCollector(
@@ -250,7 +268,7 @@ def build_adaptive_stack():
         ),
         filler_scheduler=CampaignFillerScheduler(),
         nominal_epoch_instructions=(
-            E1_NOMINAL_EXECUTED
+            nominal_epoch_instructions
         ),
         initial_logical_word_index=0,
         first_executed_instruction_index=1,
@@ -278,7 +296,6 @@ def build_adaptive_stack():
         planner,
         window,
     )
-
 
 def build_static_epoch_program(
     blocks,
@@ -366,6 +383,190 @@ def build_epoch_program_fragment(
         )
 
     return program
+
+async def patch_stream_entries(
+    dut,
+    *,
+    entries,
+    window,
+    timing_oracle=None,
+):
+    """
+    Patch one contiguous group of complete runtime stream entries.
+
+    Ordering is intentionally frozen:
+
+        prove ownership/capacity
+          -> physical RTL patch
+          -> RuntimeStreamWindow commit
+          -> timing-oracle append
+
+    The helper is valid for a single refill block as well as for the
+    historical whole-epoch fragment.
+
+    It never splits a stream entry.
+    """
+    entries = tuple(entries)
+
+    if not entries:
+        raise ValueError(
+            "entries must contain at least one stream entry"
+        )
+
+    if (
+        timing_oracle is not None
+        and not isinstance(
+            timing_oracle,
+            WrapAwareMutableTimingOracleV1,
+        )
+    ):
+        raise TypeError(
+            "timing_oracle must be "
+            "WrapAwareMutableTimingOracleV1"
+        )
+
+    fragment = build_epoch_program_fragment(
+        entries
+    )
+
+    patched_image_words = sum(
+        entry.image_word_count
+        for entry in entries
+    )
+
+    assert (
+        len(fragment)
+        == patched_image_words
+    )
+
+    fragment_first_logical_word = (
+        entries[0].logical_word_start
+    )
+
+    expected_logical_word = (
+        fragment_first_logical_word
+    )
+
+    # ----------------------------------------------------------
+    # Prevalidate the complete requested patch before mutation.
+    # ----------------------------------------------------------
+    projected_used_words = (
+        window.used_words
+    )
+
+    for entry in entries:
+        assert (
+            entry.logical_word_start
+            == expected_logical_word
+        )
+
+        projected_used_words += (
+            entry.image_word_count
+        )
+
+        assert (
+            projected_used_words
+            <= IMEM_WORD_CAPACITY
+        )
+
+        for offset, address in enumerate(
+            entry.physical_word_addresses
+        ):
+            logical_word_index = (
+                entry.logical_word_start
+                + offset
+            )
+
+            expected_physical_pc = (
+                WrapAwareMutableTimingOracleV1
+                .physical_pc_for_logical_word(
+                    logical_word_index
+                )
+            )
+
+            assert (
+                address
+                == expected_physical_pc
+            )
+
+            if timing_oracle is not None:
+                existing_owner = (
+                    timing_oracle
+                    .logical_owner_for_pc(
+                        address
+                    )
+                )
+
+                assert existing_owner is None, (
+                    "attempted RTL patch before old timing "
+                    "owner was released: "
+                    f"pc=0x{address:03x}, "
+                    f"new_logical_word="
+                    f"{logical_word_index}, "
+                    f"old_logical_word="
+                    f"{existing_owner}"
+                )
+
+        expected_logical_word = (
+            entry.logical_word_end_exclusive
+        )
+
+    if timing_oracle is not None:
+        assert (
+            timing_oracle
+            .next_append_logical_word_index
+            == fragment_first_logical_word
+        )
+
+    # ----------------------------------------------------------
+    # Physical image first. Runtime ownership is published only
+    # after the complete entry image has been written.
+    # ----------------------------------------------------------
+    for entry in entries:
+        for address, word in zip(
+            entry.physical_word_addresses,
+            entry.image_words,
+        ):
+            await patch_word(
+                dut,
+                address=address,
+                word=word,
+            )
+
+        window.commit_patched_block(
+            entry
+        )
+
+    assert (
+        window.used_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    # ----------------------------------------------------------
+    # Timing ownership follows successful RTL + runtime commit.
+    # ----------------------------------------------------------
+    if timing_oracle is not None:
+        timing_oracle.append_program(
+            fragment,
+            first_logical_word_index=(
+                fragment_first_logical_word
+            ),
+        )
+
+        assert (
+            timing_oracle.resident_word_count
+            == window.used_words
+        )
+
+        assert (
+            timing_oracle.resident_word_count
+            <= IMEM_WORD_CAPACITY
+        )
+
+    return (
+        fragment,
+        patched_image_words,
+    )
 
 async def prepare_adaptive_epoch(
     dut,
