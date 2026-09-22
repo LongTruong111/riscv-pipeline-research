@@ -2,7 +2,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from research.week9.coverage_collector import CoverageCheckpoint
+from research.week9.coverage_collector import (
+    CoverageCheckpoint,
+    CoverageCollector,
+)
 from research.week10.adaptive.campaign_telemetry import (
     CHECKPOINT_SEMANTICS,
     SCHEMA_VERSION,
@@ -459,3 +462,81 @@ def test_finalize_rejects_unclosed_instruction_accounting():
             final_l2_validated_count=35,
             decision_state=state,
         )
+def test_fixed_epoch_campaign_allows_no_instruction_budget():
+    recorder = make_recorder(
+        instruction_budget=None
+    )
+
+    state = FakeDecisionState(
+        epoch_index=0
+    )
+
+    completion = make_completion(
+        actual_executed=501
+    )
+
+    state.apply_update(
+        arm=ArmID.A2,
+        new_q=0.6,
+        pull_count=1,
+        reward=2.0,
+    )
+
+    recorder.record_epoch(
+        completion,
+        decision_state=state,
+    )
+
+    summary = recorder.finalize(
+        termination_reason="fixed_epoch_count_reached",
+        executed_instructions=501,
+        final_l1_intent_count=20,
+        final_l1_validated_count=15,
+        final_l2_intent_count=40,
+        final_l2_validated_count=35,
+        decision_state=state,
+    )
+
+    assert summary.instruction_budget is None
+    assert summary.completed_epochs == 1
+    assert summary.executed_instructions == 501
+def test_real_coverage_collector_streams_checkpoint_to_telemetry():
+    recorder = make_recorder(
+        instruction_budget=1000
+    )
+
+    state = FakeDecisionState(
+        epoch_index=0
+    )
+
+    coverage = CoverageCollector(
+        checkpoint_interval=1000,
+        retain_checkpoints=False,
+        checkpoint_sink=(
+            lambda checkpoint:
+            recorder.record_checkpoint(
+                checkpoint,
+                epoch_index=state.epoch_index,
+                decision_state=state,
+            )
+        ),
+    )
+
+    for instruction_index in range(1, 1001):
+        coverage.record_instruction(
+            instruction_id=instruction_index,
+            cycle=instruction_index,
+        )
+
+    assert coverage.executed_instructions == 1000
+
+    assert len(recorder.checkpoint_records) == 1
+
+    record = recorder.checkpoint_records[0]
+
+    assert record.executed_instructions == 1000
+
+    assert (
+        record.checkpoint_semantics
+        == "post_instruction_cut_v1"
+    )

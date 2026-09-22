@@ -109,7 +109,7 @@ class CampaignRunSummary:
     q_floor: float
 
     nominal_batch: int
-    instruction_budget: int
+    instruction_budget: int | None
 
     executed_instructions: int
     completed_epochs: int
@@ -198,7 +198,7 @@ class CampaignTelemetryRecorder:
         alpha: float,
         q_floor: float,
         nominal_batch: int,
-        instruction_budget: int,
+        instruction_budget: int | None,
         retain_records: bool = True,
         epoch_sink: Callable[
             [EpochTelemetryRecord],
@@ -238,12 +238,19 @@ class CampaignTelemetryRecorder:
             )
 
         if (
-            isinstance(instruction_budget, bool)
-            or not isinstance(instruction_budget, int)
-            or instruction_budget <= 0
+            instruction_budget is not None
+            and (
+                isinstance(instruction_budget, bool)
+                or not isinstance(
+                    instruction_budget,
+                    int,
+                )
+                or instruction_budget <= 0
+            )
         ):
             raise ValueError(
-                "instruction_budget must be a positive integer"
+                "instruction_budget must be None "
+                "or a positive integer"
             )
 
         self.seed = seed

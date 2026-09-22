@@ -67,6 +67,9 @@ from research.week10.l2_live_coordinator import (
 from research.week10.adaptive.post_instruction_cut import (
     complete_post_instruction_cut,
 )
+from research.week10.adaptive.campaign_telemetry import (
+    CampaignTelemetryRecorder,
+)
 
 CLOCK_NS = 10
 
@@ -838,6 +841,24 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         preseed_next_boundary=False,
     )
 
+    telemetry = CampaignTelemetryRecorder(
+        seed=E1_DECISION_SEED,
+        epsilon=E1_EPSILON,
+        alpha=E1_ALPHA,
+        q_floor=E1_Q_FLOOR,
+        nominal_batch=E1_NOMINAL_EXECUTED,
+        instruction_budget=planned_executed,
+        retain_records=True,
+    )
+
+    coverage.checkpoint_sink = (
+        lambda checkpoint: telemetry.record_checkpoint(
+            checkpoint,
+            epoch_index=decision_engine.epoch_index,
+            decision_state=decision_engine,
+        )
+    )
+
     assert coordinator.active
     assert not planner.active
 
@@ -1264,6 +1285,26 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         )
     )
 
+    epoch_telemetry = telemetry.record_epoch(
+        completion,
+        decision_state=decision_engine,
+    )
+
+    assert (
+        epoch_telemetry.epoch_index
+        == 0
+    )
+
+    assert (
+        epoch_telemetry.actual_executed_instructions
+        == planned_executed
+    )
+
+    assert (
+        epoch_telemetry.last_executed_instruction
+        == coverage.executed_instructions
+    )
+
     assert not coordinator.active
 
     assert (
@@ -1380,6 +1421,39 @@ async def test_one_epoch_adaptive_rtl_end_to_end(
         == coverage.executed_instructions + 1
     )
 
+    telemetry_summary = telemetry.finalize(
+        termination_reason="one_epoch_gate_complete",
+        executed_instructions=(
+            coverage.executed_instructions
+        ),
+        final_l1_intent_count=sum(
+            state.intent_seen
+            for state in coverage.l1_state.values()
+        ),
+        final_l1_validated_count=sum(
+            state.validated_seen
+            for state in coverage.l1_state.values()
+        ),
+        final_l2_intent_count=sum(
+            state.intent_seen
+            for state in coverage.l2_state.values()
+        ),
+        final_l2_validated_count=sum(
+            state.validated_seen
+            for state in coverage.l2_state.values()
+        ),
+        decision_state=decision_engine,
+    )
+
+    assert telemetry_summary.completed_epochs == 1
+
+    assert (
+        telemetry_summary.executed_instructions
+        == coverage.executed_instructions
+    )
+
+    assert len(telemetry.epoch_records) == 1
+
     # No reset occurred between execution start and epoch completion.
     assert signal_int(
         dut.reset
@@ -1434,6 +1508,23 @@ async def test_multi_epoch_adaptive_rtl_continuity(
         planner,
         window,
     ) = build_adaptive_stack()
+    telemetry = CampaignTelemetryRecorder(
+        seed=E1_DECISION_SEED,
+        epsilon=E1_EPSILON,
+        alpha=E1_ALPHA,
+        q_floor=E1_Q_FLOOR,
+        nominal_batch=E1_NOMINAL_EXECUTED,
+        instruction_budget=None,
+        retain_records=True,
+    )
+
+    coverage.checkpoint_sink = (
+        lambda checkpoint: telemetry.record_checkpoint(
+            checkpoint,
+            epoch_index=decision_engine.epoch_index,
+            decision_state=decision_engine,
+        )
+    )
 
     # ----------------------------------------------------------
     # Prepare epoch 1 before the clock starts.
@@ -2007,6 +2098,26 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             )
         )
 
+        epoch_telemetry = telemetry.record_epoch(
+            completion,
+            decision_state=decision_engine,
+        )
+
+        assert (
+            epoch_telemetry.epoch_index
+            == epoch_number - 1
+        )
+
+        assert (
+            epoch_telemetry.actual_executed_instructions
+            == actual_executed
+        )
+
+        assert (
+            epoch_telemetry.last_executed_instruction
+            == coverage.executed_instructions
+        )
+
         assert (
             completion.start
             == current_start
@@ -2122,6 +2233,49 @@ async def test_multi_epoch_adaptive_rtl_continuity(
             epoch_number
             == E2_EPOCH_COUNT
         ):
+            telemetry_summary = telemetry.finalize(
+                termination_reason=(
+                    "fixed_epoch_count_reached"
+                ),
+                executed_instructions=(
+                    coverage.executed_instructions
+                ),
+                final_l1_intent_count=sum(
+                    state.intent_seen
+                    for state in coverage.l1_state.values()
+                ),
+                final_l1_validated_count=sum(
+                    state.validated_seen
+                    for state in coverage.l1_state.values()
+                ),
+                final_l2_intent_count=sum(
+                    state.intent_seen
+                    for state in coverage.l2_state.values()
+                ),
+                final_l2_validated_count=sum(
+                    state.validated_seen
+                    for state in coverage.l2_state.values()
+                ),
+                decision_state=decision_engine,
+            )
+
+            assert (
+                telemetry_summary.completed_epochs
+                == E2_EPOCH_COUNT
+            )
+
+            assert (
+                telemetry_summary.executed_instructions
+                == coverage.executed_instructions
+            )
+
+            assert (
+                len(telemetry.epoch_records)
+                == E2_EPOCH_COUNT
+            )
+
+            assert telemetry.checkpoint_records == ()
+
             clock_task.kill()
 
             assert (
