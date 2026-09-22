@@ -70,6 +70,10 @@ from research.week10.adaptive.post_instruction_cut import (
 from research.week10.adaptive.campaign_telemetry import (
     CampaignTelemetryRecorder,
 )
+from research.week10.adaptive.intra_epoch_feeder import (
+    plan_next_capacity_safe_entry,
+    refill_threshold_words,
+)
 
 CLOCK_NS = 10
 
@@ -93,6 +97,7 @@ E1_Q_FLOOR = 0.05
 # physical IMEM boundary, exercising bounded slot release/reuse
 # without resetting DUT, timing, architectural, coverage, or Q state.
 E2_EPOCH_COUNT = 6
+G2B_NOMINAL_EXECUTED = 500
 
 INSTRUCTION_BYTES = 4
 MAX_PATCH_ADDRESS = 508
@@ -2742,3 +2747,867 @@ async def test_multi_epoch_adaptive_rtl_continuity(
     assert signal_int(
         dut.reset
     ) == 0
+
+@cocotb.test()
+async def test_intra_epoch_streaming_b500(
+    dut,
+):
+    """
+    T10.9g-2b proof obligation:
+
+        one adaptive epoch with nominal b=500
+          -> complete-template planning
+          -> bounded 128-word physical IMEM residency
+          -> accepted execution releases FIFO stream entries
+          -> released timing ownership is reclaimed
+          -> clock pauses HIGH without DUT reset
+          -> new logical blocks patch into released physical slots
+          -> mutable timing oracle extends across physical-PC reuse
+          -> logical execution crosses generation 0 -> generation 1+
+          -> coverage post-instruction cut remains exact
+          -> epoch closes only after the complete planned payload executes
+
+    This is a final single epoch, therefore no EBD_(t+1) is required.
+    """
+
+    # ----------------------------------------------------------
+    # Verification interface initialization.
+    # ----------------------------------------------------------
+    dut.clk.value = 0
+    dut.reset.value = 1
+
+    dut.imem_patch_strobe.value = 0
+    dut.imem_patch_addr.value = 0
+    dut.imem_patch_data.value = 0
+
+    await Timer(
+        1,
+        units="ns",
+    )
+
+    (
+        l2_coverage,
+        coverage,
+        decision_engine,
+        coordinator,
+        planner,
+        window,
+    ) = build_adaptive_stack(
+        nominal_epoch_instructions=(
+            G2B_NOMINAL_EXECUTED
+        ),
+    )
+
+    # ----------------------------------------------------------
+    # Begin exactly one adaptive epoch.
+    #
+    # begin_epoch() creates EBD_0 because this is the first epoch.
+    # Unlike prepare_adaptive_epoch(), planning deliberately remains
+    # active while RTL execution is in progress.
+    # ----------------------------------------------------------
+    epoch_start = planner.begin_epoch()
+
+    active_boundary = (
+        planner.active_boundary_delimiter
+    )
+
+    assert active_boundary is not None
+    assert active_boundary.epoch_index == 0
+
+    assert (
+        active_boundary.logical_word_start
+        == 0
+    )
+
+    assert (
+        active_boundary
+        .expected_executed_instruction_count
+        == 1
+    )
+
+    assert coordinator.active
+    assert planner.active
+
+    assert (
+        planner.planned_epoch_executed_instructions
+        == 1
+    )
+
+    # ----------------------------------------------------------
+    # Patch EBD_0 first and use it to construct the live mutable
+    # timing oracle.
+    # ----------------------------------------------------------
+    (
+        initial_fragment,
+        initial_image_words,
+    ) = await patch_stream_entries(
+        dut,
+        entries=(active_boundary,),
+        window=window,
+        timing_oracle=None,
+    )
+
+    assert initial_image_words == 1
+
+    timing_oracle = (
+        WrapAwareMutableTimingOracleV1(
+            initial_fragment
+        )
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    total_image_words = (
+        initial_image_words
+    )
+
+    max_timing_resident_words = (
+        timing_oracle.resident_word_count
+    )
+
+    refill_entry_count = 0
+
+    final_planned_executed = None
+
+    # ----------------------------------------------------------
+    # Capacity-fill helper.
+    #
+    # It may be called before execution starts or while the sole clock
+    # owner is killed HIGH.  Every planner mutation is capacity-admitted
+    # before build_next_block().
+    # ----------------------------------------------------------
+    async def fill_available_capacity(
+        *,
+        count_as_refill: bool,
+    ):
+        nonlocal total_image_words
+        nonlocal max_timing_resident_words
+        nonlocal refill_entry_count
+        nonlocal final_planned_executed
+
+        patched_entries = 0
+
+        while planner.active:
+            if planner.epoch_plan_complete:
+                final_planned_executed = (
+                    planner
+                    .planned_epoch_executed_instructions
+                )
+
+                planner.close_planning_epoch()
+
+                assert not planner.active
+
+                break
+
+            entry = (
+                plan_next_capacity_safe_entry(
+                    planner,
+                    free_words=window.free_words,
+                    preseed_next_boundary=False,
+                )
+            )
+
+            if entry is None:
+                break
+
+            (
+                _fragment,
+                patched_image_words,
+            ) = await patch_stream_entries(
+                dut,
+                entries=(entry,),
+                window=window,
+                timing_oracle=timing_oracle,
+            )
+
+            patched_entries += 1
+
+            if count_as_refill:
+                refill_entry_count += 1
+
+            total_image_words += (
+                patched_image_words
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                <= IMEM_WORD_CAPACITY
+            )
+
+            max_timing_resident_words = max(
+                max_timing_resident_words,
+                timing_oracle.resident_word_count,
+            )
+
+            if planner.epoch_plan_complete:
+                final_planned_executed = (
+                    planner
+                    .planned_epoch_executed_instructions
+                )
+
+                assert (
+                    final_planned_executed
+                    >= G2B_NOMINAL_EXECUTED
+                )
+
+                planner.close_planning_epoch()
+
+                assert not planner.active
+
+                break
+
+        return patched_entries
+
+    # ----------------------------------------------------------
+    # Initial resident fill.
+    #
+    # b=500 cannot complete here because physical residency is bounded
+    # to 128 words.  Planning must remain active after this fill.
+    # ----------------------------------------------------------
+    initial_payload_entries = (
+        await fill_available_capacity(
+            count_as_refill=False,
+        )
+    )
+
+    assert initial_payload_entries > 0
+
+    assert planner.active
+
+    assert final_planned_executed is None
+
+    assert (
+        planner.planned_epoch_executed_instructions
+        < G2B_NOMINAL_EXECUTED
+    )
+
+    assert (
+        window.used_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    assert (
+        timing_oracle.next_append_logical_word_index
+        == total_image_words
+    )
+
+    # ----------------------------------------------------------
+    # Continuous reference state.
+    # ----------------------------------------------------------
+    architectural_model = (
+        WrapAwareRV32ArchitecturalModel()
+    )
+
+    adapter = ExecutionEventAdapter()
+
+    events_by_index = {}
+
+    l2_observed_count = 0
+
+    pending_next_pc = None
+
+    max_executed_logical_word_index = -1
+
+    observed_generation_one_execution = False
+
+    released_entry_count = 0
+
+    refill_pause_count = 0
+
+    measurement_start_ns = (
+        time.perf_counter_ns()
+    )
+
+    # ----------------------------------------------------------
+    # Exactly one live clock owner.
+    # ----------------------------------------------------------
+    clock = Clock(
+        dut.clk,
+        CLOCK_NS,
+        units="ns",
+    )
+
+    clock_task = cocotb.start_soon(
+        clock.start()
+    )
+
+    await reset_active_high(
+        dut,
+        cycles=3,
+    )
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    # Conservative bounded-cycle guard.  Refilling consumes simulation
+    # time while the clock is stopped, not architectural clock cycles.
+    max_cycles = (
+        G2B_NOMINAL_EXECUTED * 12
+        + 256
+    )
+
+    cycle = 0
+
+    # resume_clock_from_high_to_falling() already returns at
+    # FallingEdge + ReadOnly.  This flag prevents consuming a second
+    # falling edge after a refill pause.
+    pre_edge_ready = False
+
+    # ----------------------------------------------------------
+    # RTL execution with intra-epoch refill.
+    # ----------------------------------------------------------
+    while True:
+        if cycle >= max_cycles:
+            raise AssertionError(
+                "b=500 intra-epoch RTL execution exceeded "
+                "the bounded cycle budget"
+            )
+
+        # ------------------------------------------------------
+        # FALLING EDGE + ReadOnly.
+        # ------------------------------------------------------
+        if pre_edge_ready:
+            pre_edge_ready = False
+        else:
+            await FallingEdge(
+                dut.clk
+            )
+
+            await ReadOnly()
+
+        cycle += 1
+
+        snapshot = PreEdgeSnapshot(
+            cycle=cycle,
+            reset=bool(
+                signal_int(
+                    dut.reset
+                )
+            ),
+            stall=bool(
+                signal_int(
+                    dut.probe_stall
+                )
+            ),
+            flush_redirect=bool(
+                signal_int(
+                    dut.probe_flush
+                )
+            ),
+            pc=signal_int(
+                dut.probe_a_pc
+            ),
+            instruction=signal_int(
+                dut.probe_a_instr
+            ),
+        )
+
+        pending = (
+            adapter.observe_pre_edge(
+                snapshot
+            )
+        )
+
+        # ------------------------------------------------------
+        # RISING EDGE + ReadOnly.
+        # ------------------------------------------------------
+        await RisingEdge(
+            dut.clk
+        )
+
+        await ReadOnly()
+
+        if pending is None:
+            continue
+
+        assert (
+            signal_int(
+                dut.probe_b_pc
+            )
+            == pending.pc
+        )
+
+        assert (
+            signal_int(
+                dut.probe_b_instr
+            )
+            == pending.instruction
+        )
+
+        event = (
+            adapter.finalize_post_edge(
+                pending,
+                forward_a=signal_int(
+                    dut.probe_fwd_a
+                ),
+                forward_b=signal_int(
+                    dut.probe_fwd_b
+                ),
+            )
+        )
+
+        # ------------------------------------------------------
+        # Wrap-aware timing ownership.
+        # ------------------------------------------------------
+        logical_owner = (
+            timing_oracle
+            .logical_owner_for_pc(
+                event.pc
+            )
+        )
+
+        assert logical_owner is not None, (
+            "accepted b=500 RTL instruction has no "
+            "resident logical timing owner: "
+            f"pc=0x{event.pc:03x}"
+        )
+
+        assert (
+            event.pc
+            == timing_oracle
+            .physical_pc_for_logical_word(
+                logical_owner
+            )
+        )
+
+        assert (
+            timing_oracle
+            .generation_for_pc(
+                event.pc
+            )
+            == (
+                logical_owner
+                // IMEM_WORD_CAPACITY
+            )
+        )
+
+        max_executed_logical_word_index = max(
+            max_executed_logical_word_index,
+            logical_owner,
+        )
+
+        if (
+            logical_owner
+            >= IMEM_WORD_CAPACITY
+        ):
+            observed_generation_one_execution = True
+
+        expectation = (
+            timing_oracle.observe_accept(
+                event
+            )
+        )
+
+        wall_ns = (
+            time.perf_counter_ns()
+            - measurement_start_ns
+        )
+
+        # ------------------------------------------------------
+        # Resolve predecessor next-PC evidence.
+        # ------------------------------------------------------
+        if pending_next_pc is not None:
+            (
+                predecessor_id,
+                predecessor_next_pc,
+            ) = pending_next_pc
+
+            coordinator.record_successor_pc(
+                predecessor_instruction_id=(
+                    predecessor_id
+                ),
+                expected_next_pc=(
+                    predecessor_next_pc
+                ),
+                successor=event,
+                cycle=cycle,
+                wall_ns=wall_ns,
+            )
+
+        # ------------------------------------------------------
+        # Independent wrap-aware architectural model.
+        # ------------------------------------------------------
+        architectural_step = (
+            architectural_model.step(
+                event
+            )
+        )
+
+        coordinator.record_architectural_result(
+            instruction_id=(
+                event.instruction_index
+            ),
+            kind="pc",
+            passed=(
+                architectural_step.pc_match
+            ),
+            cycle=cycle,
+            wall_ns=wall_ns,
+        )
+
+        assert architectural_step.pc_match
+
+        pending_next_pc = (
+            event.instruction_index,
+            architectural_step.next_pc,
+        )
+
+        # ------------------------------------------------------
+        # Post-instruction consistent coverage cut.
+        # ------------------------------------------------------
+        def observe_l2_for_event():
+            events_by_index[
+                event.instruction_index
+            ] = event
+
+            hits = l2_coverage.observe(
+                event
+            )
+
+            for hit in hits:
+                producer_event = (
+                    events_by_index[
+                        hit.producer_instruction_index
+                    ]
+                )
+
+                coordinator.register_l2_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expectation,
+                    cycle=cycle,
+                    wall_ns=wall_ns,
+                )
+
+        l2_observed_count = (
+            complete_post_instruction_cut(
+                observed_count=(
+                    l2_observed_count
+                ),
+                instruction_index=(
+                    event.instruction_index
+                ),
+                cycle=cycle,
+                coverage=coverage,
+                observe_coverage=(
+                    observe_l2_for_event
+                ),
+            )
+        )
+
+        stale_event_id = (
+            event.instruction_index
+            - 2
+        )
+
+        if stale_event_id > 0:
+            events_by_index.pop(
+                stale_event_id,
+                None,
+            )
+
+        # ------------------------------------------------------
+        # RuntimeStreamWindow is the sole final prune/release owner.
+        # ------------------------------------------------------
+        released = (
+            window.finalize_accepted_event(
+                event
+            )
+        )
+
+        if released is not None:
+            released_entry_count += 1
+
+            released_block = (
+                released.block
+            )
+
+            timing_oracle.release_logical_words(
+                first_logical_word_index=(
+                    released_block
+                    .logical_word_start
+                ),
+                word_count=(
+                    released_block
+                    .image_word_count
+                ),
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                <= IMEM_WORD_CAPACITY
+            )
+
+            for logical_word_index in range(
+                released_block.logical_word_start,
+                released_block.logical_word_end_exclusive,
+            ):
+                physical_pc = (
+                    timing_oracle
+                    .physical_pc_for_logical_word(
+                        logical_word_index
+                    )
+                )
+
+                assert (
+                    timing_oracle
+                    .logical_owner_for_pc(
+                        physical_pc
+                    )
+                    is None
+                )
+
+            # --------------------------------------------------
+            # Intra-epoch refill.
+            #
+            # Capacity must be available before planning mutates.
+            # Refilling happens only after coverage + runtime release.
+            # --------------------------------------------------
+            if (
+                planner.active
+                and window.free_words
+                >= refill_threshold_words(
+                    preseed_next_boundary=False
+                )
+            ):
+                # We are at RisingEdge + ReadOnly with clk HIGH.
+                clock_task.kill()
+
+                assert clock_task.done()
+
+                assert signal_int(
+                    dut.clk
+                ) == 1
+
+                # Exit the read-only phase without creating an
+                # architectural edge.
+                await Timer(
+                    1,
+                    units="ns",
+                )
+
+                assert signal_int(
+                    dut.clk
+                ) == 1
+
+                assert signal_int(
+                    dut.reset
+                ) == 0
+
+                patched_now = (
+                    await fill_available_capacity(
+                        count_as_refill=True,
+                    )
+                )
+
+                assert patched_now > 0
+
+                refill_pause_count += 1
+
+                assert (
+                    timing_oracle
+                    .resident_word_count
+                    == window.used_words
+                )
+
+                assert (
+                    timing_oracle
+                    .resident_word_count
+                    <= IMEM_WORD_CAPACITY
+                )
+
+                assert (
+                    timing_oracle
+                    .next_append_logical_word_index
+                    == total_image_words
+                )
+
+                clock_task = (
+                    await resume_clock_from_high_to_falling(
+                        dut,
+                        clock,
+                    )
+                )
+
+                pre_edge_ready = True
+
+        assert (
+            window.accepted_count
+            == coverage.executed_instructions
+        )
+
+        # ------------------------------------------------------
+        # Stop exactly after the final planned accepted instruction.
+        # ------------------------------------------------------
+        if (
+            final_planned_executed is not None
+            and window.accepted_count
+            == final_planned_executed
+        ):
+            break
+
+    # ----------------------------------------------------------
+    # Stop the sole clock owner at the final RisingEdge.
+    # ----------------------------------------------------------
+    clock_task.kill()
+
+    assert clock_task.done()
+
+    assert signal_int(
+        dut.clk
+    ) == 1
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    # ----------------------------------------------------------
+    # Final bounded-stream proof obligations.
+    # ----------------------------------------------------------
+    assert final_planned_executed is not None
+
+    actual_executed = (
+        window.accepted_count
+    )
+
+    assert (
+        actual_executed
+        == final_planned_executed
+    )
+
+    assert (
+        actual_executed
+        >= G2B_NOMINAL_EXECUTED
+    )
+
+    assert (
+        coverage.executed_instructions
+        == actual_executed
+    )
+
+    assert not planner.active
+
+    assert (
+        planner.pending_boundary_delimiter
+        is None
+    )
+
+    assert (
+        planner.next_executed_instruction_index
+        == actual_executed + 1
+    )
+
+    assert (
+        planner.next_logical_word_index
+        == total_image_words
+    )
+
+    # Logical image must greatly exceed the physical 128-word IMEM.
+    assert (
+        total_image_words
+        > IMEM_WORD_CAPACITY
+    )
+
+    assert (
+        max_timing_resident_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    assert refill_pause_count > 0
+    assert refill_entry_count > 0
+
+    # Physical-PC generation reuse must have been observed by RTL.
+    assert observed_generation_one_execution
+
+    assert (
+        max_executed_logical_word_index
+        >= IMEM_WORD_CAPACITY
+    )
+
+    # Every final stream entry must have completed and been reclaimed.
+    assert released_entry_count > 0
+
+    assert (
+        window.pending_block_count
+        == 0
+    )
+
+    assert window.used_words == 0
+
+    assert (
+        timing_oracle.resident_word_count
+        == 0
+    )
+
+    assert (
+        timing_oracle.next_append_logical_word_index
+        == total_image_words
+    )
+
+    assert (
+        timing_oracle.next_release_logical_word_index
+        == total_image_words
+    )
+
+    assert (
+        coordinator
+        .pending_attribution_witness_count
+        == 0
+    )
+
+    # ----------------------------------------------------------
+    # Close the adaptive feedback epoch only after all accepted
+    # execution has completed.
+    # ----------------------------------------------------------
+    completion = (
+        coordinator.finish_epoch(
+            actual_executed_instructions=(
+                actual_executed
+            )
+        )
+    )
+
+    assert (
+        completion.start
+        == epoch_start
+    )
+
+    assert (
+        completion
+        .reward_result
+        .actual_executed_instructions
+        == actual_executed
+    )
+
+    assert (
+        completion.bandit_update.arm_id
+        is epoch_start.decision.arm_id
+    )
+
+    assert (
+        decision_engine.epoch_index
+        == 1
+    )
+
+    assert not coordinator.active
