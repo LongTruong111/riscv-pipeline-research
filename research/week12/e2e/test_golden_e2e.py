@@ -30,6 +30,9 @@ from research.week9.benchmark.streaming_timing import (
     StreamingPerformanceMonitor,
     StreamingTimingOracleV1,
 )
+from research.week12.telemetry.first_failure import (
+    FirstFailureRecorder,
+)
 
 
 TARGET = GOLDEN_PROGRAM_INSTRUCTION_COUNT
@@ -90,6 +93,7 @@ async def test_golden_58_core_e2e(dut):
     )
     performance = StreamingPerformanceMonitor()
     functional = StreamingFunctionalScoreboard()
+    first_failure = FirstFailureRecorder()
 
     accepted_count = 0
     retired_count = 0
@@ -330,6 +334,13 @@ async def test_golden_58_core_e2e(dut):
     assert performance.complete
     assert performance.overall_pass
 
+    # Golden canonical run must contain no captured failure evidence.
+    assert first_failure.empty
+    assert first_failure.first_failure is None
+    assert first_failure.first_control_failure is None
+    assert first_failure.first_functional_failure is None
+    assert first_failure.first_performance_failure is None
+
     assert observed_flush_cycles == 0
 
     dut._log.info(
@@ -340,5 +351,6 @@ async def test_golden_58_core_e2e(dut):
         f"flushes={observed_flush_cycles} "
         f"functional_failed={functional.failed_count} "
         f"performance_failed={performance.failed_count} "
-        f"excess_cycles={performance.total_excess_cycles}"
+        f"excess_cycles={performance.total_excess_cycles} "
+        f"first_failure={first_failure.first_failure}"
     )
