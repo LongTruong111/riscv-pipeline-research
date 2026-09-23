@@ -2571,3 +2571,150 @@ def test_runtime_window_termination_requires_postcut_prune():
         coordinator.pending_attribution_witness_count
         == 0
     )
+
+def test_planner_terminal_cleanup_inside_incomplete_epoch():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=500,
+    )
+
+    planner.begin_epoch()
+
+    block = planner.build_next_block()
+
+    assert planner.active
+    assert not planner.epoch_plan_complete
+    assert not planner.campaign_terminated
+
+    logical_before = (
+        planner.next_logical_word_index
+    )
+
+    executed_before = (
+        planner.next_executed_instruction_index
+    )
+
+    planner.terminate_campaign_planning()
+
+    assert planner.campaign_terminated
+    assert not planner.active
+
+    assert (
+        planner.active_boundary_delimiter
+        is None
+    )
+
+    assert (
+        planner.pending_boundary_delimiter
+        is None
+    )
+
+    assert (
+        planner.planned_epoch_executed_instructions
+        == 0
+    )
+
+    # Termination clears lifecycle state only. Already-planned
+    # provenance continuity must never be rolled back.
+    assert (
+        planner.next_logical_word_index
+        == logical_before
+    )
+
+    assert (
+        planner.next_executed_instruction_index
+        == executed_before
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is terminated",
+    ):
+        planner.begin_epoch()
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is terminated",
+    ):
+        planner.build_next_block()
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is terminated",
+    ):
+        planner.plan_next_boundary_delimiter()
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is terminated",
+    ):
+        planner.register_block_witnesses(
+            block
+        )
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is already terminated",
+    ):
+        planner.terminate_campaign_planning()
+
+
+def test_planner_terminal_cleanup_discards_preseeded_future_ebd():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+
+    planner.build_next_block()
+
+    assert planner.epoch_plan_complete
+
+    next_boundary = (
+        planner.plan_next_boundary_delimiter()
+    )
+
+    assert (
+        planner.pending_boundary_delimiter
+        == next_boundary
+    )
+
+    logical_before = (
+        planner.next_logical_word_index
+    )
+
+    executed_before = (
+        planner.next_executed_instruction_index
+    )
+
+    planner.close_planning_epoch()
+
+    assert not planner.active
+
+    assert (
+        planner.pending_boundary_delimiter
+        == next_boundary
+    )
+
+    planner.terminate_campaign_planning()
+
+    assert planner.campaign_terminated
+    assert not planner.active
+
+    assert (
+        planner.pending_boundary_delimiter
+        is None
+    )
+
+    # The unexecuted EBD is discarded from lifecycle ownership, but
+    # planner provenance counters remain monotonic.
+    assert (
+        planner.next_logical_word_index
+        == logical_before
+    )
+
+    assert (
+        planner.next_executed_instruction_index
+        == executed_before
+    )

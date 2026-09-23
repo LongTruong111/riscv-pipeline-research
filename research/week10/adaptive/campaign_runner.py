@@ -1772,10 +1772,21 @@ class AdaptiveEpochStreamPlanner:
 
         self._epoch_start: EpochStart | None = None
         self._planned_epoch_executed = 0
+        self._campaign_terminated = False
 
     @property
     def active(self) -> bool:
         return self._epoch_start is not None
+
+    @property
+    def campaign_terminated(self) -> bool:
+        return self._campaign_terminated
+
+    def _require_campaign_open(self) -> None:
+        if self._campaign_terminated:
+            raise RuntimeError(
+                "campaign planning is terminated"
+            )
 
     @property
     def epoch_start(self) -> EpochStart | None:
@@ -1844,6 +1855,8 @@ class AdaptiveEpochStreamPlanner:
                 "boundary delimiter"
             )
 
+        self._require_campaign_open()
+
         if (
             self.active
             and not self.epoch_plan_complete
@@ -1882,6 +1895,7 @@ class AdaptiveEpochStreamPlanner:
         return delimiter
 
     def begin_epoch(self) -> EpochStart:
+        self._require_campaign_open()
         if self._epoch_start is not None:
             raise RuntimeError(
                 "stream planner already has an active epoch"
@@ -1943,6 +1957,7 @@ class AdaptiveEpochStreamPlanner:
     def build_next_block(
         self,
     ) -> PlannedStreamBlock:
+        self._require_campaign_open()
         if self._epoch_start is None:
             raise RuntimeError(
                 "cannot build stream block without active epoch"
@@ -2081,6 +2096,9 @@ class AdaptiveEpochStreamPlanner:
         ring allocation or failed IMEM write from leaving phantom
         reward witnesses behind.
         """
+
+        self._require_campaign_open()
+
         if self._epoch_start is None:
             raise RuntimeError(
                 "cannot register block without active epoch"
@@ -2106,6 +2124,9 @@ class AdaptiveEpochStreamPlanner:
         L2 hits, provenance pruning, and then call coordinator.finish_epoch()
         with the actual executed-instruction count.
         """
+
+        self._require_campaign_open()
+
         if self._epoch_start is None:
             raise RuntimeError(
                 "stream planner has no active epoch"
@@ -2120,3 +2141,43 @@ class AdaptiveEpochStreamPlanner:
         self._epoch_start = None
         self._planned_epoch_executed = 0
         self._active_boundary_delimiter = None
+
+    def terminate_campaign_planning(self) -> None:
+        """
+        Permanently close planner-local state at exact campaign
+        termination.
+
+        This is the final-run exception to normal complete-template epoch
+        closure. It may be called when the architectural hard cap lands:
+
+          * inside an incompletely planned final epoch; or
+          * after the current epoch plan has closed while a preseeded
+            future EBD is still pending.
+
+        Planned logical/executed continuity counters are deliberately not
+        rolled back. They describe already-planned stream provenance, not
+        architecturally accepted campaign length.
+
+        No coverage, reward, Q state, or architectural execution is
+        modified here.
+        """
+        if self._campaign_terminated:
+            raise RuntimeError(
+                "campaign planning is already terminated"
+            )
+
+        if (
+            self._epoch_start is None
+            and self._pending_boundary_delimiter is None
+        ):
+            raise RuntimeError(
+                "cannot terminate campaign planning "
+                "without active or pending planner state"
+            )
+
+        self._epoch_start = None
+        self._planned_epoch_executed = 0
+        self._active_boundary_delimiter = None
+        self._pending_boundary_delimiter = None
+
+        self._campaign_terminated = True
