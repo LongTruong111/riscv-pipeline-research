@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
+import os
 import re
 import sys
 from pathlib import Path
 
-LOG = Path("research/week3/gateT3_smoke.log")
+LOG = Path(
+    os.environ.get(
+        "SMOKE3_LOG",
+        "sim/gateT3_smoke_runtime.log",
+    )
+)
 
 EXPECTED = {
     1: 5,

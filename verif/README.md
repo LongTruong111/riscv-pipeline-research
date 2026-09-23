@@ -1,36 +1,38 @@
-# 📝 How to Initialize the Instruction Memory
+# Verification Utilities
 
-1. Create a file named `instructions.txt` in the same directory as the [`assembler.py`](assembler.py) script.
+This directory contains utilities inherited from the original project. The current research flow primarily uses the cocotb runners under `research/week*/rtl/`.
 
-2. Write the instructions you want to include in the instruction memory in the file, with each instruction on a separate line.
-    - Instructions must be written in RISC-V assembly. Refer to [`assembler.py`](assembler.py) for supported formats.
+## Memory Image Formats
 
-3. Open your terminal and execute the following command:
-    ```shell
-    python3 assembler.py
-    ```
+Two flows coexist and must not be confused:
 
-4. A file named `instruction.mif` should be generated in the same directory as the script.
+1. `assembler.py` is a **legacy utility** and writes `instruction.mif`.
+2. The current behavioral RAM models in `design/ramOnChip32.v` and `design/ramOnChipData.v` load:
+   - root-level `instruction.hex`
+   - root-level `data.hex`
 
-# 🧪 How to Test Your Program with the Testbench
+Therefore, the output of `assembler.py` is **not consumed directly by the current behavioral RAM flow**. Convert/regenerate the required root-level HEX image before using the current Icarus/Verilator research runners.
 
-1. Create a new project in ModelSim.
+The root `data.hex` may be empty; the behavioral data RAM initializes memory to zero before applying any contents present in that file.
 
-2. Add all the files from the design folder to the project.
+## Legacy ModelSim/Questa Flow
 
-3. Include the testbench file [`tb_top.sv`](tb_top.sv) in the project.
+The files `compile_verilog` and `runtb_top` are retained as a legacy interactive simulation flow.
 
-4. In the project directory, ensure that you have the following files:
-    - [compile_verilog](compile_verilog)
-    - [runtb_top](runtb_top)
-    - instruction.mif
-    - data.mif
+Run ModelSim/Questa **from the repository root**:
 
-   Adjust the file paths in the scripts accordingly.
+```tcl
+do verif/runtb_top
+```
 
-5. In the ModelSim terminal, execute the following command:
-    ```shell
-    do runtb_top
-    ```
+`verif/compile_verilog` uses repository-relative paths. The RAM implementation currently committed in `design/` is behavioral and does not require the historical Altera memory-IP library.
 
-6. The compilation and simulation process will commence, and the results will be displayed in the terminal.
+## Research Flow
+
+For reproducible research regressions, prefer the versioned runners, for example:
+
+```bash
+research/week8/rtl/run_week8_case.sh T01
+```
+
+Do not invoke cocotb test modules such as `test_week8_live.py` directly with pytest; the `dut` object is provided only when cocotb is launched by the simulator harness.

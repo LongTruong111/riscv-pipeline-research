@@ -34,7 +34,8 @@ module tb_top;
   );
 
   initial begin
-    $dumpfile("research/waveforms/baseline.vcd");
+    // Runtime waveform: ignored by Git. Curated research waveforms are immutable evidence.
+    $dumpfile("sim/baseline_runtime.vcd");
     $dumpvars(0, tb_top);
     tb_clk = 0;
     reset  = 1;
