@@ -2169,10 +2169,11 @@ class AdaptiveEpochStreamPlanner:
         if (
             self._epoch_start is None
             and self._pending_boundary_delimiter is None
+            and self._next_epoch_to_begin == 0
         ):
             raise RuntimeError(
                 "cannot terminate campaign planning "
-                "without active or pending planner state"
+                "before any adaptive epoch has begun"
             )
 
         self._epoch_start = None

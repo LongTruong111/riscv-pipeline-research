@@ -4376,3 +4376,1479 @@ async def test_exact_n_hard_cap_termination(
     assert signal_int(
         dut.reset
     ) == 0
+
+@cocotb.test()
+async def test_production_engineering_campaign(
+    dut,
+):
+    """
+    T10.9h-4c production Adaptive-CGS RTL campaign.
+
+    Frozen engineering configuration:
+        root seed = 20260921
+        epsilon   = 0.10
+        alpha     = 0.30
+        q_floor   = 0.05
+        batch     = 500
+        Nmax      = exactly 5000 accepted instructions
+
+    Production obligations:
+      - deterministic partitioned RNG streams;
+      - bounded intra-epoch RTL streaming;
+      - continuous multi-epoch adaptive state;
+      - one preseeded EBD between ordinary epochs;
+      - post-instruction checkpoints every 1000 accepted instructions;
+      - no accepted instruction beyond Nmax;
+      - final partial epoch receives exactly one reward/Q update;
+      - unexecuted resident suffix is explicitly discarded;
+      - telemetry retains O(1) campaign-length state;
+      - deterministic trajectory SHA-256 is emitted.
+    """
+
+    import hashlib
+    import json
+    import os
+
+    from dataclasses import asdict
+    from pathlib import Path
+
+    from research.week10.adaptive.production_campaign import (
+        ProductionCampaignConfig,
+        build_production_adaptive_stack,
+    )
+
+    # ----------------------------------------------------------
+    # Frozen production configuration.
+    # ----------------------------------------------------------
+    config = ProductionCampaignConfig()
+
+    assert config.seed == 20260921
+    assert config.epsilon == 0.10
+    assert config.alpha == 0.30
+    assert config.q_floor == 0.05
+    assert config.nominal_batch == 500
+    assert config.instruction_budget == 5000
+    assert config.checkpoint_interval == 1000
+
+    instruction_budget = (
+        config.instruction_budget
+    )
+
+    # ----------------------------------------------------------
+    # Deterministic streaming telemetry artifacts.
+    #
+    # Default is outside the repository so an engineering run does not
+    # silently dirty the Git working tree.
+    # ----------------------------------------------------------
+    output_dir = Path(
+        os.environ.get(
+            "WEEK10_CAMPAIGN_OUTPUT_DIR",
+            "/tmp/week10_gate_t10",
+        )
+    )
+
+    output_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    epoch_path = (
+        output_dir
+        / "epochs.jsonl"
+    )
+
+    checkpoint_path = (
+        output_dir
+        / "checkpoints.jsonl"
+    )
+
+    summary_path = (
+        output_dir
+        / "summary.json"
+    )
+
+    manifest_path = (
+        output_dir
+        / "manifest.json"
+    )
+
+    trajectory_hasher = (
+        hashlib.sha256()
+    )
+
+    hashed_accepted_event_count = 0
+
+    def hash_accepted_event(
+        event,
+        *,
+        logical_owner,
+    ):
+        nonlocal hashed_accepted_event_count
+
+        line = (
+            "accepted|"
+            f"{event.instruction_index}|"
+            f"{logical_owner}|"
+            f"{event.pc:03x}|"
+            f"{event.instruction:08x}|"
+            f"{event.stall_cycles_before_accept}|"
+            f"{event.forward_a}|"
+            f"{event.forward_b}\n"
+        )
+
+        trajectory_hasher.update(
+            line.encode("ascii")
+        )
+
+        hashed_accepted_event_count += 1
+
+    epoch_file = epoch_path.open(
+        "w",
+        encoding="utf-8",
+    )
+
+    checkpoint_file = (
+        checkpoint_path.open(
+            "w",
+            encoding="utf-8",
+        )
+    )
+
+    streamed_epoch_count = 0
+    streamed_checkpoint_count = 0
+
+    def canonical_line(
+        *,
+        kind,
+        record,
+    ):
+        payload = {
+            "kind": kind,
+            "record": asdict(record),
+        }
+
+        return json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+
+    def stream_record(
+        file_handle,
+        *,
+        kind,
+        record,
+    ):
+        line = canonical_line(
+            kind=kind,
+            record=record,
+        )
+
+        file_handle.write(
+            line + "\n"
+        )
+
+        file_handle.flush()
+
+        trajectory_hasher.update(
+            (
+                line + "\n"
+            ).encode("utf-8")
+        )
+
+    def epoch_sink(record):
+        nonlocal streamed_epoch_count
+
+        stream_record(
+            epoch_file,
+            kind="epoch",
+            record=record,
+        )
+
+        streamed_epoch_count += 1
+
+    def checkpoint_sink(record):
+        nonlocal streamed_checkpoint_count
+
+        stream_record(
+            checkpoint_file,
+            kind="checkpoint",
+            record=record,
+        )
+
+        streamed_checkpoint_count += 1
+
+    streamed_summary = []
+
+    def summary_sink(record):
+        stream_record(
+            epoch_file,
+            kind="summary",
+            record=record,
+        )
+
+        streamed_summary.append(
+            record
+        )
+
+    # ----------------------------------------------------------
+    # Build production stack.
+    # ----------------------------------------------------------
+    stack = (
+        build_production_adaptive_stack(
+            config=config,
+            epoch_sink=epoch_sink,
+            checkpoint_sink=checkpoint_sink,
+            summary_sink=summary_sink,
+        )
+    )
+
+    l2_coverage = stack.l2_coverage
+    coverage = stack.coverage
+
+    decision_engine = (
+        stack.decision_engine
+    )
+
+    coordinator = stack.coordinator
+    planner = stack.planner
+    window = stack.window
+
+    telemetry = stack.telemetry
+
+    checkpoint_bridge = (
+        stack.checkpoint_bridge
+    )
+
+    # Frozen known-answer subsystem seeds.
+    assert (
+        stack.rngs.seeds.decision_seed
+        == 16680843080276206783
+    )
+
+    assert (
+        stack.rngs.seeds.target_seed
+        == 1163466188706097826
+    )
+
+    assert (
+        stack.rngs.seeds.realization_seed
+        == 7717841318315519387
+    )
+
+    # ----------------------------------------------------------
+    # Static verification interface initialization.
+    # ----------------------------------------------------------
+    dut.clk.value = 0
+    dut.reset.value = 1
+
+    dut.imem_patch_strobe.value = 0
+    dut.imem_patch_addr.value = 0
+    dut.imem_patch_data.value = 0
+
+    await Timer(
+        1,
+        units="ns",
+    )
+
+    # ----------------------------------------------------------
+    # Begin epoch 0.
+    # ----------------------------------------------------------
+    current_start = (
+        planner.begin_epoch()
+    )
+
+    current_epoch_index = (
+        current_start
+        .decision
+        .epoch_index
+    )
+
+    assert current_epoch_index == 0
+
+    checkpoint_bridge.begin_epoch(
+        current_epoch_index
+    )
+
+    current_boundary = (
+        planner.active_boundary_delimiter
+    )
+
+    assert current_boundary is not None
+    assert current_boundary.epoch_index == 0
+
+    accepted_before_epoch = (
+        window.accepted_count
+    )
+
+    # ----------------------------------------------------------
+    # EBD_0 is the initial physical program image.
+    # ----------------------------------------------------------
+    (
+        initial_fragment,
+        initial_words,
+    ) = await patch_stream_entries(
+        dut,
+        entries=(current_boundary,),
+        window=window,
+        timing_oracle=None,
+    )
+
+    assert initial_words == 1
+
+    timing_oracle = (
+        WrapAwareMutableTimingOracleV1(
+            initial_fragment
+        )
+    )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    # Once planning closes this stores the exact complete-template epoch
+    # execution count.  Until then bounded refill continues.
+    current_planned_executed = None
+
+    async def fill_available_capacity():
+        """
+        Fill as much safe RTL stream capacity as possible.
+
+        Ordinary complete epochs preplan and patch EBD_{t+1}.
+        The final budget-crossing epoch must never create an EBD
+        whose architectural instruction index exceeds Nmax.
+
+        Returns the final planned executed count if planning became
+        complete during this refill, otherwise None.
+        """
+        final_planned = None
+
+        while planner.active:
+            entry = (
+                plan_next_capacity_safe_entry(
+                    planner,
+                    free_words=window.free_words,
+                    preseed_next_boundary=True,
+                    max_executed_instruction_index=(
+                        instruction_budget
+                    ),
+                )
+            )
+
+            if entry is None:
+                final_epoch_has_no_legal_next_ebd = (
+                    planner.epoch_plan_complete
+                    and (
+                        planner
+                        .next_executed_instruction_index
+                        > instruction_budget
+                    )
+                )
+
+                if final_epoch_has_no_legal_next_ebd:
+                    final_planned = (
+                        planner
+                        .planned_epoch_executed_instructions
+                    )
+
+                    assert (
+                        final_planned
+                        >= config.nominal_batch
+                    )
+
+                    planner.close_planning_epoch()
+
+                    assert not planner.active
+
+                break
+
+            await patch_stream_entries(
+                dut,
+                entries=(entry,),
+                window=window,
+                timing_oracle=timing_oracle,
+            )
+
+            if (
+                entry.stream_entry_key[0]
+                == "EBD"
+            ):
+                assert (
+                    entry.first_executed_instruction_index
+                    <= instruction_budget
+                )
+
+            pending_boundary = (
+                planner
+                .pending_boundary_delimiter
+            )
+
+            if (
+                planner.epoch_plan_complete
+                and pending_boundary is not None
+                and (
+                    entry.stream_entry_key
+                    == pending_boundary.stream_entry_key
+                )
+            ):
+                final_planned = (
+                    planner
+                    .planned_epoch_executed_instructions
+                )
+
+                assert (
+                    final_planned
+                    >= config.nominal_batch
+                )
+
+                planner.close_planning_epoch()
+
+                assert not planner.active
+
+                break
+
+        return final_planned
+
+    # Initial bounded fill before clock start.
+    initial_closed_count = (
+        await fill_available_capacity()
+    )
+
+    if initial_closed_count is not None:
+        current_planned_executed = (
+            initial_closed_count
+        )
+
+    assert (
+        timing_oracle.resident_word_count
+        == window.used_words
+    )
+
+    assert (
+        window.used_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    # ----------------------------------------------------------
+    # Continuous campaign state.
+    # ----------------------------------------------------------
+    architectural_model = (
+        WrapAwareRV32ArchitecturalModel()
+    )
+
+    adapter = ExecutionEventAdapter()
+
+    events_by_index = {}
+
+    l2_observed_count = 0
+
+    pending_next_pc = None
+
+    cycle = 0
+
+    max_cycles = (
+        instruction_budget * 12
+        + 4096
+    )
+
+    max_resident_words = (
+        window.used_words
+    )
+
+    refill_count = 0
+
+    epoch_completion_count = 0
+
+    hard_cap_reached = False
+
+    final_completion = None
+
+    measurement_start_ns = (
+        time.perf_counter_ns()
+    )
+
+    # ----------------------------------------------------------
+    # Exactly one DUT clock owner.
+    # ----------------------------------------------------------
+    clock = Clock(
+        dut.clk,
+        CLOCK_NS,
+        units="ns",
+    )
+
+    clock_task = cocotb.start_soon(
+        clock.start()
+    )
+
+    await reset_active_high(
+        dut,
+        cycles=3,
+    )
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    pre_edge_ready = False
+
+    # ----------------------------------------------------------
+    # Production campaign execution loop.
+    # ----------------------------------------------------------
+    while not hard_cap_reached:
+        if cycle >= max_cycles:
+            raise AssertionError(
+                "production engineering campaign "
+                "exceeded bounded cycle budget"
+            )
+
+        # ------------------------------------------------------
+        # FALLING EDGE + ReadOnly.
+        # ------------------------------------------------------
+        if pre_edge_ready:
+            pre_edge_ready = False
+        else:
+            await FallingEdge(
+                dut.clk
+            )
+
+            await ReadOnly()
+
+        cycle += 1
+
+        snapshot = PreEdgeSnapshot(
+            cycle=cycle,
+            reset=bool(
+                signal_int(
+                    dut.reset
+                )
+            ),
+            stall=bool(
+                signal_int(
+                    dut.probe_stall
+                )
+            ),
+            flush_redirect=bool(
+                signal_int(
+                    dut.probe_flush
+                )
+            ),
+            pc=signal_int(
+                dut.probe_a_pc
+            ),
+            instruction=signal_int(
+                dut.probe_a_instr
+            ),
+        )
+
+        pending = (
+            adapter.observe_pre_edge(
+                snapshot
+            )
+        )
+
+        # ------------------------------------------------------
+        # RISING EDGE + ReadOnly.
+        # ------------------------------------------------------
+        await RisingEdge(
+            dut.clk
+        )
+
+        await ReadOnly()
+
+        if pending is None:
+            continue
+
+        assert (
+            signal_int(
+                dut.probe_b_pc
+            )
+            == pending.pc
+        )
+
+        assert (
+            signal_int(
+                dut.probe_b_instr
+            )
+            == pending.instruction
+        )
+
+        event = (
+            adapter.finalize_post_edge(
+                pending,
+                forward_a=signal_int(
+                    dut.probe_fwd_a
+                ),
+                forward_b=signal_int(
+                    dut.probe_fwd_b
+                ),
+            )
+        )
+
+        # Hard architectural budget: no event > Nmax is legal.
+        assert (
+            event.instruction_index
+            <= instruction_budget
+        )
+
+        # ------------------------------------------------------
+        # Continuous wrap-aware timing state.
+        # ------------------------------------------------------
+        logical_owner = (
+            timing_oracle
+            .logical_owner_for_pc(
+                event.pc
+            )
+        )
+
+        assert logical_owner is not None
+        hash_accepted_event(
+            event,
+            logical_owner=logical_owner,
+        )
+
+        assert (
+            event.pc
+            == timing_oracle
+            .physical_pc_for_logical_word(
+                logical_owner
+            )
+        )
+
+        expectation = (
+            timing_oracle.observe_accept(
+                event
+            )
+        )
+
+        wall_ns = (
+            time.perf_counter_ns()
+            - measurement_start_ns
+        )
+
+        # ------------------------------------------------------
+        # Resolve predecessor next-PC evidence.
+        # ------------------------------------------------------
+        if pending_next_pc is not None:
+            (
+                predecessor_id,
+                predecessor_next_pc,
+            ) = pending_next_pc
+
+            coordinator.record_successor_pc(
+                predecessor_instruction_id=(
+                    predecessor_id
+                ),
+                expected_next_pc=(
+                    predecessor_next_pc
+                ),
+                successor=event,
+                cycle=cycle,
+                wall_ns=wall_ns,
+            )
+
+        architectural_step = (
+            architectural_model.step(
+                event
+            )
+        )
+
+        coordinator.record_architectural_result(
+            instruction_id=(
+                event.instruction_index
+            ),
+            kind="pc",
+            passed=(
+                architectural_step.pc_match
+            ),
+            cycle=cycle,
+            wall_ns=wall_ns,
+        )
+
+        assert architectural_step.pc_match
+
+        pending_next_pc = (
+            event.instruction_index,
+            architectural_step.next_pc,
+        )
+
+        # ------------------------------------------------------
+        # L2 + post-instruction consistent cut.
+        # ------------------------------------------------------
+        def observe_l2_for_event():
+            events_by_index[
+                event.instruction_index
+            ] = event
+
+            hits = l2_coverage.observe(
+                event
+            )
+
+            for hit in hits:
+                producer_event = (
+                    events_by_index[
+                        hit.producer_instruction_index
+                    ]
+                )
+
+                coordinator.register_l2_hit(
+                    hit,
+                    producer=producer_event,
+                    consumer=event,
+                    expectation=expectation,
+                    cycle=cycle,
+                    wall_ns=wall_ns,
+                )
+
+        l2_observed_count = (
+            complete_post_instruction_cut(
+                observed_count=(
+                    l2_observed_count
+                ),
+                instruction_index=(
+                    event.instruction_index
+                ),
+                cycle=cycle,
+                coverage=coverage,
+                observe_coverage=(
+                    observe_l2_for_event
+                ),
+            )
+        )
+
+        stale_event_id = (
+            event.instruction_index
+            - 2
+        )
+
+        if stale_event_id > 0:
+            events_by_index.pop(
+                stale_event_id,
+                None,
+            )
+
+        # ------------------------------------------------------
+        # Runtime window remains sole prune/reclaim owner.
+        # ------------------------------------------------------
+        released = (
+            window.finalize_accepted_event(
+                event
+            )
+        )
+
+        if released is not None:
+            released_entry = (
+                released.block
+            )
+
+            timing_oracle.release_logical_words(
+                first_logical_word_index=(
+                    released_entry
+                    .logical_word_start
+                ),
+                word_count=(
+                    released_entry
+                    .image_word_count
+                ),
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+        assert (
+            window.accepted_count
+            == coverage.executed_instructions
+        )
+
+        assert (
+            l2_observed_count
+            == coverage.executed_instructions
+        )
+
+        assert (
+            window.accepted_count
+            == event.instruction_index
+        )
+
+        # ======================================================
+        # EXACT Nmax TERMINATION HAS PRIORITY OVER ALL REFILL OR
+        # ORDINARY EPOCH TRANSITION ACTIONS.
+        # ======================================================
+        if (
+            event.instruction_index
+            == instruction_budget
+        ):
+            hard_cap_reached = True
+
+            # Nmax has already completed timing, architectural evidence,
+            # L2 observation, checkpoint emission, and runtime pruning.
+            clock_task.kill()
+
+            assert clock_task.done()
+
+            assert signal_int(
+                dut.clk
+            ) == 1
+
+            assert signal_int(
+                dut.reset
+            ) == 0
+
+            # Leave ReadOnly without creating another architectural edge.
+            await Timer(
+                1,
+                units="ns",
+            )
+
+            assert signal_int(
+                dut.clk
+            ) == 1
+
+            accepted_at_stop = (
+                window.accepted_count
+            )
+
+            assert (
+                accepted_at_stop
+                == instruction_budget
+            )
+
+            # ----------------------------------------------
+            # Explicitly discard any resident unexecuted suffix.
+            # ----------------------------------------------
+            if (
+                window.pending_block_count
+                > 0
+            ):
+                discarded = (
+                    window
+                    .discard_unexecuted_suffix(
+                        last_executed_instruction_index=(
+                            instruction_budget
+                        )
+                    )
+                )
+
+                timing_oracle.release_logical_words(
+                    first_logical_word_index=(
+                        discarded
+                        .first_logical_word_index
+                    ),
+                    word_count=(
+                        discarded
+                        .reclaimed_resident_word_count
+                    ),
+                )
+
+            assert (
+                window.accepted_count
+                == instruction_budget
+            )
+
+            assert (
+                coverage.executed_instructions
+                == instruction_budget
+            )
+
+            assert (
+                l2_observed_count
+                == instruction_budget
+            )
+
+            assert (
+                window.pending_block_count
+                == 0
+            )
+
+            assert window.used_words == 0
+
+            assert (
+                timing_oracle.resident_word_count
+                == 0
+            )
+
+            assert (
+                coordinator
+                .pending_attribution_witness_count
+                == 0
+            )
+
+            # Planner may be:
+            #   active + incomplete,
+            #   active + complete,
+            #   or already normally closed with a pending preseed EBD.
+            planner.terminate_campaign_planning()
+
+            assert planner.campaign_terminated
+            assert not planner.active
+
+            assert (
+                planner.pending_boundary_delimiter
+                is None
+            )
+
+            actual_final_epoch = (
+                instruction_budget
+                - accepted_before_epoch
+            )
+
+            assert actual_final_epoch > 0
+
+            final_completion = (
+                coordinator.finish_epoch(
+                    actual_executed_instructions=(
+                        actual_final_epoch
+                    )
+                )
+            )
+
+            checkpoint_bridge.finish_epoch(
+                current_epoch_index
+            )
+
+            telemetry.record_epoch(
+                final_completion,
+                decision_state=decision_engine,
+            )
+
+            epoch_completion_count += 1
+
+            break
+
+        # ======================================================
+        # ORDINARY COMPLETE-TEMPLATE EPOCH BOUNDARY.
+        # ======================================================
+        accepted_this_epoch = (
+            window.accepted_count
+            - accepted_before_epoch
+        )
+
+        if (
+            current_planned_executed
+            is not None
+            and accepted_this_epoch
+            == current_planned_executed
+        ):
+            assert (
+                coordinator
+                .pending_attribution_witness_count
+                == 0
+            )
+
+            completion = (
+                coordinator.finish_epoch(
+                    actual_executed_instructions=(
+                        accepted_this_epoch
+                    )
+                )
+            )
+
+            checkpoint_bridge.finish_epoch(
+                current_epoch_index
+            )
+
+            telemetry.record_epoch(
+                completion,
+                decision_state=decision_engine,
+            )
+
+            epoch_completion_count += 1
+
+            # The next EBD must remain resident and must already have
+            # reached Stage A before we modify its following payload.
+            pending_boundary = (
+                planner
+                .pending_boundary_delimiter
+            )
+
+            assert pending_boundary is not None
+
+            assert (
+                window.pending_block_count
+                == 1
+            )
+
+            assert (
+                window.used_words
+                == pending_boundary.image_word_count
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+            expected_boundary_pc = (
+                pending_boundary
+                .expected_executed_pcs[0]
+            )
+
+            expected_boundary_word = (
+                pending_boundary
+                .expected_executed_words[0]
+            )
+
+            assert (
+                signal_int(
+                    dut.probe_a_pc
+                )
+                == expected_boundary_pc
+            )
+
+            assert (
+                signal_int(
+                    dut.probe_a_instr
+                )
+                == expected_boundary_word
+            )
+
+            # ----------------------------------------------
+            # Freeze DUT HIGH before next-epoch patching.
+            # ----------------------------------------------
+            clock_task.kill()
+
+            assert clock_task.done()
+
+            assert signal_int(
+                dut.clk
+            ) == 1
+
+            await Timer(
+                1,
+                units="ns",
+            )
+
+            assert signal_int(
+                dut.clk
+            ) == 1
+
+            assert signal_int(
+                dut.reset
+            ) == 0
+
+            # ----------------------------------------------
+            # Start next adaptive epoch.
+            # ----------------------------------------------
+            current_start = (
+                planner.begin_epoch()
+            )
+
+            current_epoch_index = (
+                current_start
+                .decision
+                .epoch_index
+            )
+
+            assert (
+                current_epoch_index
+                == epoch_completion_count
+            )
+
+            checkpoint_bridge.begin_epoch(
+                current_epoch_index
+            )
+
+            current_boundary = (
+                planner
+                .active_boundary_delimiter
+            )
+
+            assert current_boundary is not None
+
+            assert (
+                current_boundary.stream_entry_key
+                == pending_boundary.stream_entry_key
+            )
+
+            accepted_before_epoch = (
+                window.accepted_count
+            )
+
+            current_planned_executed = None
+
+            # Patch payload for the next epoch while its EBD is already
+            # resident in Stage A.
+            closed_count = (
+                await fill_available_capacity()
+            )
+
+            if closed_count is not None:
+                current_planned_executed = (
+                    closed_count
+                )
+
+            max_resident_words = max(
+                max_resident_words,
+                window.used_words,
+            )
+
+            assert (
+                max_resident_words
+                <= IMEM_WORD_CAPACITY
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+            assert signal_int(
+                dut.reset
+            ) == 0
+
+            clock_task = (
+                await resume_clock_from_high_to_falling(
+                    dut,
+                    clock,
+                )
+            )
+
+            pre_edge_ready = True
+
+            continue
+
+        # ======================================================
+        # BOUNDED INTRA-EPOCH REFILL.
+        # ======================================================
+        if (
+            released is not None
+            and planner.active
+            and (
+                window.free_words
+                >= refill_threshold_words(
+                    preseed_next_boundary=True
+                )
+            )
+        ):
+            clock_task.kill()
+
+            assert clock_task.done()
+
+            assert signal_int(
+                dut.clk
+            ) == 1
+
+            await Timer(
+                1,
+                units="ns",
+            )
+
+            assert signal_int(
+                dut.clk
+            ) == 1
+
+            assert signal_int(
+                dut.reset
+            ) == 0
+
+            closed_count = (
+                await fill_available_capacity()
+            )
+
+            refill_count += 1
+
+            if closed_count is not None:
+                if (
+                    current_planned_executed
+                    is not None
+                ):
+                    raise AssertionError(
+                        "epoch planning closed more than once"
+                    )
+
+                current_planned_executed = (
+                    closed_count
+                )
+
+            max_resident_words = max(
+                max_resident_words,
+                window.used_words,
+            )
+
+            assert (
+                max_resident_words
+                <= IMEM_WORD_CAPACITY
+            )
+
+            assert (
+                timing_oracle.resident_word_count
+                == window.used_words
+            )
+
+            clock_task = (
+                await resume_clock_from_high_to_falling(
+                    dut,
+                    clock,
+                )
+            )
+
+            pre_edge_ready = True
+
+    # ----------------------------------------------------------
+    # Final campaign telemetry.
+    # ----------------------------------------------------------
+    assert hard_cap_reached
+
+    assert final_completion is not None
+
+    assert not coordinator.active
+
+    assert (
+        coverage.executed_instructions
+        == instruction_budget
+    )
+
+    assert (
+        window.accepted_count
+        == instruction_budget
+    )
+
+    assert (
+        l2_observed_count
+        == instruction_budget
+    )
+
+    assert (
+        timing_oracle.generated_count
+        == instruction_budget
+    )
+
+    assert (
+        telemetry
+        .closed_epoch_executed_instructions
+        == instruction_budget
+    )
+
+    assert (
+        telemetry.completed_epochs
+        == epoch_completion_count
+    )
+
+    assert (
+        decision_engine.epoch_index
+        == epoch_completion_count
+    )
+
+    final_l1_intent_count = sum(
+        state.intent_seen
+        for state in coverage.l1_state.values()
+    )
+
+    final_l1_validated_count = sum(
+        state.validated_seen
+        for state in coverage.l1_state.values()
+    )
+
+    final_l2_intent_count = sum(
+        state.intent_seen
+        for state in coverage.l2_state.values()
+    )
+
+    final_l2_validated_count = sum(
+        state.validated_seen
+        for state in coverage.l2_state.values()
+    )
+
+    summary = telemetry.finalize(
+        termination_reason=(
+            "instruction_budget_reached"
+        ),
+        executed_instructions=(
+            instruction_budget
+        ),
+        final_l1_intent_count=(
+            final_l1_intent_count
+        ),
+        final_l1_validated_count=(
+            final_l1_validated_count
+        ),
+        final_l2_intent_count=(
+            final_l2_intent_count
+        ),
+        final_l2_validated_count=(
+            final_l2_validated_count
+        ),
+        decision_state=decision_engine,
+    )
+
+    assert len(
+        streamed_summary
+    ) == 1
+
+    assert (
+        streamed_summary[0]
+        == summary
+    )
+
+    assert (
+        summary.executed_instructions
+        == instruction_budget
+    )
+
+    assert (
+        summary.completed_epochs
+        == epoch_completion_count
+    )
+
+    assert (
+        summary.termination_reason
+        == "instruction_budget_reached"
+    )
+
+    # Production run must not retain campaign-length telemetry.
+    assert telemetry.epoch_records == ()
+    assert telemetry.checkpoint_records == ()
+
+    # 5000 / 1000 => exact post-instruction checkpoints.
+    assert streamed_checkpoint_count == 5
+
+    assert (
+        streamed_epoch_count
+        == epoch_completion_count
+    )
+
+    assert refill_count > 0
+
+    assert (
+        max_resident_words
+        <= IMEM_WORD_CAPACITY
+    )
+
+    assert (
+        window.pending_block_count
+        == 0
+    )
+
+    assert window.used_words == 0
+
+    assert (
+        timing_oracle.resident_word_count
+        == 0
+    )
+
+    assert (
+        coordinator
+        .pending_attribution_witness_count
+        == 0
+    )
+
+    assert signal_int(
+        dut.reset
+    ) == 0
+
+    # ----------------------------------------------------------
+    # Close streaming files before digest/manifest emission.
+    # ----------------------------------------------------------
+    epoch_file.flush()
+    checkpoint_file.flush()
+
+    epoch_file.close()
+    checkpoint_file.close()
+
+    assert (
+        hashed_accepted_event_count
+        == instruction_budget
+    )
+
+    trajectory_sha256 = (
+        trajectory_hasher.hexdigest()
+    )
+
+    trajectory_sha256 = (
+        trajectory_hasher.hexdigest()
+    )
+
+    summary_payload = asdict(
+        summary
+    )
+
+    summary_path.write_text(
+        json.dumps(
+            summary_payload,
+            sort_keys=True,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    manifest = {
+        "schema": (
+            "week10-production-campaign-v1"
+        ),
+        "root_seed": config.seed,
+        "decision_seed": (
+            stack.rngs.seeds.decision_seed
+        ),
+        "target_seed": (
+            stack.rngs.seeds.target_seed
+        ),
+        "realization_seed": (
+            stack.rngs.seeds.realization_seed
+        ),
+        "epsilon": config.epsilon,
+        "alpha": config.alpha,
+        "q_floor": config.q_floor,
+        "nominal_batch": (
+            config.nominal_batch
+        ),
+        "instruction_budget": (
+            config.instruction_budget
+        ),
+        "executed_instructions": (
+            coverage.executed_instructions
+        ),
+        "hashed_accepted_event_count": (
+            hashed_accepted_event_count
+        ),
+        "completed_epochs": (
+            epoch_completion_count
+        ),
+        "checkpoint_count": (
+            streamed_checkpoint_count
+        ),
+        "refill_count": refill_count,
+        "max_resident_words": (
+            max_resident_words
+        ),
+        "trajectory_sha256": (
+            trajectory_sha256
+        ),
+    }
+
+    manifest_path.write_text(
+        json.dumps(
+            manifest,
+            sort_keys=True,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    dut._log.info(
+        "WEEK10_ENGINEERING_EXECUTED=%d",
+        coverage.executed_instructions,
+    )
+
+    dut._log.info(
+        "WEEK10_ENGINEERING_EPOCHS=%d",
+        epoch_completion_count,
+    )
+
+    dut._log.info(
+        "WEEK10_ENGINEERING_CHECKPOINTS=%d",
+        streamed_checkpoint_count,
+    )
+
+    dut._log.info(
+        "WEEK10_TRAJECTORY_SHA256=%s",
+        trajectory_sha256,
+    )
+
+    dut._log.info(
+        "WEEK10_CAMPAIGN_OUTPUT_DIR=%s",
+        str(output_dir),
+    )

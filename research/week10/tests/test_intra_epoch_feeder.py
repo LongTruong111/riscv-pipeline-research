@@ -14,13 +14,12 @@ from research.week10.adaptive.intra_epoch_feeder import (
     refill_threshold_words,
 )
 
-
 @dataclass(frozen=True)
 class FakeEntry:
     image_word_count: int
     expected_executed_instruction_count: int
     kind: str
-
+    first_executed_instruction_index: int | None = None
 
 class FakePlanner:
     """
@@ -66,6 +65,15 @@ class FakePlanner:
         return (
             self.planned_epoch_executed
             >= self.nominal_epoch_instructions
+        )
+
+    @property
+    def next_executed_instruction_index(
+        self,
+    ) -> int:
+        return (
+            self.planned_epoch_executed
+            + 1
         )
 
     def build_next_block(self) -> FakeEntry:
@@ -131,6 +139,9 @@ class FakePlanner:
             image_word_count=1,
             expected_executed_instruction_count=1,
             kind="EBD",
+            first_executed_instruction_index=(
+                self.next_executed_instruction_index
+            ),
         )
 
         self.pending_boundary_delimiter = (
@@ -417,4 +428,104 @@ def test_invalid_free_word_count_is_rejected(
             planner,
             free_words=free_words,
             preseed_next_boundary=True,
+        )
+
+def test_completed_payload_does_not_preseed_boundary_beyond_budget():
+    planner = FakePlanner(
+        nominal_epoch_instructions=500
+    )
+
+    # Synthetic reproduction of the production failure:
+    #
+    #   final complete payload has already advanced the next
+    #   architectural cursor to 5013 while Nmax is 5000.
+    planner.planned_epoch_executed = 5012
+
+    assert planner.epoch_plan_complete
+
+    assert (
+        planner.next_executed_instruction_index
+        == 5013
+    )
+
+    delimiter = plan_next_capacity_safe_entry(
+        planner,
+        free_words=1,
+        preseed_next_boundary=True,
+        max_executed_instruction_index=5000,
+    )
+
+    assert delimiter is None
+
+    # Most important invariant: the planner must not even be asked
+    # to create EBD_10.
+    assert planner.boundary_calls == 0
+
+    assert (
+        planner.pending_boundary_delimiter
+        is None
+    )
+
+
+def test_completed_payload_allows_boundary_exactly_at_budget():
+    planner = FakePlanner(
+        nominal_epoch_instructions=500
+    )
+
+    # EBD itself would be architectural instruction 5000.
+    planner.planned_epoch_executed = 4999
+
+    assert planner.epoch_plan_complete
+
+    assert (
+        planner.next_executed_instruction_index
+        == 5000
+    )
+
+    delimiter = plan_next_capacity_safe_entry(
+        planner,
+        free_words=1,
+        preseed_next_boundary=True,
+        max_executed_instruction_index=5000,
+    )
+
+    assert delimiter is not None
+    assert delimiter.kind == "EBD"
+
+    assert (
+        delimiter.first_executed_instruction_index
+        == 5000
+    )
+
+    assert planner.boundary_calls == 1
+
+
+@pytest.mark.parametrize(
+    "budget",
+    [
+        0,
+        -1,
+        True,
+        1.5,
+    ],
+)
+def test_invalid_max_executed_instruction_index_is_rejected(
+    budget,
+):
+    planner = FakePlanner(
+        nominal_epoch_instructions=500
+    )
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "max_executed_instruction_index "
+            "must be a positive integer or None"
+        ),
+    ):
+        plan_next_capacity_safe_entry(
+            planner,
+            free_words=IMEM_WORD_CAPACITY,
+            preseed_next_boundary=True,
+            max_executed_instruction_index=budget,
         )

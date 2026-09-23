@@ -38,6 +38,12 @@ class CapacityAwarePlanner(Protocol):
         ...
 
     @property
+    def next_executed_instruction_index(
+        self,
+    ) -> int:
+        ...
+
+    @property
     def pending_boundary_delimiter(
         self,
     ) -> CapacityEntry | None:
@@ -86,12 +92,12 @@ def refill_threshold_words(
         )
     )
 
-
 def plan_next_capacity_safe_entry(
     planner: CapacityAwarePlanner,
     *,
     free_words: int,
     preseed_next_boundary: bool,
+    max_executed_instruction_index: int | None = None,
 ) -> CapacityEntry | None:
     """
     Plan at most one new stream entry without exceeding bounded IMEM.
@@ -130,6 +136,25 @@ def plan_next_capacity_safe_entry(
             "preseed_next_boundary must be bool"
         )
 
+    if (
+        max_executed_instruction_index is not None
+        and (
+            isinstance(
+                max_executed_instruction_index,
+                bool,
+            )
+            or not isinstance(
+                max_executed_instruction_index,
+                int,
+            )
+            or max_executed_instruction_index <= 0
+        )
+    ):
+        raise ValueError(
+            "max_executed_instruction_index "
+            "must be a positive integer or None"
+        )
+
     if not planner.active:
         raise RuntimeError(
             "capacity feeder requires an active "
@@ -149,6 +174,24 @@ def plan_next_capacity_safe_entry(
         if (
             planner.pending_boundary_delimiter
             is not None
+        ):
+            return None
+
+        # The next EBD's architectural instruction index is exactly the
+        # planner's current next-executed cursor.
+        #
+        # Complete payload templates may extend beyond a hard campaign
+        # budget because exact-N termination is allowed inside a planned
+        # template.  A new epoch delimiter, however, must never be
+        # planned beyond that architectural budget.
+
+        if (
+            max_executed_instruction_index
+            is not None
+            and (
+                planner.next_executed_instruction_index
+                > max_executed_instruction_index
+            )
         ):
             return None
 
@@ -174,8 +217,20 @@ def plan_next_capacity_safe_entry(
                 "available IMEM capacity"
             )
 
-        return delimiter
+        if (
+            max_executed_instruction_index
+            is not None
+            and (
+                delimiter.first_executed_instruction_index
+                > max_executed_instruction_index
+            )
+        ):
+            raise AssertionError(
+                "planned boundary delimiter exceeds "
+                "architectural instruction budget"
+            )
 
+        return delimiter
     # ----------------------------------------------------------
     # Payload remains incomplete.
     #

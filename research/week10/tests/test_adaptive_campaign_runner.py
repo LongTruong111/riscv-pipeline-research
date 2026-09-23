@@ -2718,3 +2718,65 @@ def test_planner_terminal_cleanup_discards_preseeded_future_ebd():
         planner.next_executed_instruction_index
         == executed_before
     )
+
+def test_planner_terminal_cleanup_after_closed_final_epoch():
+    planner, _, _ = make_planner(
+        arm_index=0,
+        nominal=3,
+    )
+
+    planner.begin_epoch()
+
+    while not planner.epoch_plan_complete:
+        planner.build_next_block()
+
+    logical_before = (
+        planner.next_logical_word_index
+    )
+
+    executed_before = (
+        planner.next_executed_instruction_index
+    )
+
+    planner.close_planning_epoch()
+
+    assert not planner.active
+
+    assert (
+        planner.pending_boundary_delimiter
+        is None
+    )
+
+    assert not planner.campaign_terminated
+
+    planner.terminate_campaign_planning()
+
+    assert planner.campaign_terminated
+    assert not planner.active
+
+    assert (
+        planner.pending_boundary_delimiter
+        is None
+    )
+
+    assert (
+        planner.next_logical_word_index
+        == logical_before
+    )
+
+    assert (
+        planner.next_executed_instruction_index
+        == executed_before
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is terminated",
+    ):
+        planner.plan_next_boundary_delimiter()
+
+    with pytest.raises(
+        RuntimeError,
+        match="campaign planning is already terminated",
+    ):
+        planner.terminate_campaign_planning()
