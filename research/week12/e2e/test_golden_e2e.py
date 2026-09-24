@@ -1,3 +1,4 @@
+import os
 import time
 
 import cocotb
@@ -58,6 +59,11 @@ from research.week10.adaptive.post_instruction_cut import (
 )
 from research.week10.l2_live_coordinator import (
     L2LiveCoordinator,
+)
+from research.week12.telemetry.e2e_telemetry import (
+    E2ETelemetryRecord,
+    SCHEMA_VERSION,
+    write_json,
 )
 from research.week12.telemetry.first_failure import (
     FirstFailureRecorder,
@@ -768,6 +774,86 @@ async def test_golden_58_core_e2e(dut):
 
     assert observed_flush_cycles == 0
 
+    # ----------------------------------------------------------
+    # Reporting-only final telemetry.
+    # ----------------------------------------------------------
+    telemetry_path = os.environ.get(
+        "WEEK12_TELEMETRY_PATH"
+    )
+
+    git_commit = os.environ.get(
+        "WEEK12_GIT_COMMIT"
+    )
+
+    git_dirty_text = os.environ.get(
+        "WEEK12_GIT_DIRTY"
+    )
+
+    assert telemetry_path, (
+        "WEEK12_TELEMETRY_PATH is required"
+    )
+
+    assert git_commit, (
+        "WEEK12_GIT_COMMIT is required"
+    )
+
+    assert git_dirty_text in {"0", "1"}, (
+        "WEEK12_GIT_DIRTY must be 0 or 1"
+    )
+
+    first_failure_payload = (
+        None
+        if first_failure.first_failure is None
+        else first_failure.first_failure.to_dict()
+    )
+
+    telemetry_record = E2ETelemetryRecord(
+        schema_version=SCHEMA_VERSION,
+        git_commit=git_commit,
+        git_dirty=(git_dirty_text == "1"),
+        dut_variant="canonical",
+        workload="golden58",
+        accepted_instructions=accepted_count,
+        retired_instructions=retired_count,
+        stall_cycles=observed_stall_cycles,
+        flush_cycles=observed_flush_cycles,
+        architectural_pass=True,
+        functional_pass=functional.overall_pass,
+        functional_failures=functional.failed_count,
+        performance_pass=performance.overall_pass,
+        performance_failures=performance.failed_count,
+        total_excess_cycles=(
+            performance.total_excess_cycles
+        ),
+        coverage_valid=True,
+        coverage_executed=(
+            coverage.executed_instructions
+        ),
+        l1_intent_count=l1_intent_count,
+        l1_validated_count=l1_validated_count,
+        l2_intent_count=l2_intent_count,
+        l2_validated_count=l2_validated_count,
+        checkpoint_count=checkpoint_count,
+        l1_pending=l1_validated.pending_hits,
+        l2_terminal_pending=(
+            l2_live.pending_hit_count
+        ),
+        protocol_errors=0,
+        first_failure=first_failure_payload,
+        waveform_path=None,
+        waveform_sha256=None,
+    )
+
+    assert telemetry_record.telemetry_complete
+
+    written_telemetry = write_json(
+        telemetry_record,
+        telemetry_path,
+    )
+
+    assert written_telemetry.is_file()
+    assert written_telemetry.stat().st_size > 0
+
     dut._log.info(
         "WEEK12_GOLDEN_E2E "
         f"accepted={accepted_count} "
@@ -785,5 +871,6 @@ async def test_golden_58_core_e2e(dut):
         f"l2_validated={l2_validated_count} "
         f"l2_terminal_pending="
         f"{l2_live.pending_hit_count} "
-        f"checkpoints={checkpoint_count}"
+        f"checkpoints={checkpoint_count} "
+        f"telemetry={written_telemetry}"
     )
