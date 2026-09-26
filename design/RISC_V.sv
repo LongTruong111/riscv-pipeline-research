@@ -24,6 +24,7 @@ module riscv #(
 
   logic [1:0] ALUop;
   logic [1:0] ALUop_Reg;
+  logic ALUSrc_Reg;
   logic [6:0] Funct7;
   logic [2:0] Funct3;
   logic [3:0] Operation;
@@ -43,6 +44,7 @@ module riscv #(
 
   ALUController ac (
       ALUop_Reg,
+      ALUSrc_Reg,
       Funct7,
       Funct3,
       Operation
@@ -65,6 +67,7 @@ module riscv #(
       Funct7,
       Funct3,
       ALUop_Reg,
+      ALUSrc_Reg,
       WB_Data,
       reg_num,
       reg_data,

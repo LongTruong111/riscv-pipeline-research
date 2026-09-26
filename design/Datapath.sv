@@ -55,6 +55,7 @@ module Datapath #(
     output logic [6:0] Funct7,
     output logic [2:0] Funct3,
     output logic [1:0] ALUOp_Current,
+    output logic ALUSrc_Current,
     output logic [DATA_W-1:0] WB_Data, //Result After the last MUX
     
     // Para depuração no tesbench:
@@ -205,6 +206,7 @@ mem_wb_reg D;
     assign Funct7 = B.func7;
     assign Funct3 = B.func3;
     assign ALUOp_Current = B.ALUOp;
+    assign ALUSrc_Current = B.ALUSrc;
 
     mux4 #(32) FAmux(
         B.RD_One,
