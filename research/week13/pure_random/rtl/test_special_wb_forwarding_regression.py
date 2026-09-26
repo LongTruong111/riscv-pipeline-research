@@ -219,9 +219,8 @@ def golden_branch_next_pc(
 
     return step.next_pc, model
 
-
 @cocotb.test()
-async def test_special_writeback_d1_forwarding_defect(
+async def test_special_writeback_d1_forwarding_passes(
     dut,
 ):
     """
@@ -289,19 +288,17 @@ async def test_special_writeback_d1_forwarding_defect(
     # Canonical DUT defect:
     # d1 EX/MEM forwarding supplies LUI C.Alu_Result (=1), so
     # 172 < 1 => false and execution falls through.
-    assert successor.pc == 20
 
-    assert successor.pc != golden_next_pc
+    assert golden_next_pc == 28
+    assert successor.pc == golden_next_pc
 
     dut._log.info(
-        "SPECIAL_WB_D1_DEFECT_CAUGHT=PASS "
+        "SPECIAL_WB_D1_FORWARDING=PASS "
         "producer=LUI "
         "consumer=BLTU "
         "forward_b=10 "
-        f"golden_next=0x{golden_next_pc:03x} "
-        f"rtl_next=0x{successor.pc:03x}"
+        f"next_pc=0x{successor.pc:03x}"
     )
-
 
 @cocotb.test()
 async def test_special_writeback_d2_control_passes(

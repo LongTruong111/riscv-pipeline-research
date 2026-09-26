@@ -701,28 +701,43 @@ async def test_m1_pure_random_rtl_refill_wrap_300(
             )
         )
 
-        if 119 <= event.instruction_index <= 122:
-            dut._log.info(
-                "M1-DIAG "
-                f"instr={event.instruction_index} "
-                f"pc=0x{event.pc:03x} "
-                f"word=0x{event.instruction:08x} "
-                f"rs1=x{event.rs1} "
-                f"rs2=x{event.rs2} "
-                f"rd=x{event.rd} "
-                f"fwd_a={event.forward_a:02b} "
-                f"fwd_b={event.forward_b:02b} "
-                f"stall_before="
-                f"{event.stall_cycles_before_accept}"
-            )
-
         assert (
             event.instruction_index
             <= REFILL_ACCEPTED_BUDGET
         )
 
         # ------------------------------------------------------
+        # EXACT RUNTIME PLAN CONSISTENCY
+        #
+        # This must run before secondary diagnostic checks so that
+        # any PC/instruction divergence is classified through the
+        # frozen terminal-failure contract.
+        # ------------------------------------------------------
+        try:
+            completed = (
+                window.finalize_accepted_event(
+                    event
+                )
+            )
+
+        except PureRandomStreamExecutionMismatch as exc:
+            clock_task.kill()
+
+            raise AssertionError(
+                "VALID_DUT_FAILURE_TERMINAL: "
+                f"{exc}"
+            ) from exc
+
+        assert (
+            window.accepted_count
+            == event.instruction_index
+        )
+
+        # ------------------------------------------------------
         # LOGICAL GENERATION EVIDENCE
+        #
+        # Reached only after the event has passed exact runtime
+        # PC/instruction validation.
         # ------------------------------------------------------
         logical_word = accepted_logical_words[
             event.instruction_index - 1
@@ -747,29 +762,6 @@ async def test_m1_pure_random_rtl_refill_wrap_300(
         max_executed_logical_word = max(
             max_executed_logical_word,
             logical_word,
-        )
-
-        # ------------------------------------------------------
-        # EXACT RUNTIME PLAN CONSISTENCY
-        # ------------------------------------------------------
-        try:
-            completed = (
-                window.finalize_accepted_event(
-                    event
-                )
-            )
-
-        except PureRandomStreamExecutionMismatch as exc:
-            clock_task.kill()
-
-            raise AssertionError(
-                "VALID_DUT_FAILURE_TERMINAL: "
-                f"{exc}"
-            ) from exc
-
-        assert (
-            window.accepted_count
-            == event.instruction_index
         )
 
         # ------------------------------------------------------

@@ -76,6 +76,7 @@ logic [DATA_W-1:0] ReadData;
 logic [DATA_W-1:0] SrcB, ALUResult;
 logic [DATA_W-1:0] ExtImm,BrImm,Old_PC_Four,BrPC;
 logic [DATA_W-1:0] WRMuxResult,WrmuxSrc;
+logic [DATA_W-1:0] CForwardResult;
 logic PcSel;    // mux select / flush signal
 logic [1:0] FAmuxSel;
 logic [1:0] FBmuxSel;
@@ -177,13 +178,52 @@ mem_wb_reg D;
     //--// The Forwarding Unit
     ForwardingUnit forunit(B.RS_One, B.RS_Two, C.rd, D.rd, C.RegWrite, D.RegWrite, FAmuxSel, FBmuxSel);
 
+    /*
+     * EX/MEM forwarding must carry the architectural value that the
+     * producer will eventually write back, not unconditionally ALUResult.
+     *
+     * RWSel:
+     *   00 -> ALU / ordinary result
+     *   01 -> PC+4       (JAL/JALR)
+     *   10 -> immediate  (LUI)
+     *   11 -> PC+imm     (AUIPC)
+     *
+     * Loads are covered by the existing load-use stall and therefore
+     * reach MEM/WB before a dependent consumer is admitted.
+     */
+
+    mux4 #(32) cforwardmux(
+        C.Alu_Result,
+        C.Pc_Four,
+        C.Imm_Out,
+        C.Pc_Imm,
+        C.RWSel,
+        CForwardResult
+    );
+
     // // //ALU
     assign Funct7 = B.func7;
     assign Funct3 = B.func3;
     assign ALUOp_Current = B.ALUOp;
 
-    mux4 #(32) FAmux(B.RD_One, WRMuxResult, C.Alu_Result, B.RD_One, FAmuxSel, FAmux_Result);
-    mux4 #(32) FBmux(B.RD_Two, WRMuxResult, C.Alu_Result, B.RD_Two, FBmuxSel, FBmux_Result);
+    mux4 #(32) FAmux(
+        B.RD_One,
+        WRMuxResult,
+        CForwardResult,
+        B.RD_One,
+        FAmuxSel,
+        FAmux_Result
+    );
+
+    mux4 #(32) FBmux(
+        B.RD_Two,
+        WRMuxResult,
+        CForwardResult,
+        B.RD_Two,
+        FBmuxSel,
+        FBmux_Result
+    );
+
     mux2 #(32) srcbmux(FBmux_Result, B.ImmG, B.ALUSrc, SrcB);
     alu alu_module(FAmux_Result, SrcB, ALU_CC, ALUResult);
     BranchUnit #(9) brunit(B.Curr_Pc,B.ImmG,B.JalrSel,B.Branch,ALUResult,BrImm,Old_PC_Four,BrPC,PcSel);
