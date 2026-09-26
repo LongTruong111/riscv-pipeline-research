@@ -208,6 +208,9 @@ class CampaignCutDriver:
             [int],
             CampaignLifecycleSnapshot,
         ],
+        after_post_instruction_cut: (
+            Callable[[], None] | None
+        ) = None,
     ) -> CampaignCutDecision:
         """
         Complete the authoritative post-instruction cut for one accepted
@@ -327,6 +330,29 @@ class CampaignCutDriver:
         self._coverage_observed_count = (
             new_observed_count
         )
+
+        # Method-specific runtime ownership may be pruned only after
+        # the authoritative coverage/checkpoint cut has completed and
+        # before lifecycle snapshot/exact-cut marking.
+        #
+        # The hook must be synchronous and must not:
+        #   - create a DUT clock edge;
+        #   - patch/refill IMEM;
+        #   - accept another architectural instruction.
+        #
+        # M1 uses this point to finalize the accepted runtime entry
+        # and mirror any completed-entry release into the mutable
+        # timing oracle.
+        if after_post_instruction_cut is not None:
+            try:
+                after_post_instruction_cut()
+            except CampaignInfrastructureError:
+                raise
+            except Exception as exc:
+                raise CampaignInfrastructureError(
+                    "method-specific post-cut hook failed: "
+                    f"{exc}"
+                ) from exc
 
         snapshot = snapshot_factory(
             self._max_intent_consumer_id

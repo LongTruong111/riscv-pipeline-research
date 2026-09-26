@@ -405,3 +405,95 @@ def test_finalize_requires_clock_stopped_high():
     )
 
     assert final.accepted == 1
+
+
+def test_method_hook_runs_after_checkpoint_before_snapshot():
+    driver, coverage = build_driver(
+        hard_cap=2,
+        checkpoint_interval=2,
+    )
+
+    complete(
+        driver,
+        coverage,
+        instruction_index=1,
+    )
+
+    hook_ran = False
+
+    def observe():
+        coverage.observer_state = 2
+
+    def after_post_cut():
+        nonlocal hook_ran
+
+        assert coverage.executed_instructions == 2
+
+        assert coverage.checkpoints == [
+            (2, 2),
+        ]
+
+        hook_ran = True
+
+    def snapshot_factory(max_intent):
+        assert hook_ran
+
+        return lifecycle_snapshot(
+            accepted=2,
+            cycle=2,
+            max_intent=max_intent,
+        )
+
+    decision = driver.complete_accepted_event(
+        instruction_index=2,
+        cycle=2,
+        adapter_instruction_count=2,
+        observe_coverage=observe,
+        snapshot_factory=snapshot_factory,
+        after_post_instruction_cut=(
+            after_post_cut
+        ),
+    )
+
+    assert decision.exact_cut
+    assert hook_ran
+
+
+def test_method_hook_failure_is_infra_invalid():
+    driver, coverage = build_driver(
+        hard_cap=1,
+    )
+
+    def observe():
+        coverage.observer_state = 1
+
+    def fail_post_cut():
+        raise RuntimeError(
+            "synthetic runtime ownership failure"
+        )
+
+    with pytest.raises(
+        CampaignInfrastructureError,
+        match="method-specific post-cut hook failed",
+    ):
+        driver.complete_accepted_event(
+            instruction_index=1,
+            cycle=1,
+            adapter_instruction_count=1,
+            observe_coverage=observe,
+            snapshot_factory=lambda max_intent: (
+                lifecycle_snapshot(
+                    accepted=1,
+                    cycle=1,
+                    max_intent=max_intent,
+                )
+            ),
+            after_post_instruction_cut=(
+                fail_post_cut
+            ),
+        )
+
+    # Exact cut must not be committed after method-specific
+    # ownership cleanup failed.
+    assert not driver.exact_cut_requested
+    assert driver.accepted_count == 0
