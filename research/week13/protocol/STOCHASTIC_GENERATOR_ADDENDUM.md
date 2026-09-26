@@ -2,8 +2,8 @@
 
 **Project:** RISC-V 5-stage pipeline verification
 **Artifact:** `research/week13/protocol/STOCHASTIC_GENERATOR_ADDENDUM.md`
-**Version:** `w13.stochastic-generator.v1`
-**Date:** `2026-09-25`
+**Version:** `w13.stochastic-generator.v1.1`
+**Date:** `2026-09-26`
 **Status:** PRE-PILOT FREEZE — effective when committed before the first Week-13 pilot observation.
 
 ---
@@ -822,6 +822,386 @@ A partially consumed final stream block or future resident suffix may be discard
 
 No execution event may be fabricated merely to close a block or checkpoint.
 
+### 22.1 Campaign-wide exact-cut, lifecycle, and measurement contract
+
+The following rules are normative for every Week-13 stochastic method
+participating in pilot or comparative measurement:
+
+```text
+M1-PR
+M2-WR
+M3-ACGS
+```
+
+They refine the exact-budget, coverage, failure, telemetry, and
+performance rules without changing the frozen accepted-instruction
+denominator.
+
+#### Common exact accepted-instruction cut
+
+For a configured campaign budget \(N\), successful fixed-budget
+termination requires:
+
+$$
+accepted = N.
+$$
+
+The budget shall not be rounded to:
+
+```text
+generator-block boundary
+runtime-refill boundary
+adaptive-epoch boundary
+checkpoint boundary other than the exact accepted prefix
+```
+
+Cycles, stalls, flushes, and retired instructions are DUT-dependent
+outcomes and shall not define the stimulus budget.
+
+All stochastic methods shall therefore use the same:
+
+```text
+exact accepted-instruction cut at N
+```
+
+#### Exact kill rather than pipeline drain
+
+The current verification path has free-running instruction fetch while
+the DUT clock is active.
+
+Draining the pipeline after accepted instruction \(N\) would therefore
+permit additional accepted instructions unless a new fetch-stall
+mechanism were introduced.
+
+Introducing such a mechanism would change the frozen timing and
+cycle-count semantics.
+
+Week 13 therefore terminates by exact kill after completion of the
+post-instruction cut for accepted instruction \(N\).
+
+Operationally:
+
+> after the post-instruction cut for accepted instruction \(N\), no
+> further DUT clock transition capable of advancing pipeline state is
+> permitted.
+
+Any observation satisfying:
+
+$$
+accepted > N
+$$
+
+is an infrastructure failure, not experimental DUT data.
+
+#### Authoritative cut-cycle ordering
+
+One campaign-control process shall own all observations and termination
+ordering for a cycle.
+
+The logical order is:
+
+```text
+FallingEdge + settled observation
+    -> C-stage/store observation
+    -> retirement observation
+    -> functional/performance architectural evidence
+    -> pre-rising accepted-instruction snapshot
+
+RisingEdge + settled observation
+    -> finalize accepted ExecutionEvent, if any
+    -> planned-stream identity check
+    -> timing expectation
+    -> architectural step
+    -> predecessor successor-PC resolution
+    -> L1/L2 Intent and realization observers
+    -> complete_post_instruction_cut()
+    -> checkpoint emission, if applicable
+    -> exact-N kill, if accepted == N
+    -> otherwise runtime release/refill may proceed
+```
+
+A checkpoint is the state produced by this same cut procedure.
+
+The final checkpoint shall not use a separate code path.
+
+For the Week-13 pilot:
+
+$$
+N = 10000
+$$
+
+with checkpoint interval \(1000\), so the legal checkpoint boundaries
+are:
+
+$$
+1000,2000,\ldots,10000.
+$$
+
+#### Hard-cap infrastructure invariants
+
+The campaign driver shall enforce:
+
+$$
+accepted \le N.
+$$
+
+When instruction \(N\) is accepted:
+
+```text
+kill_cycle == current_cycle
+```
+
+After termination:
+
+```text
+post_cut_clock_edges == 0
+accepted == N
+adapter_instruction_count == N
+```
+
+Violation of any hard-cap invariant shall be classified:
+
+```text
+INFRA_INVALID
+```
+
+and shall not be included in experimental inference.
+
+#### Accepted/retired lifecycle conservation
+
+At every stable lifecycle observation point and at every checkpoint:
+
+$$
+accepted
+=
+retired\_checked
++
+in\_flight.
+$$
+
+The accepted-but-not-retired state shall agree with both streaming
+checker queues:
+
+$$
+in\_flight
+=
+functional\_pending
+=
+performance\_pending.
+$$
+
+The retained tail shall remain bounded:
+
+$$
+0 \le in\_flight \le D,
+$$
+
+where \(D\) is the frozen bounded in-flight/retirement depth supplied
+by the verification timing machinery.
+
+These relations are runtime assertions, not reporting-only telemetry.
+
+They test mechanically that an instruction admitted to the accepted
+executed stream cannot disappear silently before retirement.
+
+#### Coverage-hit lifecycle conservation
+
+Every registered authoritative coverage hit shall belong to exactly one
+of:
+
+```text
+validated
+rejected
+pending
+```
+
+and shall satisfy:
+
+$$
+registered\_hits
+=
+validated\_hits
++
+rejected\_hits
++
+pending\_hits.
+$$
+
+Removal of stale architectural-result cache entries is not considered
+hit pruning.
+
+For every non-terminal attributable execution prefix:
+
+```text
+hit_pruned_mid_run = 0
+```
+
+shall hold.
+
+Every pending hit must still depend on evidence belonging to the
+unresolved accepted tail:
+
+$$
+pending(hit)
+\Rightarrow
+\exists p \in participants(hit):
+retired\_checked < p \le accepted.
+$$
+
+A pending hit whose participants have all already retired is an
+infrastructure/lifecycle error.
+
+#### Intent attribution boundary
+
+Intent coverage is attributed only to accepted consumers.
+
+Therefore:
+
+$$
+max\_intent\_consumer\_id
+\le
+accepted.
+$$
+
+No Intent observation may refer to an instruction outside the current
+authoritative accepted prefix.
+
+After a terminal PC/instruction divergence, no subsequent coverage
+event may be fabricated.
+
+#### Exact-cut tail
+
+Exact accepted termination may leave a bounded in-flight tail.
+
+A successful fixed-budget run is therefore not required to satisfy:
+
+```text
+retired_checked == accepted
+functional_pending == 0
+performance_pending == 0
+```
+
+at the final cut.
+
+The tail shall instead be reported explicitly:
+
+```text
+accepted
+retired_checked
+in_flight_at_cut
+functional_pending
+performance_pending
+L1 pending hits
+L2 pending hits
+```
+
+Validated coverage contains only evidence that actually exists by the
+cut.
+
+No hypothetical pipeline drain shall be used to promote additional
+Validated hits.
+
+#### Metric denominators
+
+Every reported rate shall expose its denominator explicitly.
+
+The normative denominators are:
+
+```text
+budget denominator      = accepted
+coverage denominator    = accepted
+functional denominator  = retired_checked
+performance denominator = retired_checked
+```
+
+Therefore:
+
+$$
+functional\ pass\ rate
+=
+\frac{functional\ passed}{retired\_checked}
+$$
+
+and similarly for performance results.
+
+Cycles-to-\(N\), stalls-to-\(N\), flushes-to-\(N\), and wall time
+to \(N\) are outcomes of the fixed accepted-instruction experiment.
+
+#### Global final-state comparison
+
+Week-13 pilot v1 shall not compare the complete final DUT RF/DMEM state
+at exact accepted cut against a Golden state in which all \(N\)
+accepted instructions have been retired.
+
+Such a comparison would confound the bounded unretired tail with a DUT
+functional mismatch.
+
+Functional correctness in pilot v1 is evaluated per instruction using
+only architectural evidence that exists by the exact cut.
+
+A future global final-state comparison requires a separately specified
+checked-prefix snapshot contract.
+
+#### Failure taxonomy
+
+Every run shall terminate in exactly one of:
+
+```text
+COMPLETED
+VALID_DUT_FAILURE_NONTERMINAL
+VALID_DUT_FAILURE_TERMINAL
+INFRA_INVALID
+```
+
+`VALID_DUT_FAILURE_NONTERMINAL` denotes an attributable checker failure
+for which the accepted PC/instruction stream remains attributable.
+
+Its first failure is recorded and execution continues to the exact
+accepted budget.
+
+`VALID_DUT_FAILURE_TERMINAL` denotes the first accepted PC/instruction
+divergence after which execution is no longer attributable.
+
+The run stops at that prefix and no suffix is fabricated.
+
+`INFRA_INVALID` includes, at minimum:
+
+```text
+accepted > N
+post-cut clock edge
+checkpoint-ordering violation
+lifecycle-conservation violation
+runtime/timing ownership corruption
+deterministic-initialization failure
+protocol/provenance mismatch
+```
+
+Infrastructure-invalid runs are not DUT experimental observations.
+
+A terminal-DUT prefix remains diagnostic evidence but is excluded from
+fixed-budget AUC, throughput, and ordinary fixed-\(N\) inference.
+
+#### Common campaign cut driver
+
+`M1-PR`, `M2-WR`, and `M3-ACGS` shall use one common implementation for:
+
+```text
+exact-N termination
+checker lifecycle
+coverage checkpointing
+lifecycle invariants
+failure classification
+measurement cut
+```
+
+parameterized only by method, seed, accepted budget, and
+method-specific stream policy.
+
+Method-specific generators shall not define independent cut semantics.
+
+This makes denominator equality and exact-cut fairness an implementation
+property rather than a reporting convention.
+
 ---
 
 ## 23. Coverage attribution
@@ -986,10 +1366,26 @@ simulator version
 Python version
 timestamp
 
+run status
 accepted instruction count
+retired-checked instruction count
+in-flight instruction count at cut
 cycle count
 stall count
 flush count
+cut cycle
+kill cycle
+post-cut clock-edge count
+
+functional checked count
+functional passed count
+functional failed count
+functional pending count
+performance checked count
+performance passed count
+performance failed count
+performance pending count
+performance total excess cycles
 
 payload-family draw counts
 branch-subtype counts
@@ -1008,12 +1404,28 @@ terminal-divergence status
 
 L1 Intent
 L1 Validated
+L1 registered-hit count
+L1 validated-hit count
+L1 rejected-hit count
+L1 pending-hit count
 L2 Intent
 L2 Validated
+L2 registered-hit count
+L2 validated-hit count
+L2 rejected-hit count
+L2 pending-hit count
+maximum Intent consumer instruction ID
+mid-run hit-prune count
 checkpoint trajectory
+checkpoint count
+
+budget denominator = accepted
+coverage denominator = accepted
+functional denominator = retired_checked
+performance denominator = retired_checked
 
 wall-clock time
-instructions/second
+accepted instructions/second
 cycles/second
 peak RSS
 
@@ -1042,6 +1454,40 @@ Waveform tracing is disabled for performance measurements.
 
 Waveforms are diagnostic-only unless a separate run explicitly records otherwise.
 
+The authoritative full-system measurement window begins immediately
+before stochastic campaign-plan generation for the measured seed and
+ends only after:
+
+```text
+accepted instruction N
+-> all same-cycle checker/coverage observers
+-> complete_post_instruction_cut(N)
+-> final checkpoint emission
+-> exact clock kill
+-> final measurement snapshot
+```
+
+have completed.
+
+Compilation, RTL elaboration/build caching, shell startup, and
+post-run report formatting are outside the measured window.
+
+The same wall-clock denominator shall be used for the official:
+
+```text
+accepted instructions/second
+cycles/second
+```
+
+metrics.
+
+A simulator-only or RTL-loop-only wall time may be recorded as
+diagnostic telemetry, but it shall not replace the full-system
+Week-13 benchmark quantity.
+
+Peak RSS shall cover the same measured campaign process and shall not
+be inferred from a single end-of-run current-RSS sample.
+
 Required Week-13 performance quantities include:
 
 ```text
@@ -1050,10 +1496,14 @@ accepted instructions/second
 cycles/second
 peak RSS
 accepted instructions
+retired-checked instructions
+in-flight instructions at cut
 cycles
 stalls
 flushes
-coverage bookkeeping
+functional pass/fail counts over retired_checked
+performance pass/fail counts over retired_checked
+coverage bookkeeping over accepted
 ```
 
 ---
@@ -1183,7 +1633,20 @@ M1-PR pilot execution is prohibited until all of the following pass:
 [ ] control-plan preflight passes
 [ ] Golden replay matches planned execution
 [ ] exact accepted-prefix termination is tested
+[ ] accepted count never exceeds the configured hard cap
+[ ] no DUT clock edge occurs after the exact-N cut
+[ ] final checkpoint uses the same post-instruction-cut path as intermediate checkpoints
+[ ] accepted = retired_checked + in_flight is asserted
+[ ] in_flight = functional_pending = performance_pending is asserted
+[ ] in-flight state remains bounded by the frozen pipeline/timing depth
+[ ] coverage-hit lifecycle conservation is asserted
+[ ] no unresolved hit is pruned mid-run
+[ ] every pending hit references the unresolved accepted tail
+[ ] maximum Intent consumer instruction ID never exceeds accepted count
+[ ] deterministic zero DMEM initialization is verified
 [ ] terminal-divergence handling is tested
+[ ] M1-PR uses the common campaign cut/checkpoint driver required for M1/M2/M3
+[ ] required telemetry denominators and measurement window match Sections 22.1 and 30
 [ ] historical frozen regressions remain passing
 ```
 
