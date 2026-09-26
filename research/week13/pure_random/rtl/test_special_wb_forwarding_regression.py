@@ -11,6 +11,7 @@ from cocotb.triggers import (
 
 from research.week5.impl.rv32_encode import (
     addi,
+    auipc,
     bltu,
     lui,
     nop,
@@ -224,7 +225,7 @@ async def test_special_writeback_d1_forwarding_passes(
     dut,
 ):
     """
-    Directed witness:
+    Directed post-fix regression:
 
         settled x11 = 172
         LUI x17 = 0x00973000
@@ -232,8 +233,9 @@ async def test_special_writeback_d1_forwarding_passes(
 
     Architectural branch must be taken.
 
-    Canonical RTL recognizes the dependency (Forward_B=10), but that
-    select routes C.Alu_Result rather than the LUI writeback value.
+    Revision B must preserve EX/MEM dependency detection
+    (Forward_B=10) while forwarding the producer's architectural
+    writeback value rather than unconditionally C.Alu_Result.
     """
 
     words = (
@@ -285,10 +287,9 @@ async def test_special_writeback_d1_forwarding_passes(
     # 172 < 0x00973000 => taken.
     assert golden_next_pc == 28
 
-    # Canonical DUT defect:
-    # d1 EX/MEM forwarding supplies LUI C.Alu_Result (=1), so
-    # 172 < 1 => false and execution falls through.
-
+    # Revision-B obligation:
+    # EX/MEM forwarding must supply the architectural LUI writeback
+    # value, so the RTL successor must match the architectural target.
     assert golden_next_pc == 28
     assert successor.pc == golden_next_pc
 
@@ -299,6 +300,186 @@ async def test_special_writeback_d1_forwarding_passes(
         "forward_b=10 "
         f"next_pc=0x{successor.pc:03x}"
     )
+
+
+@cocotb.test()
+async def test_week9_t11_lui_d1_rs1_revision_b_passes(
+    dut,
+):
+    """
+    Revision-B reproduction of the historical Week-9 T11/H11 case:
+
+        LUI x5, 0x12345
+        ADDI x6, x5, 1
+
+    The ADDI consumes x5 immediately at d1 through RS1, therefore
+    Forward_A must select EX/MEM (10).
+
+    A later BLTU makes the forwarded ADDI result architecturally
+    observable without relying on internal register-file inspection.
+    """
+
+    words = (
+        addi(11, 0, 172),
+        nop(),
+        nop(),
+
+        # Historical T11 producer.
+        lui(5, 0x12345),
+
+        # Historical T11 consumer: d1 / RS1.
+        addi(6, 5, 1),
+
+        # Separate the architectural-result check from the target
+        # forwarding interaction being qualified.
+        nop(),
+
+        bltu(11, 6, 12),
+
+        nop(),
+        nop(),
+
+        addi(7, 0, 3),
+    )
+
+    events = await run_program(
+        dut,
+        words=words,
+        accepted_count=8,
+    )
+
+    consumer = events[4]
+    branch = events[6]
+    successor = events[7]
+
+    assert consumer.pc == 16
+    assert consumer.forward_a == 0b10
+
+    # x6 is consumed at d2 by the branch, so MEM/WB forwarding is
+    # expected for this secondary observability check.
+    assert branch.pc == 24
+    assert branch.forward_b == 0b01
+
+    golden_next_pc, model = (
+        golden_branch_next_pc(
+            events,
+            branch_event_count=7,
+        )
+    )
+
+    assert (
+        model.read_register(5)
+        == 0x12345000
+    )
+
+    assert (
+        model.read_register(6)
+        == 0x12345001
+    )
+
+    # 172 < 0x12345001, therefore BLTU must redirect to PC 36.
+    assert golden_next_pc == 36
+    assert successor.pc == 36
+
+    dut._log.info(
+        "REVISION_B_T11_H11=PASS "
+        "producer=LUI "
+        "consumer=ADDI "
+        "dependency=d1_rs1 "
+        "forward_a=10 "
+        "architectural_result=0x12345001"
+    )
+
+
+@cocotb.test()
+async def test_week9_t13_auipc_d1_rs1_revision_b_passes(
+    dut,
+):
+    """
+    Revision-B reproduction of the historical Week-9 T13/H13 case:
+
+        AUIPC x5, 0x12345
+        ADDI  x6, x5, 1
+
+    The AUIPC executes at physical PC 0x00c. Its architectural
+    writeback value is therefore:
+
+        0x00c + 0x12345000 = 0x1234500c
+
+    The immediately-following ADDI consumes x5 through RS1, so
+    Forward_A must select EX/MEM (10).
+    """
+
+    words = (
+        addi(11, 0, 172),
+        nop(),
+        nop(),
+
+        # Historical T13 producer at PC 0x00c.
+        auipc(5, 0x12345),
+
+        # Historical T13 consumer: d1 / RS1.
+        addi(6, 5, 1),
+
+        nop(),
+
+        bltu(11, 6, 12),
+
+        nop(),
+        nop(),
+
+        addi(7, 0, 3),
+    )
+
+    events = await run_program(
+        dut,
+        words=words,
+        accepted_count=8,
+    )
+
+    producer = events[3]
+    consumer = events[4]
+    branch = events[6]
+    successor = events[7]
+
+    assert producer.pc == 12
+
+    assert consumer.pc == 16
+    assert consumer.forward_a == 0b10
+
+    assert branch.pc == 24
+    assert branch.forward_b == 0b01
+
+    golden_next_pc, model = (
+        golden_branch_next_pc(
+            events,
+            branch_event_count=7,
+        )
+    )
+
+    assert (
+        model.read_register(5)
+        == 0x1234500C
+    )
+
+    assert (
+        model.read_register(6)
+        == 0x1234500D
+    )
+
+    # 172 < 0x1234500d, therefore BLTU must redirect to PC 36.
+    assert golden_next_pc == 36
+    assert successor.pc == 36
+
+    dut._log.info(
+        "REVISION_B_T13_H13=PASS "
+        "producer=AUIPC "
+        "consumer=ADDI "
+        "dependency=d1_rs1 "
+        "forward_a=10 "
+        "architectural_result=0x1234500d"
+    )
+
 
 @cocotb.test()
 async def test_special_writeback_d2_control_passes(
