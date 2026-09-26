@@ -713,6 +713,21 @@ class PureRandomRuntimeWindow:
         return self._ring.pending_entry_count
 
     @property
+    def pending_entries(
+        self,
+    ) -> tuple[
+        PureRandomRuntimeEntry,
+        ...
+    ]:
+        """
+        Read-only view of currently resident runtime entries.
+
+        Exposed for ownership/invariant checking without allowing
+        callers to mutate the underlying FIFO ring.
+        """
+        return self._ring.entries
+
+    @property
     def accepted_count(self) -> int:
         return self._tracker.accepted_count
 

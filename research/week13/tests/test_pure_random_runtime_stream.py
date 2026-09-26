@@ -300,3 +300,30 @@ def test_runtime_ring_never_exceeds_128_words():
 
     assert window.used_words == 0
     assert window.pending_entry_count == 0
+
+def test_runtime_window_exposes_read_only_pending_entries():
+    plan = generate_pure_random_plan(
+        ROOT,
+        1,
+    )
+
+    entry = build_runtime_entries(
+        plan
+    )[0]
+
+    window = PureRandomRuntimeWindow()
+
+    assert window.pending_entries == ()
+
+    window.commit_patched_entry(
+        entry
+    )
+
+    assert window.pending_entries == (
+        entry,
+    )
+
+    assert isinstance(
+        window.pending_entries,
+        tuple,
+    )
