@@ -112,7 +112,14 @@ mem_wb_reg D;
     end
 
     //--// The Hazard Detection Unit
-    HazardDetection detect(A.Curr_Instr[19:15], A.Curr_Instr[24:20], B.rd, B.MemRead, Reg_Stall);
+    HazardDetection detect(
+        A.Curr_Instr[19:15],
+        A.Curr_Instr[24:20],
+        A.Curr_Instr[6:0],
+        B.rd,
+        B.MemRead,
+        Reg_Stall
+    );
 
     // //Register File
     assign opcode = A.Curr_Instr[6:0];
