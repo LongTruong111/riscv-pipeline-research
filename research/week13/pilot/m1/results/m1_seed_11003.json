@@ -1,0 +1,184 @@
+{
+  "accepted_budget": 10000,
+  "benchmark": {
+    "accepted_per_s": 1301.330552411458,
+    "cycles_per_s": 1801.5620167584225,
+    "peak_rss_kib": 44996,
+    "peak_rss_start_kib": 35848,
+    "wall_ns": 7684442651
+  },
+  "coverage": {
+    "checkpoint_count": 10,
+    "checkpoints": [
+      {
+        "accepted": 1000,
+        "cycle": 1362,
+        "l1_intent": 9,
+        "l1_validated": 8,
+        "l2_intent": 17,
+        "l2_validated": 17
+      },
+      {
+        "accepted": 2000,
+        "cycle": 2774,
+        "l1_intent": 13,
+        "l1_validated": 13,
+        "l2_intent": 34,
+        "l2_validated": 34
+      },
+      {
+        "accepted": 3000,
+        "cycle": 4170,
+        "l1_intent": 14,
+        "l1_validated": 14,
+        "l2_intent": 42,
+        "l2_validated": 42
+      },
+      {
+        "accepted": 4000,
+        "cycle": 5575,
+        "l1_intent": 15,
+        "l1_validated": 15,
+        "l2_intent": 46,
+        "l2_validated": 46
+      },
+      {
+        "accepted": 5000,
+        "cycle": 6986,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 50,
+        "l2_validated": 50
+      },
+      {
+        "accepted": 6000,
+        "cycle": 8342,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 55,
+        "l2_validated": 55
+      },
+      {
+        "accepted": 7000,
+        "cycle": 9713,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 56,
+        "l2_validated": 56
+      },
+      {
+        "accepted": 8000,
+        "cycle": 11110,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 57,
+        "l2_validated": 57
+      },
+      {
+        "accepted": 9000,
+        "cycle": 12482,
+        "l1_intent": 17,
+        "l1_validated": 17,
+        "l2_intent": 59,
+        "l2_validated": 59
+      },
+      {
+        "accepted": 10000,
+        "cycle": 13844,
+        "l1_intent": 17,
+        "l1_validated": 17,
+        "l2_intent": 60,
+        "l2_validated": 60
+      }
+    ],
+    "denominator": 10000,
+    "l1_intent": 17,
+    "l1_pending_hits": 0,
+    "l1_registered_hits": 1111,
+    "l1_rejected_hits": 1,
+    "l1_validated": 17,
+    "l1_validated_hits": 1110,
+    "l2_intent": 60,
+    "l2_pending_hits": 0,
+    "l2_registered_hits": 236,
+    "l2_rejected_hits": 0,
+    "l2_validated": 60,
+    "l2_validated_hits": 236,
+    "max_intent_consumer_id": 9905,
+    "mid_run_hit_prune_count": 0
+  },
+  "eligibility": {
+    "auc": true,
+    "fixed_budget_metrics": true,
+    "ordinary_fixed_n_inference": true,
+    "throughput": true
+  },
+  "execution": {
+    "cut_cycle": 13844,
+    "cycles": 13844,
+    "flush_cycles": 1912,
+    "kill_cycle": 13844,
+    "max_resident_words": 128,
+    "patch_reuses": 13696,
+    "patched_words": 13824,
+    "refill_pauses": 3292,
+    "released_entries": 6924,
+    "stall_cycles": 20
+  },
+  "fixed_budget_complete": true,
+  "functional": {
+    "checked": 9999,
+    "denominator": 9999,
+    "failed": 0,
+    "first_failure": null,
+    "passed": 9999,
+    "pending": 1
+  },
+  "generator": {
+    "block_count": 6924,
+    "family_counts": {
+      "ADD": 777,
+      "ADDI": 796,
+      "AUIPC": 778,
+      "BRANCH": 751,
+      "JAL": 804,
+      "JALR": 745,
+      "LUI": 786,
+      "LW": 709,
+      "SW": 778
+    },
+    "final_expected_pc": 0,
+    "image_words": 13824,
+    "partial_final_block": false,
+    "plan_hash": "d9ab04a387f4e13e247e0d20e39f8ee877dcf7422128c46027f326757b5dca28"
+  },
+  "lifecycle": {
+    "accepted": 10000,
+    "functional_pending": 1,
+    "in_flight_at_cut": 1,
+    "performance_pending": 1,
+    "retired_checked": 9999
+  },
+  "method": "M1-PR",
+  "performance": {
+    "checked": 9999,
+    "denominator": 9999,
+    "failed": 0,
+    "first_accept_timing_divergence": null,
+    "first_failure": null,
+    "max_excess_cycles": 0,
+    "passed": 9999,
+    "pending": 1,
+    "total_excess_cycles": 0
+  },
+  "phase": "pilot",
+  "provenance": {
+    "dut_revision": "595ed75dcf8544c4f7ab3f16966df34ba1c11ee7",
+    "git_dirty": false,
+    "harness_revision": "77b457f2b49d8aec21842a94595f1d8e41968841",
+    "protocol_revision": "fa906a3f8c6630c6e41d9321d79b2c408d04adc5"
+  },
+  "schema_version": "w13.m1-pilot.telemetry.v1",
+  "seed": 11003,
+  "status": "COMPLETED"
+}

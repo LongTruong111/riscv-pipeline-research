@@ -1,0 +1,20 @@
+WEEK13_M1_PILOT_ENVIRONMENT
+
+workspace=/home/logan/nckh/risc-v-pipeline
+git_head=77b457f2b49d8aec21842a94595f1d8e41968841
+dut_revision=595ed75dcf8544c4f7ab3f16966df34ba1c11ee7
+
+Linux Lenovo 6.6.114.1-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Mon Dec  1 20:46:23 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+
+Architecture:                            x86_64
+CPU(s):                                  16
+On-line CPU(s) list:                     0-15
+Model name:                              AMD Ryzen 7 8745H w/ Radeon 780M Graphics
+Thread(s) per core:                      2
+Core(s) per socket:                      8
+Socket(s):                               1
+NUMA node0 CPU(s):                       0-15
+
+Python 3.10.12
+Verilator 5.034 2025-02-24 rev v5.034
+cocotb 1.9.2

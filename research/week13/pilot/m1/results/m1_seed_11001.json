@@ -1,0 +1,184 @@
+{
+  "accepted_budget": 10000,
+  "benchmark": {
+    "accepted_per_s": 1312.9587015541767,
+    "cycles_per_s": 1823.830932328907,
+    "peak_rss_kib": 45064,
+    "peak_rss_start_kib": 38152,
+    "wall_ns": 7616385792
+  },
+  "coverage": {
+    "checkpoint_count": 10,
+    "checkpoints": [
+      {
+        "accepted": 1000,
+        "cycle": 1431,
+        "l1_intent": 11,
+        "l1_validated": 11,
+        "l2_intent": 22,
+        "l2_validated": 22
+      },
+      {
+        "accepted": 2000,
+        "cycle": 2793,
+        "l1_intent": 14,
+        "l1_validated": 14,
+        "l2_intent": 29,
+        "l2_validated": 29
+      },
+      {
+        "accepted": 3000,
+        "cycle": 4187,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 44,
+        "l2_validated": 44
+      },
+      {
+        "accepted": 4000,
+        "cycle": 5547,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 48,
+        "l2_validated": 48
+      },
+      {
+        "accepted": 5000,
+        "cycle": 6932,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 52,
+        "l2_validated": 52
+      },
+      {
+        "accepted": 6000,
+        "cycle": 8315,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 55,
+        "l2_validated": 55
+      },
+      {
+        "accepted": 7000,
+        "cycle": 9698,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 56,
+        "l2_validated": 56
+      },
+      {
+        "accepted": 8000,
+        "cycle": 11085,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 57,
+        "l2_validated": 57
+      },
+      {
+        "accepted": 9000,
+        "cycle": 12477,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 58,
+        "l2_validated": 58
+      },
+      {
+        "accepted": 10000,
+        "cycle": 13891,
+        "l1_intent": 16,
+        "l1_validated": 16,
+        "l2_intent": 60,
+        "l2_validated": 60
+      }
+    ],
+    "denominator": 10000,
+    "l1_intent": 16,
+    "l1_pending_hits": 0,
+    "l1_registered_hits": 1113,
+    "l1_rejected_hits": 0,
+    "l1_validated": 16,
+    "l1_validated_hits": 1113,
+    "l2_intent": 60,
+    "l2_pending_hits": 0,
+    "l2_registered_hits": 222,
+    "l2_rejected_hits": 0,
+    "l2_validated": 60,
+    "l2_validated_hits": 222,
+    "max_intent_consumer_id": 9543,
+    "mid_run_hit_prune_count": 0
+  },
+  "eligibility": {
+    "auc": true,
+    "fixed_budget_metrics": true,
+    "ordinary_fixed_n_inference": true,
+    "throughput": true
+  },
+  "execution": {
+    "cut_cycle": 13891,
+    "cycles": 13891,
+    "flush_cycles": 1931,
+    "kill_cycle": 13891,
+    "max_resident_words": 128,
+    "patch_reuses": 13734,
+    "patched_words": 13862,
+    "refill_pauses": 3298,
+    "released_entries": 6863,
+    "stall_cycles": 29
+  },
+  "fixed_budget_complete": true,
+  "functional": {
+    "checked": 9999,
+    "denominator": 9999,
+    "failed": 0,
+    "first_failure": null,
+    "passed": 9999,
+    "pending": 1
+  },
+  "generator": {
+    "block_count": 6863,
+    "family_counts": {
+      "ADD": 737,
+      "ADDI": 750,
+      "AUIPC": 769,
+      "BRANCH": 790,
+      "JAL": 789,
+      "JALR": 754,
+      "LUI": 779,
+      "LW": 740,
+      "SW": 755
+    },
+    "final_expected_pc": 152,
+    "image_words": 13862,
+    "partial_final_block": false,
+    "plan_hash": "f77c00eab3636c4ce89c4d882d254d0af85f8515f641c29268226e27ac6a329a"
+  },
+  "lifecycle": {
+    "accepted": 10000,
+    "functional_pending": 1,
+    "in_flight_at_cut": 1,
+    "performance_pending": 1,
+    "retired_checked": 9999
+  },
+  "method": "M1-PR",
+  "performance": {
+    "checked": 9999,
+    "denominator": 9999,
+    "failed": 0,
+    "first_accept_timing_divergence": null,
+    "first_failure": null,
+    "max_excess_cycles": 0,
+    "passed": 9999,
+    "pending": 1,
+    "total_excess_cycles": 0
+  },
+  "phase": "pilot",
+  "provenance": {
+    "dut_revision": "595ed75dcf8544c4f7ab3f16966df34ba1c11ee7",
+    "git_dirty": false,
+    "harness_revision": "77b457f2b49d8aec21842a94595f1d8e41968841",
+    "protocol_revision": "fa906a3f8c6630c6e41d9321d79b2c408d04adc5"
+  },
+  "schema_version": "w13.m1-pilot.telemetry.v1",
+  "seed": 11001,
+  "status": "COMPLETED"
+}
