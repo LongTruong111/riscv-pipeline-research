@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import platform
 import subprocess
 import time
+from datetime import datetime, timezone
 from collections import Counter
 from pathlib import Path
 
@@ -81,6 +84,12 @@ from research.week13.campaign.snapshot_adapter import (
     CAMPAIGN_MAX_IN_FLIGHT_DEPTH,
     build_campaign_lifecycle_snapshot,
 )
+from research.week13.pure_random.campaign_seed import (
+    derive_campaign_seeds,
+)
+from research.week13.pure_random.pilot_diagnostics import (
+    build_m1_plan_diagnostics,
+)
 from research.week13.pure_random.runtime_stream import (
     PureRandomRuntimeWindow,
     PureRandomStreamExecutionMismatch,
@@ -109,8 +118,252 @@ PROTOCOL_REVISION = (
 )
 
 PILOT_SCHEMA_VERSION = (
-    "w13.m1-pilot.telemetry.v1"
+    "w13.m1-pilot.telemetry.v2"
 )
+
+STOCHASTIC_ADDENDUM_VERSION = (
+    "w13.stochastic-generator.v1.1"
+)
+
+GENERATOR_SOURCE_PATHS = (
+    "research/week13/pure_random/campaign_seed.py",
+    "research/week13/pure_random/family_sampler.py",
+    "research/week13/pure_random/operand_realizer.py",
+    "research/week13/pure_random/control_realizer.py",
+    "research/week13/pure_random/stream_planner.py",
+)
+
+
+
+def generator_source_revision() -> str:
+    """
+    Content-address the frozen M1 stochastic generator.
+
+    Telemetry-only helpers and the RTL pilot harness are deliberately
+    excluded. Therefore a reporting repair cannot change this revision
+    unless generator semantics/source actually changes.
+    """
+    digest = hashlib.sha256()
+
+    for relative_path in GENERATOR_SOURCE_PATHS:
+        source = REPO_ROOT / relative_path
+
+        if not source.is_file():
+            raise AssertionError(
+                "missing M1 generator source: "
+                f"{relative_path}"
+            )
+
+        digest.update(
+            relative_path.encode("utf-8")
+        )
+        digest.update(b"\0")
+        digest.update(source.read_bytes())
+        digest.update(b"\0")
+
+    return (
+        "sha256:"
+        + digest.hexdigest()
+    )
+
+
+def collect_runtime_environment() -> dict:
+    """
+    Collect minimum reproducibility metadata required by M1 telemetry.
+    """
+    simulator_name = getattr(
+        cocotb,
+        "SIM_NAME",
+        os.environ.get(
+            "SIM",
+            "unknown",
+        ),
+    )
+
+    simulator_version = getattr(
+        cocotb,
+        "SIM_VERSION",
+        None,
+    )
+
+    if (
+        not simulator_version
+        and "verilator"
+        in str(simulator_name).lower()
+    ):
+        result = subprocess.run(
+            [
+                "verilator",
+                "--version",
+            ],
+            cwd=REPO_ROOT,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        simulator_version = (
+            result.stdout.strip()
+        )
+
+    if not simulator_version:
+        simulator_version = "unknown"
+
+    return {
+        "python_version": (
+            platform.python_version()
+        ),
+        "cocotb_version": getattr(
+            cocotb,
+            "__version__",
+            "unknown",
+        ),
+        "simulator_name": (
+            str(simulator_name)
+        ),
+        "simulator_version": (
+            str(simulator_version)
+        ),
+        "timestamp_utc": (
+            datetime.now(
+                timezone.utc
+            ).isoformat()
+        ),
+    }
+
+
+def first_checker_failure(
+    *,
+    first_functional_failure,
+    first_performance_failure,
+    functional_failure_diagnostics,
+    performance_failure_diagnostics,
+):
+    """
+    Return the earliest attributable checker failure.
+
+    Functional wins only on an exact instruction-ID tie so ordering is
+    deterministic.
+    """
+    candidates = []
+
+    if first_functional_failure is not None:
+        detail = next(
+            (
+                item
+                for item
+                in functional_failure_diagnostics
+                if (
+                    item["instruction_id"]
+                    == first_functional_failure
+                )
+            ),
+            {
+                "instruction_id": (
+                    first_functional_failure
+                )
+            },
+        )
+
+        candidates.append({
+            "kind": "functional",
+            "instruction_id": (
+                first_functional_failure
+            ),
+            "detail": detail,
+        })
+
+    if first_performance_failure is not None:
+        detail = next(
+            (
+                item
+                for item
+                in performance_failure_diagnostics
+                if (
+                    item["instruction_id"]
+                    == first_performance_failure
+                )
+            ),
+            {
+                "instruction_id": (
+                    first_performance_failure
+                )
+            },
+        )
+
+        candidates.append({
+            "kind": "performance",
+            "instruction_id": (
+                first_performance_failure
+            ),
+            "detail": detail,
+        })
+
+    if not candidates:
+        return None
+
+    priority = {
+        "functional": 0,
+        "performance": 1,
+    }
+
+    return min(
+        candidates,
+        key=lambda item: (
+            item["instruction_id"],
+            priority[item["kind"]],
+        ),
+    )
+
+
+
+def first_failure_with_terminal(
+    *,
+    terminal_instruction_id,
+    terminal_detail,
+    first_functional_failure,
+    first_performance_failure,
+    functional_failure_diagnostics,
+    performance_failure_diagnostics,
+):
+    """
+    Return the earliest failure across attributable checker failures
+    and the terminal accepted-stream divergence.
+    """
+    checker_failure = first_checker_failure(
+        first_functional_failure=(
+            first_functional_failure
+        ),
+        first_performance_failure=(
+            first_performance_failure
+        ),
+        functional_failure_diagnostics=(
+            functional_failure_diagnostics
+        ),
+        performance_failure_diagnostics=(
+            performance_failure_diagnostics
+        ),
+    )
+
+    terminal_failure = {
+        "kind": "terminal_execution_divergence",
+        "instruction_id": (
+            terminal_instruction_id
+        ),
+        "detail": terminal_detail,
+    }
+
+    if checker_failure is None:
+        return terminal_failure
+
+    if (
+        checker_failure["instruction_id"]
+        <= terminal_instruction_id
+    ):
+        return checker_failure
+
+    return terminal_failure
 
 
 def git_text(
@@ -499,6 +752,18 @@ async def test_m1_pilot_exact_cut_10000(
     # Frozen Week-13 protocol:
     # start immediately before stochastic plan generation.
     # ==========================================================
+    # Static provenance is intentionally collected outside the
+    # authoritative performance window. It may inspect source
+    # files or query the simulator executable, neither of which
+    # is campaign execution work.
+    generator_revision = (
+        generator_source_revision()
+    )
+
+    runtime_environment = (
+        collect_runtime_environment()
+    )
+
     measurement_start_ns = (
         time.perf_counter_ns()
     )
@@ -515,6 +780,23 @@ async def test_m1_pilot_exact_cut_10000(
     plan = generate_pure_random_plan(
         ROOT_SEED,
         ACCEPTED_BUDGET,
+    )
+
+    plan_diagnostics = (
+        build_m1_plan_diagnostics(
+            plan
+        )
+    )
+
+    campaign_seeds = (
+        derive_campaign_seeds(
+            ROOT_SEED
+        )
+    )
+
+    assert (
+        campaign_seeds.root_seed
+        == ROOT_SEED
     )
 
     entries = build_runtime_entries(
@@ -998,18 +1280,8 @@ async def test_m1_pilot_exact_cut_10000(
             in coverage.l2_state.values()
         )
 
-        intent_consumer_ids = [
-            state.intent_first.instruction_id
-            for state in (
-                *coverage.l1_state.values(),
-                *coverage.l2_state.values(),
-            )
-            if state.intent_first is not None
-        ]
-
-        max_intent_consumer_id = max(
-            intent_consumer_ids,
-            default=0,
+        max_intent_consumer_id = (
+            cut_driver.max_intent_consumer_id
         )
 
         if max_intent_consumer_id:
@@ -1063,6 +1335,49 @@ async def test_m1_pilot_exact_cut_10000(
             "method": "M1-PR",
             "phase": "pilot",
             "seed": ROOT_SEED,
+
+            "rng": {
+                "root_seed": campaign_seeds.root_seed,
+                "family_seed": campaign_seeds.family_seed,
+                "operand_seed": campaign_seeds.operand_seed,
+            },
+
+            "generator_revision": generator_revision,
+            "generator_revision_kind": "sha256-source-bundle",
+            "stochastic_addendum_version": STOCHASTIC_ADDENDUM_VERSION,
+            "stochastic_addendum_revision": PROTOCOL_REVISION,
+            "runtime_environment": runtime_environment,
+
+            "generator_diagnostics": {
+                "scope": "full_generated_plan",
+                "payload_family_draw_counts": dict(
+                    plan_diagnostics.family_counts
+                ),
+                "branch_subtype_counts": dict(
+                    plan_diagnostics.branch_subtype_counts
+                ),
+                "branch_taken_count": (
+                    plan_diagnostics.branch_taken_count
+                ),
+                "branch_not_taken_count": (
+                    plan_diagnostics.branch_not_taken_count
+                ),
+                "structural_nop_accepted_count": (
+                    plan_diagnostics.structural_nop_accepted_count
+                ),
+                "lw_ea_histogram": dict(
+                    plan_diagnostics.lw_ea_histogram
+                ),
+                "sw_ea_histogram": dict(
+                    plan_diagnostics.sw_ea_histogram
+                ),
+                "memory_viable_base_set_size_histogram": dict(
+                    plan_diagnostics.memory_viable_base_set_size_histogram
+                ),
+                "accepted_base_register_histogram": dict(
+                    plan_diagnostics.accepted_base_register_histogram
+                ),
+            },
             "accepted_budget": (
                 ACCEPTED_BUDGET
             ),
@@ -1082,6 +1397,56 @@ async def test_m1_pilot_exact_cut_10000(
 
             "status": (
                 "VALID_DUT_FAILURE_TERMINAL"
+            ),
+
+            "terminal_divergence_status": "OBSERVED",
+
+            "post_cut_clock_edges": None,
+
+            "checker_mismatch_count": (
+                functional.failed_count
+                + performance.failed_count
+            ),
+
+            "checker_mismatch_breakdown": {
+                "functional_failed_instructions": (
+                    functional.failed_count
+                ),
+                "performance_failed_instructions": (
+                    performance.failed_count
+                ),
+            },
+
+            "first_failure": (
+                first_failure_with_terminal(
+                    terminal_instruction_id=(
+                        event.instruction_index
+                    ),
+                    terminal_detail={
+                        "cycle": cycle,
+                        "reason": reason,
+                        "expected_pc": expected_pc,
+                        "observed_pc": event.pc,
+                        "expected_instruction": (
+                            expected_word
+                        ),
+                        "observed_instruction": (
+                            event.instruction
+                        ),
+                    },
+                    first_functional_failure=(
+                        first_functional_failure
+                    ),
+                    first_performance_failure=(
+                        first_performance_failure
+                    ),
+                    functional_failure_diagnostics=(
+                        functional_failure_diagnostics
+                    ),
+                    performance_failure_diagnostics=(
+                        performance_failure_diagnostics
+                    ),
+                )
             ),
 
             "fixed_budget_complete": False,
@@ -2570,18 +2935,8 @@ async def test_m1_pilot_exact_cut_10000(
         l2_live.checker.attempt_count
     )
 
-    intent_consumer_ids = [
-        state.intent_first.instruction_id
-        for state in (
-            *coverage.l1_state.values(),
-            *coverage.l2_state.values(),
-        )
-        if state.intent_first is not None
-    ]
-
-    max_intent_consumer_id = max(
-        intent_consumer_ids,
-        default=0,
+    max_intent_consumer_id = (
+        final_snapshot.max_intent_consumer_id
     )
 
     checkpoint_trajectory = [
@@ -2618,6 +2973,49 @@ async def test_m1_pilot_exact_cut_10000(
         "method": "M1-PR",
         "phase": "pilot",
         "seed": ROOT_SEED,
+
+        "rng": {
+            "root_seed": campaign_seeds.root_seed,
+            "family_seed": campaign_seeds.family_seed,
+            "operand_seed": campaign_seeds.operand_seed,
+        },
+
+        "generator_revision": generator_revision,
+        "generator_revision_kind": "sha256-source-bundle",
+        "stochastic_addendum_version": STOCHASTIC_ADDENDUM_VERSION,
+        "stochastic_addendum_revision": PROTOCOL_REVISION,
+        "runtime_environment": runtime_environment,
+
+        "generator_diagnostics": {
+            "scope": "full_generated_plan",
+            "payload_family_draw_counts": dict(
+                plan_diagnostics.family_counts
+            ),
+            "branch_subtype_counts": dict(
+                plan_diagnostics.branch_subtype_counts
+            ),
+            "branch_taken_count": (
+                plan_diagnostics.branch_taken_count
+            ),
+            "branch_not_taken_count": (
+                plan_diagnostics.branch_not_taken_count
+            ),
+            "structural_nop_accepted_count": (
+                plan_diagnostics.structural_nop_accepted_count
+            ),
+            "lw_ea_histogram": dict(
+                plan_diagnostics.lw_ea_histogram
+            ),
+            "sw_ea_histogram": dict(
+                plan_diagnostics.sw_ea_histogram
+            ),
+            "memory_viable_base_set_size_histogram": dict(
+                plan_diagnostics.memory_viable_base_set_size_histogram
+            ),
+            "accepted_base_register_histogram": dict(
+                plan_diagnostics.accepted_base_register_histogram
+            ),
+        },
         "accepted_budget": (
             ACCEPTED_BUDGET
         ),
@@ -2634,6 +3032,41 @@ async def test_m1_pilot_exact_cut_10000(
         },
 
         "status": run_status,
+
+        "terminal_divergence_status": "NOT_OBSERVED",
+
+        "post_cut_clock_edges": 0,
+
+        "checker_mismatch_count": (
+            functional.failed_count
+            + performance.failed_count
+        ),
+
+        "checker_mismatch_breakdown": {
+            "functional_failed_instructions": (
+                functional.failed_count
+            ),
+            "performance_failed_instructions": (
+                performance.failed_count
+            ),
+        },
+
+        "first_failure": (
+            first_checker_failure(
+                first_functional_failure=(
+                    first_functional_failure
+                ),
+                first_performance_failure=(
+                    first_performance_failure
+                ),
+                functional_failure_diagnostics=(
+                    functional_failure_diagnostics
+                ),
+                performance_failure_diagnostics=(
+                    performance_failure_diagnostics
+                ),
+            )
+        ),
 
         "fixed_budget_complete": True,
 
