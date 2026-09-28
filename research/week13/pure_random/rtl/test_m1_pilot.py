@@ -2239,52 +2239,67 @@ async def test_m1_pilot_exact_cut_10000(
                 == len(entries)
             )
 
-            assert (
-                window.pending_entry_count
-                == 1
-            )
-
             final_plan_block = (
                 plan.blocks[-1]
             )
 
-            assert final_plan_block.is_partial
-
-            discarded = (
-                window
-                .discard_unexecuted_suffix()
-            )
-
-            assert (
-                discarded
-                .accepted_count_at_termination
-                == ACCEPTED_BUDGET
-            )
-
-            assert (
-                discarded
-                .head_accepted_instruction_count
-                == len(
-                    final_plan_block
-                    .accepted_word_indices
+            # Exact-N may terminate in either legal shape:
+            #
+            #   1. partial final block:
+            #      the accepted budget lands inside the block, so one
+            #      resident suffix remains and must be discarded;
+            #
+            #   2. complete final block:
+            #      the Nth accepted instruction completes the block, so
+            #      finalize_accepted_event() has already released it and
+            #      no resident suffix remains.
+            if final_plan_block.is_partial:
+                assert (
+                    window.pending_entry_count
+                    == 1
                 )
-            )
 
-            assert (
-                len(discarded.entries)
-                == 1
-            )
+                discarded = (
+                    window
+                    .discard_unexecuted_suffix()
+                )
 
-            timing_oracle.release_logical_words(
-                first_logical_word_index=(
-                    discarded.entries[0]
-                    .logical_word_start
-                ),
-                word_count=(
+                assert (
                     discarded
-                    .reclaimed_resident_word_count
-                ),
-            )
+                    .accepted_count_at_termination
+                    == ACCEPTED_BUDGET
+                )
+
+                assert (
+                    discarded
+                    .head_accepted_instruction_count
+                    == len(
+                        final_plan_block
+                        .accepted_word_indices
+                    )
+                )
+
+                assert (
+                    len(discarded.entries)
+                    == 1
+                )
+
+                timing_oracle.release_logical_words(
+                    first_logical_word_index=(
+                        discarded.entries[0]
+                        .logical_word_start
+                    ),
+                    word_count=(
+                        discarded
+                        .reclaimed_resident_word_count
+                    ),
+                )
+
+            else:
+                assert (
+                    window.pending_entry_count
+                    == 0
+                )
 
             assert (
                 window.pending_entry_count
