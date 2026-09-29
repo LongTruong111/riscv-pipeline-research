@@ -1,0 +1,39 @@
+{
+  "accepted_budget": 1000,
+  "contract_checks": {
+    "accepted": true,
+    "bounded_runtime": true,
+    "patched_words": true,
+    "plan_hash": true,
+    "seed": true
+  },
+  "final_campaign_executed": false,
+  "harness_commit": "e651878db8c071943f1ed1d9ae687eb5af5f19be",
+  "make_returncode": 0,
+  "method": "M2-WR",
+  "overall_pass": true,
+  "pass_telemetry_found": true,
+  "schema": "week14.m2-rtl-smoke.v1",
+  "seed": 14001,
+  "telemetry": {
+    "accepted": 1000,
+    "cycles": 1104,
+    "diagnostic_accepted_per_s": 1628.11,
+    "flushes": 24,
+    "in_flight": 3,
+    "l1_intent": 17,
+    "l1_validated": 17,
+    "l2_intent": 62,
+    "l2_validated": 62,
+    "max_resident_words": 128,
+    "patch_reuses": 920,
+    "patched_words": 1048,
+    "plan_hash": "3b23d6e4887e305100542416c77f93994b229c9f9dab91ac4c0ac9f86465d2c9",
+    "refill_pauses": 230,
+    "released_entries": 405,
+    "retired": 997,
+    "seed": 14001,
+    "stalls": 56,
+    "wall_ns": 614209968
+  }
+}
