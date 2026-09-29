@@ -1,0 +1,46 @@
+{
+  "derived_from": {
+    "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+    "git_blob": "74bcf2961975ebb021dc18648397771f71670caa",
+    "path": "research/week13/pure_random/rtl/test_m1_preflight_exact_cut.py"
+  },
+  "final_campaign_executed": false,
+  "m2_authority": {
+    "config_sha256": "48d8e6852e01b054ef2690c9057d073df080a6b3d026958d4673ece60610f443",
+    "runtime_preflight_commit": "c22fa5eb9f87b0507d997a459a735e015009284c",
+    "static_generator_commit": "0cd362e2ed027d1624f59faebad7ef49a0e97580"
+  },
+  "preserved_common_stack": [
+    "ExecutionEventAdapter",
+    "RetireMonitor",
+    "StreamingFunctionalScoreboard",
+    "StreamingPerformanceMonitor",
+    "L1/L2 coverage and validation",
+    "WrapAwareRV32ArchitecturalModel",
+    "WrapAwareMutableTimingOracleV1",
+    "CampaignInvariantLedger",
+    "CampaignCutDriver",
+    "build_campaign_lifecycle_snapshot",
+    "PureRandomRuntimeWindow"
+  ],
+  "schema": "week14.m2-rtl-harness-provenance.v1",
+  "semantic_changes_from_m1": [
+    "M2 static weighted generator",
+    "M2 runtime-entry adapter",
+    "M2 arm diagnostics instead of M1 family diagnostics",
+    "M2 known-answer constants",
+    "complete-final-block exact-cut cleanup",
+    "W14_M2 diagnostic labels"
+  ],
+  "smoke_contract": {
+    "accepted_budget": 1000,
+    "block_count": 405,
+    "final_block_partial": false,
+    "final_campaign_seed": false,
+    "image_word_count": 1048,
+    "last_logical_generation": 8,
+    "plan_hash": "3b23d6e4887e305100542416c77f93994b229c9f9dab91ac4c0ac9f86465d2c9",
+    "seed": 14001
+  },
+  "status": "FROZEN_BEFORE_RTL_SMOKE"
+}
