@@ -666,7 +666,7 @@ async def test_adaptive_pilot_exact_cut_10000(
       - common CampaignCutDriver lifecycle;
       - bounded IMEM streaming/refill;
       - multi-epoch adaptive continuity;
-      - exact N=1000 accepted hard cap.
+      - exact N=10000 accepted hard cap.
     """
 
     config = ProductionCampaignConfig(
