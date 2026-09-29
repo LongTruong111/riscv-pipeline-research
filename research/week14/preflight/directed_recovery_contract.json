@@ -1,0 +1,118 @@
+{
+  "authority": {
+    "attempt1_result_sha256": "16765633d033b369559745a8e903e7a0b20367113ce7b3c4f1606112cf1d761c",
+    "directed_harness_commit": "183803b73c64085e3e4f675fc99cf3e4af76cea7",
+    "erratum_commit": "059b931de962e09444f19b242ee585f93b485c20",
+    "erratum_sha256": "2336927a38925596f62af42c30e9b35235a470034b5ea5fc0b3a110995db7b92",
+    "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+    "original_preregistration_commit": "8a3067599fce0643d815bcfc5f9794f06381985c"
+  },
+  "confirmation_acceptance": {
+    "all_required_oracles_exercised": true,
+    "intent": "20/20",
+    "known_root_causes_observed_exactly": [
+      "REGFILE_X0_WRITE",
+      "LOAD_RD_X0_FALSE_STALL"
+    ],
+    "missing_known_root_causes": 0,
+    "unexpected_rejected_cases": 0,
+    "unexpected_root_causes": 0,
+    "validated": "18/20"
+  },
+  "created_after_falsification": true,
+  "gate_semantics": {
+    "confirmation_failure_label": "FAIL_POST_ERRATUM_CONFIRMATION",
+    "confirmation_success_label": "PASS_POST_ERRATUM_CONFIRMATION",
+    "eligible_final_gate_status_if_all_remaining_week14_obligations_pass": "RECOVERED_WITH_ERRATUM",
+    "original_attempt_remains": "FAIL",
+    "plain_PASS_is_prohibited": true
+  },
+  "historical_status": {
+    "may_be_reclassified_as_pass": false,
+    "original_preregistered_attempt": "FAIL"
+  },
+  "is_original_preregistration": false,
+  "known_defect_confirmation": [
+    {
+      "failure_domain": "architectural",
+      "normative_control": {
+        "redirect": false,
+        "stall_cycles": 0
+      },
+      "required_observed_signature": {
+        "architectural_failure_kinds": [
+          "x0"
+        ],
+        "architectural_x0_expected": 0,
+        "architectural_x0_observed": 7,
+        "control_failures": 0,
+        "target_validated": 0
+      },
+      "root_cause_id": "REGFILE_X0_WRITE",
+      "target_bin": "H18",
+      "test_id": "T18"
+    },
+    {
+      "correlation_rule": {
+        "designated_bin": "H19",
+        "incidental_bin": "H18",
+        "note": "T19/H18 and T19/H19 are correlated rejection records from the same false-stall root cause.",
+        "root_cause_count": 1
+      },
+      "failure_domain": "control",
+      "normative_control": {
+        "redirect": false,
+        "stall_cycles": 0
+      },
+      "required_observed_signature": {
+        "architectural_failures": 0,
+        "control_failure_bins": [
+          "H18",
+          "H19"
+        ],
+        "observed_stall_cycles": 1,
+        "rejected_bins": [
+          "H18",
+          "H19"
+        ],
+        "target_validated": 0
+      },
+      "root_cause_id": "LOAD_RD_X0_FALSE_STALL",
+      "target_bin": "H19",
+      "test_id": "T19"
+    }
+  ],
+  "methodology_statement": "This contract is frozen after discovery and documentation of the preregistration error. It governs only a subsequent confirmation run. It does not constitute evidence that T19 was preregistered before Attempt 1.",
+  "non_retroactive": true,
+  "normative_directed_contract": {
+    "architectural_oracle_required": "20/20",
+    "attribution_required": "20/20",
+    "case_count": 20,
+    "control_oracle_required": "20/20",
+    "designated_intent_required": "20/20",
+    "expected_validated": "18/20",
+    "normative_oracles_are_not_rewritten": true
+  },
+  "required_validated_cases": [
+    "T01",
+    "T02",
+    "T03",
+    "T04",
+    "T05",
+    "T06",
+    "T07",
+    "T08",
+    "T09",
+    "T10",
+    "T11",
+    "T12",
+    "T13",
+    "T14",
+    "T15",
+    "T16",
+    "T17",
+    "T20"
+  ],
+  "schema": "week14.directed-recovery-contract.v1",
+  "status": "PROSPECTIVE_POST_ERRATUM_CONFIRMATION_CONTRACT"
+}
