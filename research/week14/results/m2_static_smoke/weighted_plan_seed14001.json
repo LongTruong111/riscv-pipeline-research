@@ -1,0 +1,27 @@
+{
+  "accepted": 1000,
+  "accepted_budget": 1000,
+  "arm_histogram": {
+    "A0": 54,
+    "A1": 42,
+    "A2": 56,
+    "A3": 42,
+    "A4": 27,
+    "A5": 60,
+    "A6": 50,
+    "A7": 24,
+    "A8": 21,
+    "A9": 29
+  },
+  "block_count": 405,
+  "determinism": true,
+  "final_campaign_executed": false,
+  "histogram_is_gating": false,
+  "image_word_count": 1048,
+  "method": "M2-WR",
+  "partial_final_block": false,
+  "plan_hash": "3b23d6e4887e305100542416c77f93994b229c9f9dab91ac4c0ac9f86465d2c9",
+  "rtl_executed": false,
+  "schema": "week14.m2-static-smoke.v1",
+  "seed": 14001
+}

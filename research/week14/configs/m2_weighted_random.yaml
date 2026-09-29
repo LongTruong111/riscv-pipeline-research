@@ -1,0 +1,141 @@
+{
+  "arm_policy": {
+    "denominator": 16,
+    "ordered_ticket_table": [
+      "A0",
+      "A0",
+      "A1",
+      "A1",
+      "A2",
+      "A2",
+      "A3",
+      "A3",
+      "A4",
+      "A5",
+      "A5",
+      "A6",
+      "A6",
+      "A7",
+      "A8",
+      "A9"
+    ],
+    "type": "STATIC_WEIGHTED_INTEGER_TICKETS",
+    "weights": {
+      "A0": 2,
+      "A1": 2,
+      "A2": 2,
+      "A3": 2,
+      "A4": 1,
+      "A5": 2,
+      "A6": 2,
+      "A7": 1,
+      "A8": 1,
+      "A9": 1
+    }
+  },
+  "authority": {
+    "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+    "m1_config_sha256": "a6b26fd249b228027a0442e0b5ca93e70cc8928b09c59bd5214b5f41e40ec58c",
+    "smoke_witness_sha256": "1c27553a22ade39271854e5b4c7568db7ddff111352bc9b0da5da8b5d7de3b5d",
+    "week10_adaptive_tree_sha": "44b09d01ec1e7e1dbd059fc9065d8b6609f86072",
+    "week13_pure_random_tree_sha": "a33c3c2613810377d1f0e29bfdf4e91e8cab822a",
+    "week5_vplan_tree_sha": "a6e5bffbac8a766200e08f040399734d4078f1bc"
+  },
+  "campaign": {
+    "accepted_budget_per_seed": 100000,
+    "checkpoint_interval": 1000,
+    "final_seeds": [
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015
+    ],
+    "seed_count": 15
+  },
+  "feedback": {
+    "adaptive_utility": false,
+    "checker_result_feedback": false,
+    "epsilon_greedy": false,
+    "intent_coverage_feedback": false,
+    "reward_history": false,
+    "uncovered_register_feedback": false,
+    "validated_coverage_feedback": false
+  },
+  "implementation": {
+    "adaptive_decision_engine_used": false,
+    "adaptive_epoch_coordinator_used": false,
+    "adaptive_register_policy_used": false,
+    "generator": "research/week14/weighted_random/static_generator.py",
+    "physical_pc_mapping": "research/week13/pure_random/runtime_stream.py:physical_pc_for_logical_word",
+    "template_library": "research/week10/adaptive/template_library.py",
+    "template_realizer": "research/week10/adaptive/template_realizer.py"
+  },
+  "method": {
+    "id": "M2-WR",
+    "name": "Weighted Random"
+  },
+  "plan": {
+    "DUT_state_input": false,
+    "coverage_state_input": false,
+    "exact_accepted_prefix": true,
+    "only_final_block_may_be_partial": true,
+    "plan_is_function_of": [
+      "seed",
+      "accepted_budget",
+      "frozen_static_spec"
+    ]
+  },
+  "rng": {
+    "derivation": "SHA256(schema|root_seed|domain) first 128 bits",
+    "domain_schema": "week14.m2.static-rng.v1",
+    "independent_domains": [
+      "arm",
+      "target",
+      "realization"
+    ],
+    "root_seed_namespace": "M2 final seeds",
+    "unseeded_rng_allowed": false
+  },
+  "schema": "week14.m2-final-config.v1",
+  "status": "FROZEN_PRE_FINAL_CAMPAIGN",
+  "target_policy": {
+    "A4": {
+      "ordered_pair_distinct": true,
+      "ordered_pair_probability": {
+        "denominator": 930,
+        "numerator": 1
+      },
+      "selection": "uniform_without_replacement"
+    },
+    "eligible_registers": "x1..x31",
+    "runtime_coverage_feedback": false,
+    "single_distance_probability": {
+      "denominator": 31,
+      "numerator": 1
+    },
+    "type": "STATIC_UNIFORM",
+    "uncovered_first": false
+  },
+  "week14_execution_policy": {
+    "configuration_freeze_only": true,
+    "final_100k_x_15_campaign_allowed": false
+  },
+  "week14_smoke": {
+    "accepted_budget": 1000,
+    "final_seed": false,
+    "histogram_gating": false,
+    "rtl_executed": false,
+    "seed": 14001
+  }
+}
