@@ -1,0 +1,156 @@
+{
+  "authority": {
+    "design_tree_sha": "8291d5ca201b9556bd0964d9c7f2f9a9929fa469",
+    "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+    "planner_path": "research/week13/pure_random/stream_planner.py",
+    "protocol_path": "research/week13/protocol/STOCHASTIC_GENERATOR_ADDENDUM.md",
+    "protocol_tree_sha": "b00e558bc50e6cb7bcf852e248f7b08bde2392b8",
+    "pure_random_tree_sha": "a33c3c2613810377d1f0e29bfdf4e91e8cab822a",
+    "runtime_path": "research/week13/pure_random/runtime_stream.py"
+  },
+  "branch_subtype_policy": {
+    "ordered_subtypes": [
+      "BEQ",
+      "BNE",
+      "BLT",
+      "BGE",
+      "BLTU",
+      "BGEU"
+    ],
+    "probability_each_given_branch": {
+      "denominator": 6,
+      "numerator": 1
+    },
+    "type": "STATIC_UNIFORM"
+  },
+  "campaign": {
+    "accepted_budget_per_seed": 100000,
+    "accepted_instruction_denominator": true,
+    "checkpoint_interval": 1000,
+    "exact_accepted_cut": true,
+    "final_seeds": [
+      1001,
+      1002,
+      1003,
+      1004,
+      1005,
+      1006,
+      1007,
+      1008,
+      1009,
+      1010,
+      1011,
+      1012,
+      1013,
+      1014,
+      1015
+    ],
+    "seed_count": 15
+  },
+  "feedback": {
+    "checker_result_feedback": false,
+    "intent_coverage_feedback": false,
+    "runtime_coverage_feedback": false,
+    "uncovered_register_targeting": false,
+    "validated_coverage_feedback": false
+  },
+  "initial_state": {
+    "dmem_all_zero": true,
+    "gpr_x0_to_x31": 0,
+    "pc": 0
+  },
+  "isa_domain": [
+    "ADD",
+    "ADDI",
+    "LW",
+    "SW",
+    "LUI",
+    "AUIPC",
+    "JAL",
+    "JALR",
+    "BEQ",
+    "BNE",
+    "BLT",
+    "BGE",
+    "BLTU",
+    "BGEU"
+  ],
+  "known_defect_containment": {
+    "checker_x0_invariant_remains_enabled": true,
+    "directed_x0_obligations_are_separate": [
+      "H18",
+      "H19"
+    ],
+    "positive_campaign_excludes_rd_x0": true,
+    "reason": "Contain known x0 DUT defects in the positive stochastic efficiency campaign without weakening architectural checking."
+  },
+  "memory_contract": {
+    "dmem_effective_addresses": {
+      "alignment_bytes": 4,
+      "max": 508,
+      "min": 0
+    },
+    "executable_addresses": {
+      "alignment_bytes": 4,
+      "max": 508,
+      "min": 0
+    },
+    "imem_physical_bytes": 512,
+    "imem_physical_word_mapping": "logical_word_index mod 128",
+    "imem_physical_words": 128
+  },
+  "method": {
+    "id": "M1-PR",
+    "name": "Pure Random"
+  },
+  "payload_family_policy": {
+    "ordered_families": [
+      "ADD",
+      "ADDI",
+      "LW",
+      "SW",
+      "BRANCH",
+      "JAL",
+      "JALR",
+      "LUI",
+      "AUIPC"
+    ],
+    "probability_each": {
+      "denominator": 9,
+      "numerator": 1
+    },
+    "type": "STATIC_UNIFORM"
+  },
+  "plan_contract": {
+    "deterministic_given": [
+      "seed",
+      "accepted_instruction_budget",
+      "frozen_generator_spec"
+    ],
+    "dut_coverage_may_influence_plan": false,
+    "function": "generate_pure_random_plan"
+  },
+  "register_domain": {
+    "positive_gpr_write_rd": {
+      "max": 31,
+      "min": 1,
+      "uniform": true
+    },
+    "unconstrained_rs1": {
+      "max": 31,
+      "min": 0,
+      "uniform": true
+    },
+    "unconstrained_rs2": {
+      "max": 31,
+      "min": 0,
+      "uniform": true
+    }
+  },
+  "schema": "week14.m1-final-config.v1",
+  "status": "FROZEN_PRE_FINAL_CAMPAIGN",
+  "week14_execution_policy": {
+    "configuration_freeze_only": true,
+    "final_100k_x_15_campaign_allowed": false
+  }
+}
