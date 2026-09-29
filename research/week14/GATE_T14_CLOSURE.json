@@ -1,0 +1,141 @@
+{
+  "schema": "week14.gate-t14-closure.v1",
+  "status": "RECOVERED_WITH_ERRATUM",
+  "plain_pass_prohibited": true,
+
+  "authority": {
+    "audit_base_commit": "c4eced7e7696d76b5e6bd5d965a49db0f29672e4",
+    "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6"
+  },
+
+  "directed": {
+    "method": "M0-DIR",
+
+    "original_preregistration_commit": "8a3067599fce0643d815bcfc5f9794f06381985c",
+    "original_harness_commit": "183803b73c64085e3e4f675fc99cf3e4af76cea7",
+
+    "original_preregistered_attempt": "FAIL",
+    "original_attempt_reclassified": false,
+
+    "attempt1_result_sha256": "16765633d033b369559745a8e903e7a0b20367113ce7b3c4f1606112cf1d761c",
+    "attempt1_evidence_sha256": "2ca23a9b3cab82754a609dd555ec83e50eb124b590a678cbbab9a5a9b24d9dc1",
+
+    "erratum_commit": "059b931de962e09444f19b242ee585f93b485c20",
+    "recovery_contract_commit": "7c286762e77c49ecc309e41c8155f7a261d08354",
+    "confirmation_runner_commit": "e8a2281bf22282efd1deb9feea791d2c55fb611e",
+    "closure_commit": "1a80ca608864b17e4d6e54815992968db18b8994",
+
+    "confirmation_status": "PASS_POST_ERRATUM_CONFIRMATION",
+
+    "intent": "20/20",
+    "validated": "18/20",
+    "attribution_exercised": "20/20",
+    "control_oracle_exercised": "20/20",
+    "architectural_oracle_exercised": "20/20",
+
+    "known_root_causes": [
+      "REGFILE_X0_WRITE",
+      "LOAD_RD_X0_FALSE_STALL"
+    ],
+
+    "recovery_result_sha256": "04c7cb22fa725dd76a57fb0f3c69676c0a942e14434eebcc6a69d710b67332ec",
+    "recovery_evidence_sha256": "907a622c6825af3e4c7f4bd82061b1c55038823dc513c2199a5276b68d615597"
+  },
+
+  "m1_pure_random": {
+    "method": "M1-PR",
+    "config_freeze_commit": "68a6c988dda6921f171a49b6f54438a965e8acf7",
+    "config_sha256": "a6b26fd249b228027a0442e0b5ca93e70cc8928b09c59bd5214b5f41e40ec58c",
+    "status": "FROZEN_PRE_FINAL_CAMPAIGN",
+    "accepted_budget_per_final_seed": 100000,
+    "checkpoint_interval": 1000,
+    "final_seeds": [
+      1001, 1002, 1003, 1004, 1005,
+      1006, 1007, 1008, 1009, 1010,
+      1011, 1012, 1013, 1014, 1015
+    ],
+    "final_campaign_executed_in_week14": false
+  },
+
+  "m2_weighted_random": {
+    "method": "M2-WR",
+
+    "static_generator_commit": "0cd362e2ed027d1624f59faebad7ef49a0e97580",
+    "runtime_qualification_commit": "c22fa5eb9f87b0507d997a459a735e015009284c",
+    "rtl_harness_commit": "e651878db8c071943f1ed1d9ae687eb5af5f19be",
+    "rtl_smoke_closure_commit": "c4eced7e7696d76b5e6bd5d965a49db0f29672e4",
+
+    "config_sha256": "48d8e6852e01b054ef2690c9057d073df080a6b3d026958d4673ece60610f443",
+
+    "static_policy": {
+      "feedback_enabled": false,
+      "weight_denominator": 16,
+      "ticket_table": [
+        "A0", "A0",
+        "A1", "A1",
+        "A2", "A2",
+        "A3", "A3",
+        "A4",
+        "A5", "A5",
+        "A6", "A6",
+        "A7",
+        "A8",
+        "A9"
+      ]
+    },
+
+    "rtl_smoke": {
+      "status": "PASS",
+      "seed": 14001,
+      "accepted": 1000,
+      "released_entries": 405,
+      "patched_words": 1048,
+      "max_resident_words": 128,
+      "l1_intent": 17,
+      "l1_validated": 17,
+      "l2_intent": 62,
+      "l2_validated": 62,
+      "plan_hash": "3b23d6e4887e305100542416c77f93994b229c9f9dab91ac4c0ac9f86465d2c9",
+      "result_sha256": "54a4ed801f9b7d64bd3ad5a7a2def79644ffa81ca88eb5975a9e6e87e02be52d",
+      "log_sha256": "b18b917f84b0af6a6a824ed76ccabd7b2a7aaca45af85ca78c04ddd804a9a1c4"
+    },
+
+    "accepted_budget_per_final_seed": 100000,
+    "checkpoint_interval": 1000,
+
+    "final_seeds": [
+      2001, 2002, 2003, 2004, 2005,
+      2006, 2007, 2008, 2009, 2010,
+      2011, 2012, 2013, 2014, 2015
+    ],
+
+    "final_campaign_executed_in_week14": false
+  },
+
+  "protected_trees": {
+    "design": "8291d5ca201b9556bd0964d9c7f2f9a9929fa469",
+    "research/week5/impl": "c239cead363e6d9c704723afe313f537d34eae21",
+    "research/week5/rtl": "c91096dd9176eff3917e4eea580a3fc103a3afe5",
+    "research/week5/vplan": "a6e5bffbac8a766200e08f040399734d4078f1bc",
+    "research/week10/adaptive": "44b09d01ec1e7e1dbd059fc9065d8b6609f86072",
+    "research/week13": "705be5460e868980f64019ac9aa52d6a59537ce4"
+  },
+
+  "limitations": {
+    "final_comparative_campaign_executed": false,
+    "jalr_lsb_defect_activated_by_canonical_directed_suite": false,
+    "positive_stochastic_rd_x0_generation_enabled": false,
+    "directed_known_rejected_cases": [
+      "T18",
+      "T19"
+    ],
+    "note": "Week 14 closes Directed and static-generator finalization only. It does not claim final comparative stochastic results."
+  },
+
+  "gate_decision": {
+    "week14_tests_at_audit": 80,
+    "protected_trees_pass": true,
+    "remaining_week14_obligations_pass": true,
+    "final_status": "RECOVERED_WITH_ERRATUM"
+  }
+}
