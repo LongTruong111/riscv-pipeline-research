@@ -1,0 +1,31 @@
+{
+  "enforcement": {
+    "committed_tree_identity": true,
+    "human_review_of_guard_at_gate": true,
+    "tag_peel_required": true,
+    "working_tree_cleanliness_required": true
+  },
+  "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+  "limitation": "The guard is itself Week14 code and therefore cannot self-establish its own authority. Final authority is the Gate-T13 tag, Gate-T14 review, and the final Gate-T14 tag.",
+  "protected_paths": {
+    "design": {
+      "base_tree": "8291d5ca201b9556bd0964d9c7f2f9a9929fa469"
+    },
+    "research/week10/adaptive": {
+      "base_tree": "44b09d01ec1e7e1dbd059fc9065d8b6609f86072"
+    },
+    "research/week13": {
+      "base_tree": "705be5460e868980f64019ac9aa52d6a59537ce4"
+    },
+    "research/week5/impl": {
+      "base_tree": "c239cead363e6d9c704723afe313f537d34eae21"
+    },
+    "research/week5/rtl": {
+      "base_tree": "c91096dd9176eff3917e4eea580a3fc103a3afe5"
+    },
+    "research/week5/vplan": {
+      "base_tree": "a6e5bffbac8a766200e08f040399734d4078f1bc"
+    }
+  },
+  "schema": "week14.protected-trees.v1"
+}

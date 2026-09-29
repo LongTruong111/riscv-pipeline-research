@@ -1,0 +1,96 @@
+{
+  "activation_analysis": {
+    "jalr_lsb_not_cleared": {
+      "activated": false,
+      "evidence": "No canonical T01-T20 instruction decodes as JALR; T15 uses JAL."
+    },
+    "regfile_x0_write": {
+      "T18": {
+        "activated": true,
+        "architectural_write_value": 7,
+        "initial_rs1": 0,
+        "instruction_index": 1,
+        "operation": "ADDI x0,x1,7",
+        "word": "0x00708013"
+      },
+      "T19": {
+        "activated_as_nonzero_corruption": false,
+        "architectural_write_value": 0,
+        "effective_address": 0,
+        "frozen_initial_dmem_value": 0,
+        "initial_rs1": 0,
+        "instruction_index": 1,
+        "operation": "LW x0,0(x1)",
+        "word": "0x0000a003"
+      }
+    }
+  },
+  "classification_policy": {
+    "classification_unit": "root_cause_signature",
+    "missing_expected_rule": "A preregistered rejection that is not observed is reported separately and must not be silently removed from this artifact.",
+    "post_hoc_known_defect_classification": false,
+    "unexpected_rejection_rule": "Any rejection not matching an exact preregistered root-cause signature is unexpected and fails Gate T14."
+  },
+  "expected_rejection_count": 1,
+  "expected_rejection_test_ids": [
+    "T18"
+  ],
+  "expected_rejections": [
+    {
+      "activation_architectural_value": 7,
+      "activation_instruction_index": 1,
+      "activation_word": "0x00708013",
+      "required_signature": {
+        "architectural_expected_x0": 0,
+        "architectural_failure_kind": "x0",
+        "architectural_observed_x0": 7,
+        "architectural_pass": false,
+        "control_pass": true,
+        "intent_hit": true,
+        "target_validated": false
+      },
+      "root_cause_id": "REGFILE_X0_WRITE",
+      "target_bin": "H18",
+      "test_id": "T18"
+    }
+  ],
+  "frozen_known_dut_defects": [
+    {
+      "defect_id": "REGFILE_X0_WRITE",
+      "description": "Physical RegFile entry x0 is writable."
+    },
+    {
+      "defect_id": "JALR_LSB_NOT_CLEARED",
+      "description": "JALR does not clear target bit 0."
+    }
+  ],
+  "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+  "rejected_gate_alternatives": [
+    "Do not remove T18 from the directed gate to report 19/19.",
+    "Do not change checker expectations to match defective DUT behavior.",
+    "Do not classify a new failure as known after viewing final Directed RTL output."
+  ],
+  "required_non_rejected_cases": [
+    "T01",
+    "T02",
+    "T03",
+    "T04",
+    "T05",
+    "T06",
+    "T07",
+    "T08",
+    "T09",
+    "T10",
+    "T11",
+    "T12",
+    "T13",
+    "T14",
+    "T15",
+    "T16",
+    "T17",
+    "T19",
+    "T20"
+  ],
+  "schema": "week14.directed-expected-rejections.v1",
+  "status": "PREREGISTERED_PRE_DUT"
+}

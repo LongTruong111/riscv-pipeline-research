@@ -1,0 +1,864 @@
+{
+  "case_count": 20,
+  "cases": [
+    {
+      "description": "ALU d1 -> RS1_ONLY/RS1",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T01.hex",
+      "fixture_sha256": "258b3bae7b05d2a614206f66a0497b7c9f737d7cf0710537a57cfea16ebd64de",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 7,
+          "word": "0x00700293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H01",
+      "test_id": "T01"
+    },
+    {
+      "description": "ALU d1 -> RS2",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T02.hex",
+      "fixture_sha256": "b8fa9470b9c9493c3dcc1984aa48c013e94073c7079c06d085784b8758570422",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 7,
+          "word": "0x00700293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x33",
+          "rd": 6,
+          "rs1": 0,
+          "rs2": 5,
+          "word": "0x00500333",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H02",
+      "test_id": "T02"
+    },
+    {
+      "description": "ALU d2 -> RS1_ONLY/RS1",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T03.hex",
+      "fixture_sha256": "c2a4d1f5170f7c5910f8032ab08d83af229b6692dbf976102c40644061a4df0a",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 7,
+          "word": "0x00700293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00000493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H03",
+      "test_id": "T03"
+    },
+    {
+      "description": "ALU d2 -> RS2",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T04.hex",
+      "fixture_sha256": "820dddac46f5eb520bb390a0d5884b082850f1d19d34997f4df146def5cc3a32",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 7,
+          "word": "0x00700293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00000493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x33",
+          "rd": 6,
+          "rs1": 0,
+          "rs2": 5,
+          "word": "0x00500333",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H04",
+      "test_id": "T04"
+    },
+    {
+      "description": "LOAD producer visible through RF at executed d3",
+      "expected_accepted": 4,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T05.hex",
+      "fixture_sha256": "b5d913ae9a08e524f6a6fcdad2aa7c619303885a7515663a646a5efdd9ad2fe3",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00002283",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 1,
+          "word": "0x00100493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 10,
+          "rs1": 0,
+          "rs2": 2,
+          "word": "0x00200513",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 4,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H05",
+      "test_id": "T05"
+    },
+    {
+      "description": "LOAD d1 -> RS1_ONLY/RS1",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T06.hex",
+      "fixture_sha256": "81e7d851421932ea82fa960079809c1b0198d6dbdb6da6065723596b8180c9b7",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00002283",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 1,
+      "rd_x0_write_indices": [],
+      "target_bin": "H06",
+      "test_id": "T06"
+    },
+    {
+      "description": "LOAD d1 -> RS2",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T07.hex",
+      "fixture_sha256": "e72ca487c3fce6079b20d8801ffeca23db2300c32109bf85b63c997f682c1fcb",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00002283",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x33",
+          "rd": 6,
+          "rs1": 0,
+          "rs2": 5,
+          "word": "0x00500333",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 1,
+      "rd_x0_write_indices": [],
+      "target_bin": "H07",
+      "test_id": "T07"
+    },
+    {
+      "description": "LOAD d2 -> RS1_ONLY/RS1",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T08.hex",
+      "fixture_sha256": "ee99f0e461be0c78a5fd27fd27263223dff4fcb3be22f11b33a84f4928e62f20",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00002283",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00000493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H08",
+      "test_id": "T08"
+    },
+    {
+      "description": "LOAD d2 -> RS2",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T09.hex",
+      "fixture_sha256": "92f93f13a59c20cee79e008158ffabb884d6cf3edc1aa60805a253e4945bacd3",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00002283",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00000493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x33",
+          "rd": 6,
+          "rs1": 0,
+          "rs2": 5,
+          "word": "0x00500333",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H09",
+      "test_id": "T09"
+    },
+    {
+      "description": "Dual ALU producers: d1 on RS1 and d2 on RS2",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T10.hex",
+      "fixture_sha256": "884785b5d19a6e5fd7f6e2e0aef2169770b96ded38b3b58fadbadc8b83cd5212",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 1,
+          "rs1": 0,
+          "rs2": 10,
+          "word": "0x00a00093",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 2,
+          "rs1": 1,
+          "rs2": 5,
+          "word": "0x00508113",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x33",
+          "rd": 3,
+          "rs1": 2,
+          "rs2": 1,
+          "word": "0x001101b3",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H10",
+      "test_id": "T10"
+    },
+    {
+      "description": "LUI/IMM d1 -> RS1",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T11.hex",
+      "fixture_sha256": "4408cbcc07a9952f8d9a60ba29a64faa0ea10530311e3e7745c29dec5ce61f34",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x37",
+          "rd": 5,
+          "rs1": 8,
+          "rs2": 3,
+          "word": "0x123452b7",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H11",
+      "test_id": "T11"
+    },
+    {
+      "description": "LUI/IMM d2 -> RS1",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T12.hex",
+      "fixture_sha256": "0b438acfe8ef5a46b65dc185790f3ea3d0b748218758f666cc93c519bf9d6291",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x37",
+          "rd": 5,
+          "rs1": 8,
+          "rs2": 3,
+          "word": "0x123452b7",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00000493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H12",
+      "test_id": "T12"
+    },
+    {
+      "description": "AUIPC/PC_PLUS_IMM d1 -> RS1",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T13.hex",
+      "fixture_sha256": "75f650bcf3709e4b17b904688ba1098fc0a368d731943cb686a78b84411f65f9",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x17",
+          "rd": 5,
+          "rs1": 8,
+          "rs2": 3,
+          "word": "0x12345297",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H13",
+      "test_id": "T13"
+    },
+    {
+      "description": "AUIPC/PC_PLUS_IMM d2 -> RS1",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T14.hex",
+      "fixture_sha256": "302c995e9cd9b52b17872ec4d0251ecba00dc60d98b8739b87420a520bc228c4",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x17",
+          "rd": 5,
+          "rs1": 8,
+          "rs2": 3,
+          "word": "0x12345297",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 0,
+          "word": "0x00000493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H14",
+      "test_id": "T14"
+    },
+    {
+      "description": "JAL link -> next executed target consumer",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T15.hex",
+      "fixture_sha256": "118fd2c28fc8b90a43075dd33521642ce6153a2d5178773556642b19e8614533",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x6f",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 12,
+          "word": "0x00c002ef",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 9,
+          "rs1": 0,
+          "rs2": 9,
+          "word": "0x00900493",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 10,
+          "rs1": 0,
+          "rs2": 10,
+          "word": "0x00a00513",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 4,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 1,
+          "word": "0x00128313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": true,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H15",
+      "test_id": "T15"
+    },
+    {
+      "description": "ALU d1 -> STORE data/RS2",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T16.hex",
+      "fixture_sha256": "2174640a92b6fcb760d1e7db6ea30557a96323a5f8e5150d9bc00faeb23e14c6",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 10,
+          "word": "0x02a00293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x23",
+          "rd": 0,
+          "rs1": 1,
+          "rs2": 5,
+          "word": "0x0050a023",
+          "writes_gpr": false,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H16",
+      "test_id": "T16"
+    },
+    {
+      "description": "newest d1 writer must dominate older d2 writer",
+      "expected_accepted": 3,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T17.hex",
+      "fixture_sha256": "0ea66bd3c2c6f2cae5806819d898d9ed890435b1dda77eb90d4e1b0d5e08e85e",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 1,
+          "word": "0x00100293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 5,
+          "rs1": 0,
+          "rs2": 2,
+          "word": "0x00200293",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 3,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 5,
+          "rs2": 0,
+          "word": "0x00028313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H17",
+      "test_id": "T17"
+    },
+    {
+      "description": "x0 destination followed by architectural x0 source",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T18.hex",
+      "fixture_sha256": "3f6fc435991f16f2c376a7b2cc925fcff02e56702a06ad138977df6bd9479a93",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 0,
+          "rs1": 1,
+          "rs2": 7,
+          "word": "0x00708013",
+          "writes_gpr": true,
+          "writes_rd_x0": true
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 0,
+          "rs2": 1,
+          "word": "0x00100313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [
+        1
+      ],
+      "target_bin": "H18",
+      "test_id": "T18"
+    },
+    {
+      "description": "LOAD-to-x0 must not create architectural RAW stall",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T19.hex",
+      "fixture_sha256": "59dc6b54a218eccbc01849e4a787345aedf19614307ca236e485ee97158b56b4",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 0,
+          "rs1": 1,
+          "rs2": 0,
+          "word": "0x0000a003",
+          "writes_gpr": true,
+          "writes_rd_x0": true
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 0,
+          "rs2": 1,
+          "word": "0x00100313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [
+        1
+      ],
+      "target_bin": "H19",
+      "test_id": "T19"
+    },
+    {
+      "description": "unused OP-IMM raw rs2 field matches LOAD rd",
+      "expected_accepted": 2,
+      "fixture_path": "research/week5/rtl/fixtures/l1/T20.hex",
+      "fixture_sha256": "007b749572240c12c9ffea9d33373cb1ff05ab6c3af0645a1a5af4b4c4be0e4e",
+      "instructions": [
+        {
+          "instruction_index": 1,
+          "is_jalr": false,
+          "opcode": "0x03",
+          "rd": 5,
+          "rs1": 1,
+          "rs2": 0,
+          "word": "0x0000a283",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        },
+        {
+          "instruction_index": 2,
+          "is_jalr": false,
+          "opcode": "0x13",
+          "rd": 6,
+          "rs1": 2,
+          "rs2": 5,
+          "word": "0x00510313",
+          "writes_gpr": true,
+          "writes_rd_x0": false
+        }
+      ],
+      "jalr_instruction_indices": [],
+      "oracle_redirect": false,
+      "oracle_stall_cycles": 0,
+      "rd_x0_write_indices": [],
+      "target_bin": "H20",
+      "test_id": "T20"
+    }
+  ],
+  "purpose": "Pre-DUT static evidence for Week14 directed expected-rejection preregistration.",
+  "schema": "week14.directed-static-audit.v1",
+  "target_bijection": true
+}
