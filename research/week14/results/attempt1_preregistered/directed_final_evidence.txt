@@ -1,0 +1,106 @@
+===== T01 H01 =====
+[T01 -> H01] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H01 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H01 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T02 H02 =====
+[T02 -> H02] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H02 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H02 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T03 H03 =====
+[T03 -> H03] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H03 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H03 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T04 H04 =====
+[T04 -> H04] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H04 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H04 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T05 H05 =====
+[T05 -> H05] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=4 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H05 l2_intent_bins=0 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=16 architectural_passes=16 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H05 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T06 H06 =====
+[T06 -> H06] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=1 stall_cycles=1 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H06 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H06 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=1 redirect=0
+
+===== T07 H07 =====
+[T07 -> H07] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=1 stall_cycles=1 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H07 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H07 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=1 redirect=0
+
+===== T08 H08 =====
+[T08 -> H08] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H08 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H08 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T09 H09 =====
+[T09 -> H09] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H09 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H09 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T10 H10 =====
+[T10 -> H10] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=3 l1_seen=H01,H04,H10 l2_intent_bins=3 control_checks=3 control_passes=3 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=3 l1_validated_seen=H01,H04,H10 validation_attempts=3 validated_hits=3 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T11 H11 =====
+[T11 -> H11] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H11 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H11 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T12 H12 =====
+[T12 -> H12] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H12 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H12 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T13 H13 =====
+[T13 -> H13] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H13 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H13 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T14 H14 =====
+[T14 -> H14] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H14 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H14 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T15 H15 =====
+[T15 -> H15] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=1 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H15 l2_intent_bins=1 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H15 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=1
+
+===== T16 H16 =====
+[T16 -> H16] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=2 l1_seen=H02,H16 l2_intent_bins=1 control_checks=2 control_passes=2 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=2 l1_validated_seen=H02,H16 validation_attempts=2 validated_hits=2 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T17 H17 =====
+[T17 -> H17] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=3 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=2 l1_seen=H01,H17 l2_intent_bins=1 control_checks=2 control_passes=2 control_failures=0 control_failed_bins=none architectural_checks=12 architectural_passes=12 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=2 l1_validated_seen=H01,H17 validation_attempts=2 validated_hits=2 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0
+
+===== T18 H18 =====
+[T18 -> H18] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H18 l2_intent_bins=0 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=6 architectural_failures=2 architectural_failure_kinds=x0 l1_validated_bins=0 l1_validated_seen=none validation_attempts=1 validated_hits=0 rejected_hits=1 validation_pending=0 target_l1_validated=0
+        65.00ns WARNING  cocotb.execution_stream_tb         ARCHITECTURAL_REALIZATION_FAIL kind=x0 instruction_index=1 checks=architectural_x0:expected=0x0,observed=0x7
+        75.00ns WARNING  cocotb.execution_stream_tb         ARCHITECTURAL_REALIZATION_FAIL kind=x0 instruction_index=2 checks=architectural_x0:expected=0x0,observed=0x7
+        75.00ns INFO     cocotb.execution_stream_tb         L1_VALIDATION_REJECT bin=H18 consumer_index=2 reason=architectural failed_arch=1:x0,2:x0
+    oracle: stall=0 redirect=0
+
+===== T19 H19 =====
+[T19 -> H19] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=1 stall_cycles=1 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=2 l1_seen=H18,H19 l2_intent_bins=0 control_checks=2 control_passes=0 control_failures=2 control_failed_bins=H18,H19 architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=0 l1_validated_seen=none validation_attempts=2 validated_hits=0 rejected_hits=2 validation_pending=0 target_l1_validated=0
+        60.00ns WARNING  cocotb.execution_stream_tb         CONTROL_REALIZATION_FAIL bin=H18 consumer_index=2 checks=stall_cycles_before_accept:expected=0,observed=1
+        60.00ns INFO     cocotb.execution_stream_tb         L1_VALIDATION_REJECT bin=H18 consumer_index=2 reason=control failed_arch=none
+        60.00ns WARNING  cocotb.execution_stream_tb         CONTROL_REALIZATION_FAIL bin=H19 consumer_index=2 checks=stall_cycles_before_accept:expected=0,observed=1
+        60.00ns INFO     cocotb.execution_stream_tb         L1_VALIDATION_REJECT bin=H19 consumer_index=2 reason=control failed_arch=none
+    oracle: stall=0 redirect=0
+
+===== T20 H20 =====
+[T20 -> H20] running ... PASS
+    EXECUTION_STREAM_SMOKE cycles=60 accepted=2 accepted_after_stall=0 stall_cycles=0 flush_cycles=0 unsupported_cycles=0 l1_intent_bins=1 l1_seen=H20 l2_intent_bins=0 control_checks=1 control_passes=1 control_failures=0 control_failed_bins=none architectural_checks=8 architectural_passes=8 architectural_failures=0 architectural_failure_kinds=none l1_validated_bins=1 l1_validated_seen=H20 validation_attempts=1 validated_hits=1 rejected_hits=0 validation_pending=0 target_l1_validated=1
+    oracle: stall=0 redirect=0

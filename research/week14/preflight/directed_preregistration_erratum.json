@@ -1,0 +1,97 @@
+{
+  "analytical_error": {
+    "corrected_finding": "Commit 595ed75 added architectural source-use qualification, closing H20, but the frozen HazardDetection logic still lacks an ID_EX_rd != x0 qualification, so H19 remains.",
+    "error_class": "pre-run interpretation of frozen RTL; not DUT mutation, checker mutation, fixture mutation, or simulator cache",
+    "incorrect_prior_assumption": "Week-13 commit 595ed75 fixed both H19 rd=x0 load-use exclusion and H20 source-use qualification."
+  },
+  "attempt_1": {
+    "evidence_path": "research/week14/results/attempt1_preregistered/directed_final_evidence.txt",
+    "evidence_sha256": "2ca23a9b3cab82754a609dd555ec83e50eb124b590a678cbbab9a5a9b24d9dc1",
+    "gate_result_under_original_contract": "FAIL",
+    "intent": {
+      "hit": 20,
+      "total": 20
+    },
+    "observed_rejection_keys": [
+      [
+        "T18",
+        "H18"
+      ],
+      [
+        "T19",
+        "H18"
+      ],
+      [
+        "T19",
+        "H19"
+      ]
+    ],
+    "original_expected_rejection_keys": [
+      [
+        "T18",
+        "H18"
+      ]
+    ],
+    "result_path": "research/week14/results/attempt1_preregistered/directed_final.json",
+    "result_sha256": "16765633d033b369559745a8e903e7a0b20367113ce7b3c4f1606112cf1d761c",
+    "validated": {
+      "hit": 18,
+      "total": 20
+    }
+  },
+  "corrected_directed_characterization": {
+    "designated_rejected_cases": [
+      "T18",
+      "T19"
+    ],
+    "intent": "20/20",
+    "original_gate_attempt_reclassified_as_pass": false,
+    "unexpected_new_dut_defects": [],
+    "validated": "18/20"
+  },
+  "corrected_frozen_dut_defect_set": [
+    {
+      "canonical_case": "T18",
+      "canonical_target": "H18",
+      "failure_domain": "architectural",
+      "root_cause_id": "REGFILE_X0_WRITE"
+    },
+    {
+      "canonical_case": "T19",
+      "canonical_target": "H19",
+      "correlated_incidental_rejection": "H18",
+      "expected_stall_cycles": 0,
+      "failure_domain": "control",
+      "note": "H18 and H19 rejection records in T19 arise from the same false-stall root cause and must not be counted as two independent DUT defects.",
+      "observed_stall_cycles": 1,
+      "root_cause_id": "LOAD_RD_X0_FALSE_STALL"
+    },
+    {
+      "activated_by_T01_T20": false,
+      "canonical_case": null,
+      "canonical_target": null,
+      "root_cause_id": "JALR_LSB_NOT_CLEARED"
+    }
+  ],
+  "gate_t13_commit": "ff6e2cfea4c011597b00b9ef1f74820a7c0851b6",
+  "harness_commit": "183803b73c64085e3e4f675fc99cf3e4af76cea7",
+  "methodology_rule": "The original preregistration and Attempt-1 FAIL remain immutable. This erratum corrects the technical interpretation for subsequent reporting and confirmation; it does not retroactively convert Attempt 1 into PASS.",
+  "non_retroactive": true,
+  "original_preregistration": {
+    "commit": "8a3067599fce0643d815bcfc5f9794f06381985c",
+    "expected_rejection_test_ids": [
+      "T18"
+    ],
+    "preserved_without_rewrite": true
+  },
+  "schema": "week14.directed-preregistration-erratum.v1",
+  "static_evidence": {
+    "current_design_equals_gate_t13": true,
+    "fresh_rebuild_reproduced_t19": true,
+    "fresh_rebuild_t20_passed": true,
+    "hazard_detection_has_rd_x0_exclusion": false,
+    "hazard_detection_has_source_use": true,
+    "matched_rd_x0_exclusion_patterns": []
+  },
+  "status": "POST_FALSIFICATION_ERRATUM"
+}
