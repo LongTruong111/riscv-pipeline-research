@@ -1,0 +1,111 @@
+{
+  "audit_conclusion": {
+    "next_action": "preregister adaptive CGS Week15 freeze contract",
+    "open_protocol_item_count": 0,
+    "semantic_conflict_detected": false,
+    "week15_new_generator_design_required": false
+  },
+  "authorities": [
+    {
+      "authority_id": "week10_contract",
+      "path": "research/week10/ADAPTIVE_CGS_CONTRACT.md",
+      "sha256": "3b59d6bfacaeaa59f3e768c42e300a9572e3fa5fd6725eb5d611314d0120cce0"
+    },
+    {
+      "authority_id": "week10_execution_semantics",
+      "path": "research/week10/CAMPAIGN_EXECUTION_SEMANTICS_AMENDMENT.md",
+      "sha256": "1d3730f7b89d5616b021dfc8cf4b98bbe8564389b1857feafaf3797c078be6fc"
+    },
+    {
+      "authority_id": "decision_engine",
+      "path": "research/week10/adaptive/decision_engine.py",
+      "sha256": "839599a5e8915037833bc7bad44296fcf6cf3250a7e549aab7fe0634a384a00b"
+    },
+    {
+      "authority_id": "reward_engine",
+      "path": "research/week10/adaptive/reward_engine.py",
+      "sha256": "d4a79a9cbc911da7ad159c9693e22a81f658be2e6980850058887820b37284bc"
+    },
+    {
+      "authority_id": "template_library",
+      "path": "research/week10/adaptive/template_library.py",
+      "sha256": "46a310cf36a8ad426d36bc166d05475b1ea931651909677884a87aedf9ee352c"
+    },
+    {
+      "authority_id": "template_realizer",
+      "path": "research/week10/adaptive/template_realizer.py",
+      "sha256": "3a2a14bc4e1cb8803a52a3e96eaa0b9e2a33d63ac4a75504b74d0adaa76e2aa8"
+    },
+    {
+      "authority_id": "register_policy",
+      "path": "research/week10/adaptive/register_policy.py",
+      "sha256": "eec2f29a2c4118560023b8b04cada095332f0cfd0d049df51c7ac81bb5efca4c"
+    },
+    {
+      "authority_id": "filler_policy",
+      "path": "research/week10/adaptive/filler_policy.py",
+      "sha256": "e90e4f876701135092adea57485379916658421749dbe5b34d85019d0a8f2ea1"
+    },
+    {
+      "authority_id": "campaign_seed",
+      "path": "research/week10/adaptive/campaign_seed.py",
+      "sha256": "d233ed6ff1e508362ce29e4d7bb140cd96525b6fc2bfd0b905e99f074215914f"
+    },
+    {
+      "authority_id": "epoch_coordinator",
+      "path": "research/week10/adaptive/epoch_coordinator.py",
+      "sha256": "10fc7198f2655b1bf6625881aae089a4e4b44d34091a42bc749f054952410285"
+    },
+    {
+      "authority_id": "production_campaign",
+      "path": "research/week10/adaptive/production_campaign.py",
+      "sha256": "0d716624581a7d16517b05de04b4418a89e4c792cfc41aab60b9836d00e16110"
+    },
+    {
+      "authority_id": "week13_selected_config",
+      "path": "research/week13/adaptive/selected_config.py",
+      "sha256": "b5c4e0fa42c436f827bf51276b81870bc6ee82a98ed6af1e125862e13e859292"
+    }
+  ],
+  "authority_resolution": {
+    "common_protocol_semantics": [
+      "accepted_instruction_denominator",
+      "exact_n_cut",
+      "checkpoint_interval_1000",
+      "failure_taxonomy",
+      "coverage_lifecycle"
+    ],
+    "inherited_frozen_semantics": [
+      "arm_taxonomy",
+      "template_library",
+      "template_realization",
+      "reward_definition",
+      "reward_attribution",
+      "q_update_rule",
+      "q_initialization",
+      "recent_reward_initialization",
+      "pull_count_initialization",
+      "epoch_index_initialization",
+      "no_mandatory_initial_sweep",
+      "epsilon_greedy_action_selection",
+      "seeded_uniform_max_q_tie_break",
+      "q_floor_uniform_fallback",
+      "uncovered_first_register_targeting",
+      "a4_dual_target_policy",
+      "template_filler_ratio",
+      "deterministic_filler_scheduling",
+      "rng_domain_separation",
+      "seed_derivation"
+    ],
+    "true_open_protocol_items": [],
+    "week13_selected": {
+      "alpha": 0.5,
+      "epsilon": 0.1,
+      "nominal_batch": 500,
+      "q_floor": 0.05
+    }
+  },
+  "gate_t14_base": "08549178134cc2dce65a8b4e8a651e25307176fd",
+  "schema": "week15.adaptive-cgs-authority-audit.v1",
+  "status": "READ_ONLY_AUDIT_COMPLETE"
+}
