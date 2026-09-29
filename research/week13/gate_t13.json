@@ -1,0 +1,102 @@
+{
+  "adaptive_selection": {
+    "alpha": 0.5,
+    "epsilon": 0.1,
+    "median_auc": 0.16129032258064516,
+    "median_l2_intent_at_10000": 20,
+    "median_wall_ns": 7045591553,
+    "nominal_batch": 500,
+    "pilot_configurations": 27,
+    "pilot_harness_revision": "f8951de7d4c1ddd25adf7c6534e6791a7661613a",
+    "pilot_runs": 81,
+    "pilot_seeds": [
+      13001,
+      13002,
+      13003
+    ],
+    "q_floor": 0.05,
+    "status": "PASS",
+    "tie_candidate_count": 9
+  },
+  "coverage_reachability": {
+    "claim": "No unexplained dead L2 bin: at least one official M1 pilot run reached 62/62 L2 Intent bins.",
+    "full_l2_intent_witness_seeds": [
+      11002
+    ],
+    "l2_bin_count": 62,
+    "status": "PASS"
+  },
+  "dut_revision": "595ed75dcf8544c4f7ab3f16966df34ba1c11ee7",
+  "evidence_head_revision": "4d5aa07cc4db770485f02f66d2cce7b81ddbf102",
+  "evidence_integrity": {
+    "adaptive_grid_sha256_index": "f00b3b220b96e29b03ba5fe34b6211a2213ffab78b42c2fd218646ed39eb32f4",
+    "adaptive_manifest_sha256": "eea5832d7771f95a5f299c2fc0e4ed24fd68319e4b6cb61ede60df0c9c9babf5",
+    "adaptive_selection_sha256": "f39bb0cbce4a75fef176f53665d4f09bb141cf94619ead7349a00a3f3ceaa9f4",
+    "m1_pilot_sha256_index": "f7726836dcbacb931a071511ca19642ac8a94593652fb11f92d2ec5941ba608d",
+    "mut_m1_sha256_index": "0acfc7722f2222d67707dece74c1bfb46671781a93c0718198706724fe2e041c",
+    "mut_m2_sha256_index": "4095a44a027b6dca93f90a22faa78d09ea780193abb34b0c7b8098c2ed9ce159",
+    "status": "PASS"
+  },
+  "full_system_benchmark": {
+    "m1_pure_random": {
+      "accepted_per_run": 10000,
+      "median_accepted_per_s": 1359.6426090753348,
+      "median_cycles_per_s": 1884.6006204393216,
+      "median_peak_rss_kib": 45080,
+      "median_wall_ns": 7354873945,
+      "pilot_runs": 3
+    },
+    "m3_adaptive_selected": {
+      "accepted_per_run": 10000,
+      "median_accepted_per_s": 1419.3272381425543,
+      "median_cycles_per_s": 1419.3272381425543,
+      "median_peak_rss_kib": 38144,
+      "median_wall_ns": 7045591553,
+      "pilot_runs": 3
+    },
+    "status": "PASS"
+  },
+  "gate": "T13",
+  "known_non_blocking_debt": [
+    "Verilator WIDTHEXPAND warnings remain in frozen DUT RTL.",
+    "Verilator COMBDLY warnings remain in frozen DUT data-memory RTL.",
+    "Runtime estimates are planning estimates, not measured 100k benchmark results."
+  ],
+  "mutation": {
+    "MUT-M1": {
+      "canonical_control_pass": true,
+      "checker_failure_count": 12,
+      "first_failure_instruction": 5,
+      "status": "PASS",
+      "target_activation_count": 12,
+      "waveform_sha256": "0ec2904ebf47e5266935c79eda9daed5270e5a8f775d570b243e96b514baf673"
+    },
+    "MUT-M2-x0": {
+      "canonical_checker_failure_count": 0,
+      "canonical_forward_a": 0,
+      "canonical_target_activation_count": 1,
+      "first_failure_check_name": "forward_a_x0_exclusion",
+      "first_failure_checker": "week5_h18_control",
+      "mutant_checker_failure_count": 1,
+      "mutant_forward_a": 2,
+      "mutant_target_activation_count": 1,
+      "status": "PASS",
+      "waveform_sha256": "44c2343c56f88b98be4fc4c7a508497662d6235c640ee13bca65a2f48309798c"
+    },
+    "status": "PASS"
+  },
+  "protocol_revision": "fa906a3f8c6630c6e41d9321d79b2c408d04adc5",
+  "runtime_estimate": {
+    "m1_100k_seconds": 73.54873945,
+    "m1_15_runs_minutes": 18.3871848625,
+    "m1_plus_m3_30_runs_minutes": 36.001163745,
+    "m3_100k_seconds": 70.45591553,
+    "m3_15_runs_minutes": 17.6139788825,
+    "method": "linear scaling from median 10000-accepted pilot wall time",
+    "planning_estimate_only": true,
+    "status": "PASS"
+  },
+  "schema_version": "week13.gate-t13.v1",
+  "scope_note": "MUT-M2-x0 is a mutation label and is not the M2 Weighted Random comparative method.",
+  "status": "PASS"
+}
