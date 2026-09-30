@@ -1,0 +1,270 @@
+{
+  "analysis_population": {
+    "accepted_budget_per_run": 100000,
+    "methods": {
+      "M1": {
+        "n": 15,
+        "seeds": [
+          1001,
+          1002,
+          1003,
+          1004,
+          1005,
+          1006,
+          1007,
+          1008,
+          1009,
+          1010,
+          1011,
+          1012,
+          1013,
+          1014,
+          1015
+        ]
+      },
+      "M2": {
+        "n": 15,
+        "seeds": [
+          2001,
+          2002,
+          2003,
+          2004,
+          2005,
+          2006,
+          2007,
+          2008,
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015
+        ]
+      },
+      "M3": {
+        "n": 15,
+        "seeds": [
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007,
+          3008,
+          3009,
+          3010,
+          3011,
+          3012,
+          3013,
+          3014,
+          3015
+        ]
+      }
+    },
+    "paired_analysis": false,
+    "sample_unit": "independent_final_seed_run",
+    "total_runs": 45
+  },
+  "analysis_state_at_freeze": {
+    "additional_final_seed_execution": false,
+    "cross_method_hypothesis_tests_performed": false,
+    "cross_method_primary_statistics_computed": false,
+    "cross_method_ranking_performed": false,
+    "raw_evidence_modified": false
+  },
+  "authority": {
+    "contract_parent_head": "250f59e12028508ea5c15a69faa7514a81fe83b1",
+    "final_archive_manifest": {
+      "path": "research/week15/final_campaign/final/attempt_001_pass/ARCHIVE_SHA256.txt",
+      "sha256": "9c38544f9ae1d334bcab3fd43fabef03775969e449e2af154c52cdde583e3823"
+    },
+    "final_execution_closure": {
+      "path": "research/week15/final_campaign/FINAL_EXECUTION_CLOSURE.json",
+      "sha256": "47d6cd628b60cb9a631eb2211b95fa3cc60cbe7899e14453d60ce35421ea3da4"
+    },
+    "final_m3_harness": {
+      "path": "research/week15/final_campaign/test_m3_final.py",
+      "sha256": "d4e2ae4a1b3dae78a3fa1ed4d8d2041dd4885785f1b2e37a13c7adcbe02142e3"
+    },
+    "frozen_auc_implementation": {
+      "function": "normalized_l2_intent_auc",
+      "path": "research/week13/adaptive/pilot_metrics.py",
+      "sha256": "2268ce4a12d831b0dba8e3721123a7547b712077dd5c753d0806b9e7bab3e09b"
+    }
+  },
+  "canonical_checkpoint_contract": {
+    "checkpoint_count": 100,
+    "checkpoint_interval": 1000,
+    "final_budget": 100000,
+    "l2_bin_count": 62,
+    "method_mapping": {
+      "M1": {
+        "l2_intent": "coverage.checkpoints[].l2_intent",
+        "l2_validated": "coverage.checkpoints[].l2_validated",
+        "x": "coverage.checkpoints[].accepted"
+      },
+      "M2": {
+        "l2_intent": "coverage.checkpoints[].l2_intent",
+        "l2_validated": "coverage.checkpoints[].l2_validated",
+        "x": "coverage.checkpoints[].executed_instructions"
+      },
+      "M3": {
+        "l2_intent": "coverage.checkpoints[].l2_intent_count",
+        "l2_validated": "coverage.checkpoints[].l2_validated_count",
+        "x": "coverage.checkpoints[].executed_instructions"
+      }
+    },
+    "origin": {
+      "instruction_budget": 0,
+      "l2_intent_bins": 0,
+      "l2_validated_bins": 0
+    }
+  },
+  "descriptive_only": {
+    "cycle_count": {
+      "cross_method_inference": false
+    },
+    "final_l1_intent": {
+      "cross_method_inference": false
+    },
+    "final_l1_validated": {
+      "cross_method_inference": false
+    },
+    "runtime_throughput": {
+      "cross_method_inference": false
+    },
+    "stall_cycles": {
+      "cross_method_inference": false
+    }
+  },
+  "descriptive_statistics": {
+    "per_method_per_metric": [
+      "n",
+      "mean",
+      "sample_standard_deviation",
+      "median",
+      "q1",
+      "q3",
+      "min",
+      "max"
+    ],
+    "quartile_definition": "Hyndman-Fan type 7 linear quantile"
+  },
+  "inferential_statistics": {
+    "alpha": 0.05,
+    "analysis_type": "independent_unpaired",
+    "effect_size": {
+      "pairwise": "Cliffs_delta",
+      "sign_convention": "positive means first listed method has numerically larger metric value"
+    },
+    "multiplicity": {
+      "family": "all six primary-metric pairwise tests",
+      "familywise_alpha": 0.05,
+      "method": "Holm"
+    },
+    "omnibus": {
+      "test": "Kruskal-Wallis",
+      "two_sided": true
+    },
+    "pairwise": {
+      "alternative": "two-sided",
+      "pairs": [
+        [
+          "M1",
+          "M2"
+        ],
+        [
+          "M1",
+          "M3"
+        ],
+        [
+          "M2",
+          "M3"
+        ]
+      ],
+      "test": "Mann-Whitney U",
+      "tie_handling": "asymptotic_tie_corrected"
+    },
+    "primary_metrics_only_for_confirmatory_claims": true,
+    "secondary_metric_inference": "exploratory_only"
+  },
+  "interpretation_rules": {
+    "final_62_of_62_as_efficiency_metric": false,
+    "no_additional_final_runs": true,
+    "no_result_driven_metric_substitution": true,
+    "no_seed_deletion": true,
+    "no_seed_replacement": true,
+    "primary_claims_require_primary_metrics": true,
+    "runtime_metrics_are_engineering_descriptive": true,
+    "secondary_metrics_are_supporting": true
+  },
+  "known_telemetry_errata": [
+    {
+      "actual_semantics": "final checkpoint L2 Intent count at N=accepted_budget=100000",
+      "affected_field": "adaptive.selection_metric.l2_intent_bins_at_10000",
+      "analysis_rule": "Never use this stored M3 field as the 10k metric. Derive N=10000 from the canonical raw checkpoint trace.",
+      "evidence": {
+        "final_harness_assignment": "selection_metric field is assigned final_checkpoint.l2_intent_count",
+        "final_runs_match_checkpoint_10000": "0/15",
+        "final_runs_match_checkpoint_100000": "15/15"
+      },
+      "execution_validity_affected": false,
+      "id": "M3_MISNAMED_L2_INTENT_BINS_AT_10000",
+      "raw_checkpoint_validity_affected": false,
+      "raw_evidence_rewrite_allowed": false,
+      "rerun_required": false,
+      "severity": "ANALYSIS_TELEMETRY_NAMING_ONLY"
+    }
+  ],
+  "l1_comparability_rule": {
+    "cross_method_inference": false,
+    "cross_method_primary_use": false,
+    "reason": "Observed final L1 universe is not common across methods: M1=18, M2=17, M3 observed 16 or 17."
+  },
+  "primary_metrics": {
+    "l2_intent_bins_at_10000": {
+      "coverage_universe": 62,
+      "definition": "L2 Intent bin count at canonical checkpoint N=10000",
+      "derivation": "derive from raw coverage checkpoint; do not use the misnamed M3 stored field",
+      "direction": "higher_is_better"
+    },
+    "normalized_l2_intent_auc": {
+      "coverage_universe": 62,
+      "direction": "higher_is_better",
+      "formula": "(1/Nmax) * integral_0^Nmax (L2_intent_bins(N)/62) dN",
+      "grid": "0..100000 step 1000",
+      "integration": "trapezoidal",
+      "n_max": 100000,
+      "origin_coverage": 0.0
+    }
+  },
+  "schema": "week15.final-analysis-contract.v1",
+  "secondary_metrics": {
+    "checkpoint_to_full_l2_intent": {
+      "definition": "first canonical checkpoint N where L2 Intent count equals 62",
+      "direction": "lower_is_better",
+      "if_not_reached": "right_censored_beyond_100000",
+      "interpolation": false,
+      "resolution": 1000
+    },
+    "checkpoint_to_full_l2_validated": {
+      "definition": "first canonical checkpoint N where L2 Validated count equals 62",
+      "direction": "lower_is_better",
+      "if_not_reached": "right_censored_beyond_100000",
+      "interpolation": false,
+      "resolution": 1000
+    },
+    "normalized_l2_validated_auc": {
+      "coverage_universe": 62,
+      "direction": "higher_is_better",
+      "formula": "(1/Nmax) * integral_0^Nmax (L2_validated_bins(N)/62) dN",
+      "grid": "0..100000 step 1000",
+      "integration": "trapezoidal",
+      "n_max": 100000,
+      "origin_coverage": 0.0
+    }
+  },
+  "status": "FROZEN_BEFORE_CROSS_METHOD_STATISTICS"
+}
