@@ -104,7 +104,7 @@ def validate_result(
     method: str,
     seed: int,
     accepted_budget: int,
-) -> None:
+) -> dict[str, Any]:
     if result.get("seed") != seed:
         raise RuntimeError(
             f"{method}: result seed mismatch"
@@ -164,29 +164,60 @@ def validate_result(
         "retired_checked"
     )
 
-    in_flight = lifecycle.get(
-        "in_flight"
-    )
+    in_flight_fields = [
+        field
+        for field in (
+            "in_flight",
+            "in_flight_at_cut",
+        )
+        if field in lifecycle
+    ]
+
+    if not in_flight_fields:
+        raise RuntimeError(
+            f"{method}: missing in-flight count"
+        )
+
+    in_flight_values = [
+        lifecycle[field]
+        for field in in_flight_fields
+    ]
+
+    if (
+        len(in_flight_values) == 2
+        and in_flight_values[0]
+        != in_flight_values[1]
+    ):
+        raise RuntimeError(
+            f"{method}: conflicting in-flight "
+            "counts"
+        )
+
+    in_flight = in_flight_values[0]
 
     if accepted != accepted_budget:
         raise RuntimeError(
             f"{method}: exact-N mismatch"
         )
 
-    if not isinstance(
-        retired,
-        int,
-    ):
+    if type(retired) is not int:
         raise RuntimeError(
             f"{method}: invalid retired count"
         )
 
-    if not isinstance(
-        in_flight,
-        int,
-    ):
+    if type(in_flight) is not int:
         raise RuntimeError(
             f"{method}: invalid in-flight count"
+        )
+
+    if type(accepted) is not int:
+        raise RuntimeError(
+            f"{method}: invalid accepted count"
+        )
+
+    if retired < 0 or in_flight < 0:
+        raise RuntimeError(
+            f"{method}: negative lifecycle count"
         )
 
     if (
@@ -197,6 +228,21 @@ def validate_result(
             f"{method}: lifecycle invariant "
             "failed"
         )
+
+    source_field = (
+        in_flight_fields[0]
+        if len(in_flight_fields) == 1
+        else "both_equal"
+    )
+
+    return {
+        "accepted": accepted,
+        "retired_checked": retired,
+        "in_flight": in_flight,
+        "in_flight_source_field": (
+            source_field
+        ),
+    }
 
 
 def run_one(
@@ -376,18 +422,48 @@ def run_one(
 
         return record
 
-    result = json.loads(
-        result_path.read_text(
-            encoding="utf-8"
+    try:
+        result = json.loads(
+            result_path.read_text(
+                encoding="utf-8"
+            )
         )
-    )
 
-    validate_result(
-        result,
-        method=method,
-        seed=seed,
-        accepted_budget=budget,
-    )
+        normalized_lifecycle = (
+            validate_result(
+                result,
+                method=method,
+                seed=seed,
+                accepted_budget=budget,
+            )
+        )
+
+    except (
+        json.JSONDecodeError,
+        RuntimeError,
+        ValueError,
+        KeyError,
+        TypeError,
+    ) as exc:
+        record.update(
+            {
+                "classification": (
+                    "INFRA_INVALID"
+                ),
+                "result_sha256": (
+                    sha256(result_path)
+                ),
+                "results_xml_sha256": (
+                    sha256(results_xml)
+                ),
+                "validation_error_type": (
+                    type(exc).__name__
+                ),
+                "validation_error": str(exc),
+            }
+        )
+
+        return record
 
     record.update(
         {
@@ -404,7 +480,7 @@ def run_one(
                 sha256(results_xml)
             ),
             "lifecycle": (
-                result["lifecycle"]
+                normalized_lifecycle
             ),
             "post_cut_clock_edges": (
                 result[
