@@ -1,0 +1,66 @@
+{
+  "attempt": 5,
+  "classification": "INFRA_INVALID_POST_RUN_RESULT_SCHEMA_ADAPTER_M3_ACCEPTED_BUDGET",
+  "evidence": {
+    "build_products_committed": false,
+    "driver_log_sha256": "8bf11d7836e14727cc9025e924774ab599353175ceb1ca69795d3079a6771bb1",
+    "original_evidence_manifest_sha256": "64343ecf3026e42f2b1027ab124af23955957ebdf1e1d11cb825fd1c1282c914",
+    "qualification_summary_sha256": "3488e28f593c65198f6540fce149612ac1184eab25fbe0abaf6550462c1a70e9",
+    "runner_rc_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+  },
+  "matrix": {
+    "M1": {
+      "classification": "QUALIFICATION_VALID",
+      "result_status": "COMPLETED",
+      "seed": 16001
+    },
+    "M2": {
+      "classification": "QUALIFICATION_VALID",
+      "result_status": "COMPLETED",
+      "seed": 16002
+    },
+    "M3": {
+      "accepted": 100000,
+      "in_flight": 3,
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99997,
+      "runner_classification": "INFRA_INVALID",
+      "runner_validation_error": "M3: accepted budget mismatch",
+      "seed": 16003,
+      "simulator_returncode": 0,
+      "simulator_test_pass": true
+    },
+    "expected_runs": 3,
+    "runs_executed": 3
+  },
+  "policy": {
+    "attempt_rerun_allowed": false,
+    "final_seed_use": 0,
+    "full_matrix_requalification_required": true,
+    "next_attempt": 6,
+    "qualification_seeds_may_be_reused": true,
+    "results_may_drive_tuning": false,
+    "selective_rerun_allowed": false
+  },
+  "qualification_head": "0be09e19e56b32a68a59550f2fbf178e042853ff",
+  "qualification_summary_created": true,
+  "root_cause": {
+    "M3_actual_location": "result.configuration.accepted_budget",
+    "M3_harness_execution_defect_evidence": false,
+    "M3_lifecycle_accepted": 100000,
+    "M3_method_defect_evidence": false,
+    "M3_nested_budget_value": 100000,
+    "M3_top_level_field_present": false,
+    "class": "POST_RUN_RESULT_SCHEMA_ADAPTER",
+    "dut_defect_evidence": false,
+    "field": "accepted_budget",
+    "generator_defect_evidence": false,
+    "method_semantics_change_required": false,
+    "runner_defect_evidence": true,
+    "runner_expected_location": "result.accepted_budget",
+    "runner_repair_required": true
+  },
+  "schema": "week15.infra-qualification-attempt.v1",
+  "status": "INFRA_INVALID"
+}
