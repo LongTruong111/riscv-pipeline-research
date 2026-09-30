@@ -1,0 +1,65 @@
+{
+  "attempt": 2,
+  "authority": {
+    "harness_manifest_sha256": "a2a010e46b33de5efee9c52166d1f09c13a332c7aaebfa362cdd07a7431641ef",
+    "launch_contract_sha256": "dec1ac2bba266cd20fe7d6911c30794fd957f259e4ccabf936d344f5c717c268",
+    "qualification_runner_sha256": "bed30a189506f7fce33a627f48164bed231fac2fac1e584f11a94617048b5991"
+  },
+  "classification": "INFRA_INVALID_POST_RUN_RESULT_SCHEMA_ADAPTER",
+  "evidence": {
+    "M1_result_sha256": "60550ec328c1a09939ea0334be884a8f3462e5754810111f57a8205dea9c354b",
+    "M1_results_xml_sha256": "be77e57688560153c2d364873a21c61106c02f3035670a958bbd4b7eec803431",
+    "M1_simulator_log_sha256": "3127f0806110e5ce0410e1a0311a38cbb9bf4c0a8f0077a5a2d155be58496037",
+    "build_hash_manifest_preserved": true,
+    "build_products_committed": false,
+    "original_evidence_manifest_sha256": "3b165c7ebaec69012c1990cb550e5ab86976355cdd65501108bdf1467995a574"
+  },
+  "failure_stage": "POST_M1_SIMULATION_RESULT_VALIDATION",
+  "matrix": {
+    "M1": {
+      "accepted": 100000,
+      "accepted_budget": 100000,
+      "cocotb_pass": true,
+      "executed": true,
+      "in_flight_at_cut": 1,
+      "lifecycle_invariant": "PASS",
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99999,
+      "seed": 16001
+    },
+    "M2": {
+      "accepted_budget": 100000,
+      "executed": false,
+      "seed": 16002
+    },
+    "M3": {
+      "accepted_budget": 100000,
+      "executed": false,
+      "seed": 16003
+    },
+    "executed_runs": 1,
+    "expected_runs": 3
+  },
+  "policy": {
+    "complete_matrix_rerun_required": true,
+    "final_seed_use": 0,
+    "next_attempt": 3,
+    "selective_rerun_allowed": false,
+    "tuning_allowed": false
+  },
+  "qualification_head": "1f52eb392aa1b6bb6b70889e57c30bdef6e835eb",
+  "qualification_summary_created": false,
+  "root_cause": {
+    "M1_actual_field": "lifecycle.in_flight_at_cut",
+    "M1_execution_valid": true,
+    "dut_affected": false,
+    "generator_affected": false,
+    "method_semantics_affected": false,
+    "runner_expected_field": "lifecycle.in_flight",
+    "type": "QUALIFICATION_RUNNER_RESULT_SCHEMA_ADAPTER"
+  },
+  "runner_returncode": 1,
+  "schema": "week15.infra-qualification-attempt.v1",
+  "status": "INFRA_INVALID"
+}
