@@ -461,3 +461,46 @@ def test_generated_harness_does_not_use_week13_runtime_seed_overrides():
         "W13_ADAPTIVE_BATCH"
         not in source
     )
+
+
+def test_week15_rtl_makefile_resolves_repo_root_at_correct_depth():
+    makefile = (
+        ROOT
+        / "research/week15/rtl/Makefile"
+    )
+
+    source = makefile.read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        "REPO_ROOT := "
+        "$(abspath $(THIS_DIR)/../../..)"
+        in source
+    )
+
+    assert (
+        "REPO_ROOT := "
+        "$(abspath $(THIS_DIR)/../../../..)"
+        not in source
+    )
+
+    resolved = (
+        makefile.parent
+        / "../../.."
+    ).resolve()
+
+    assert resolved == ROOT
+
+    assert (
+        resolved
+        / "design/RegPack.sv"
+    ).is_file()
+
+    assert (
+        resolved
+        / (
+            "research/week10/rtl/"
+            "adaptive_execution_stream_tb.sv"
+        )
+    ).is_file()

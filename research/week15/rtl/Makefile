@@ -1,5 +1,5 @@
 THIS_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-REPO_ROOT := $(abspath $(THIS_DIR)/../../../..)
+REPO_ROOT := $(abspath $(THIS_DIR)/../../..)
 
 SIM ?= verilator
 
