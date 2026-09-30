@@ -1,0 +1,426 @@
+{
+  "freeze": {
+    "action_selection": {
+      "algorithm": "epsilon_greedy",
+      "authority": [
+        "week10_contract",
+        "decision_engine"
+      ],
+      "epsilon_comparison": "epsilon_draw < epsilon",
+      "epsilon_draw_source": "decision_rng",
+      "exact_maximum_tie_break": "seeded_uniform_over_tied_max_Q_arms",
+      "exploitation_rule": "maximum_Q",
+      "exploration_candidates": "uniform_A0_through_A9",
+      "exploration_probability": 0.1,
+      "first_index_argmax_allowed": false,
+      "low_utility_arm_removal": false,
+      "optimistic_initialization": false,
+      "q_floor_precedence": true,
+      "untried_arm_bonus": false
+    },
+    "alpha": {
+      "authority": [
+        "week13_selected_config"
+      ],
+      "historical_value_is_final_authority": false,
+      "historical_week10_engineering_value": 0.3,
+      "value": 0.5
+    },
+    "arm_taxonomy": {
+      "arm_order": [
+        "A0",
+        "A1",
+        "A2",
+        "A3",
+        "A4",
+        "A5",
+        "A6",
+        "A7",
+        "A8",
+        "A9"
+      ],
+      "arms": {
+        "A0": {
+          "distance": "d1",
+          "name": "ALU_D1"
+        },
+        "A1": {
+          "distance": "d2",
+          "name": "ALU_D2"
+        },
+        "A2": {
+          "distance": "d1",
+          "name": "LOAD_D1"
+        },
+        "A3": {
+          "distance": "d2",
+          "name": "LOAD_D2"
+        },
+        "A4": {
+          "distance": "d1_d2",
+          "name": "DUAL_D1_D2"
+        },
+        "A5": {
+          "distance": "d1",
+          "name": "SPECIAL_WB_D1"
+        },
+        "A6": {
+          "distance": "d2",
+          "name": "SPECIAL_WB_D2"
+        },
+        "A7": {
+          "distance": "d1",
+          "name": "LINK_D1"
+        },
+        "A8": {
+          "distance": "d1",
+          "name": "STORE_DATA_D1"
+        },
+        "A9": {
+          "distance": "d1",
+          "name": "PRIORITY_D1"
+        }
+      },
+      "authority": [
+        "week10_contract",
+        "template_library"
+      ],
+      "count": 10,
+      "mutation_allowed": false
+    },
+    "batch_semantics": {
+      "authority": [
+        "week10_contract",
+        "week10_execution_semantics",
+        "week13_selected_config"
+      ],
+      "denominator": "architecturally_accepted_executed_instructions",
+      "epoch_count_is_fixed_by_budget_divided_by_batch": false,
+      "nominal_batch": 500,
+      "one_arm_per_epoch": true,
+      "ordinary_epoch_may_overshoot_nominal_batch": true,
+      "ordinary_epoch_rule": "generate complete template instances until actual executed instruction count first reaches or exceeds nominal_batch",
+      "ordinary_template_split_for_batch_boundary": false,
+      "reward_denominator": "actual_executed_instructions_in_epoch"
+    },
+    "canonical_serialization": {
+      "comparison_unit": "SHA256_of_complete_canonical_trace",
+      "ensure_ascii": false,
+      "float_rule": "all semantic binary floats are serialized as strings 'hex:' + float.hex(value)",
+      "hash": "SHA256",
+      "json_separators": [
+        ",",
+        ":"
+      ],
+      "logical_format": "JSON_LINES",
+      "mapping_key_order": "lexicographic",
+      "record_encoding": "UTF-8",
+      "record_terminator": "\\n",
+      "sequence_order": "preserved",
+      "set_values_allowed": false
+    },
+    "epsilon": {
+      "authority": [
+        "week13_selected_config"
+      ],
+      "value": 0.1
+    },
+    "initialization": {
+      "adaptive_state_inherited_between_seeds": false,
+      "authority": [
+        "week10_contract",
+        "decision_engine"
+      ],
+      "coverage_state_reset_each_seed": true,
+      "epoch_index": 0,
+      "mandatory_initial_one_pull_per_arm": false,
+      "pull_count_all_arms": 0,
+      "q_all_arms": 0.0,
+      "recent_reward_all_arms": 0.0,
+      "rng_state_reset_each_seed": true
+    },
+    "q_floor": {
+      "authority": [
+        "week10_contract",
+        "decision_engine",
+        "week13_selected_config"
+      ],
+      "is_optimistic_initialization": false,
+      "is_post_update_clamp": false,
+      "semantics": "after learning has begun, if max(Q) <= q_floor, the following epoch selects uniformly over all ten arms",
+      "value": 0.05
+    },
+    "register_targeting": {
+      "a4": {
+        "distinct_registers": true,
+        "objective": "maximize uncovered opportunity score",
+        "ordered_pair": true,
+        "tie_break": "seeded_uniform_over_canonical_best_pairs"
+      },
+      "authority": [
+        "week10_contract",
+        "register_policy"
+      ],
+      "candidate_order": "ascending_register_number",
+      "positive_register_domain": "x1..x31",
+      "python_set_hash_iteration_may_affect_trace": false,
+      "rng_source": "target_rng",
+      "single_distance_policy": "uniform_uncovered_first_else_uniform_all_positive",
+      "x0_is_positive_target": false
+    },
+    "reproducibility_rule": {
+      "coverage_level_is_gate_condition": false,
+      "exploitation_count_is_required_telemetry": true,
+      "exploration_count_is_gate_condition": false,
+      "exploration_count_is_required_telemetry": true,
+      "final_m3_seed_namespace": "3001..3015",
+      "fresh_process_required": true,
+      "performance_threshold_is_gate_condition": false,
+      "q_floor_uniform_count_is_required_telemetry": true,
+      "qualification_matrix": [
+        {
+          "accepted_budget": 10000,
+          "purpose": "short_budget_same_seed_replay",
+          "repetitions": [
+            "A",
+            "B"
+          ],
+          "seed": 15001
+        },
+        {
+          "accepted_budget": 10000,
+          "purpose": "short_budget_same_seed_replay",
+          "repetitions": [
+            "A",
+            "B"
+          ],
+          "seed": 15002
+        },
+        {
+          "accepted_budget": 100000,
+          "purpose": "long_horizon_same_seed_replay",
+          "repetitions": [
+            "A",
+            "B"
+          ],
+          "seed": 15003
+        }
+      ],
+      "qualification_seed_is_final_seed": false,
+      "same_seed_same_contract_same_commit": "all gate-required canonical trace hashes must be identical"
+    },
+    "requalification_rule": {
+      "after_execution_affecting_fix": "rerun_entire_qualification_matrix",
+      "old_evidence_status_after_fix": "SUPERSEDED",
+      "old_failed_evidence_deleted": false,
+      "pair_mismatch_status": "REPRODUCIBILITY_FAIL",
+      "selective_success_retention_allowed": false,
+      "semantics_change_requires_new_contract_version": true,
+      "semantics_change_requires_qualification_restart": true,
+      "semantics_preserving_fix_may_keep_contract": true,
+      "silent_rerun_allowed": false
+    },
+    "reward": {
+      "authority": [
+        "week10_contract",
+        "reward_engine",
+        "epoch_coordinator"
+      ],
+      "coverage_space": "L2_INTENT",
+      "distances": [
+        "d1",
+        "d2"
+      ],
+      "equation": "R_t = 1000 * |attributable_new_L2_intent_bins| / actual_executed_instructions_in_epoch",
+      "incidental_coverage_rewards_selected_arm": false,
+      "incidental_global_intent_may_update": true,
+      "l2_bins": 62,
+      "novelty_reference": "coverage_at_epoch_start",
+      "register_domain": "x1..x31",
+      "requires_exact_template_provenance": true,
+      "validated_coverage_affects_reward": false,
+      "zero_new_attributable_bins_reward": 0.0
+    },
+    "seed_handling": {
+      "authority": [
+        "week10_execution_semantics",
+        "campaign_seed"
+      ],
+      "campaign_filler_consumes_rng": false,
+      "derivation_message": "week10-adaptive-cgs-v1|<decimal(root_seed)>|<subsystem>",
+      "digest": "SHA256_UTF8",
+      "mutable_rng_objects_shared_between_domains": false,
+      "one_root_seed_per_run": true,
+      "os_entropy_allowed": false,
+      "python_hash_allowed": false,
+      "rng_implementation": "python.random.Random",
+      "seed_domain": "week10-adaptive-cgs-v1",
+      "subseed_bytes": "digest[0:8]",
+      "subseed_interpretation": "unsigned_big_endian_64_bit_integer",
+      "subsystems": [
+        "decision",
+        "target",
+        "realization"
+      ],
+      "wall_clock_entropy_allowed": false
+    },
+    "stopping_rule": {
+      "authoritative_denominator": "accepted_architectural_instruction",
+      "authority": [
+        "week10_execution_semantics",
+        "week13_common_protocol"
+      ],
+      "checkpoint_interval": 1000,
+      "discarded_suffix_affects_coverage": false,
+      "discarded_suffix_affects_reward": false,
+      "final_active_epoch_q_update_count": 1,
+      "final_exact_n_truncation_allowed": true,
+      "future_final_campaign_budget": 100000,
+      "post_cut_clock_edges_allowed": 0,
+      "qualification_long_budget": 100000,
+      "qualification_short_budget": 10000,
+      "round_to_checkpoint_boundary": false,
+      "round_to_epoch_boundary": false,
+      "round_to_refill_boundary": false,
+      "round_to_template_boundary": false,
+      "successful_fixed_budget_condition": "accepted == configured_N"
+    },
+    "template_filler_policy": {
+      "authority": [
+        "week10_contract",
+        "filler_policy"
+      ],
+      "campaign_filler_between_complete_templates_only": true,
+      "campaign_filler_may_split_dependency": false,
+      "filler_instruction": {
+        "destination": "lowest positive register not protected",
+        "imm20": "0x13579",
+        "opcode": "LUI",
+        "reads_sources": false,
+        "redirects_control_flow": false,
+        "writes_x0": false
+      },
+      "no_legal_destination_behavior": "raise_FillerConstructionError",
+      "nominal_campaign_filler_fraction": 0.2,
+      "nominal_targeted_fraction": 0.8,
+      "scheduler": "required_fillers = floor(cumulative_targeted_instructions / 4)",
+      "scheduler_uses_coverage": false,
+      "scheduler_uses_rng": false,
+      "structural_template_instruction_is_campaign_filler": false,
+      "targeted_to_campaign_filler_ratio": "4:1"
+    },
+    "template_library": {
+      "authority": [
+        "template_library",
+        "template_realizer"
+      ],
+      "concrete_realization_is_part_of_freeze": true,
+      "realization_source": "research/week10/adaptive/template_realizer.py",
+      "semantic_source": "research/week10/adaptive/template_library.py"
+    },
+    "trace_schema": {
+      "arm_decision_trace_minimum_fields": [
+        "epoch_index",
+        "selection_mode",
+        "selected_arm",
+        "candidate_arms"
+      ],
+      "coverage_trace_minimum_fields": [
+        "accepted",
+        "l1_intent",
+        "l1_validated",
+        "l2_intent",
+        "l2_validated"
+      ],
+      "gate_required_traces": [
+        "instruction_stream",
+        "arm_decision_trace",
+        "reward_trace",
+        "coverage_trace"
+      ],
+      "instruction_stream_identity_fields": [
+        "accepted_instruction_index",
+        "pc",
+        "instruction_word"
+      ],
+      "reward_trace_minimum_fields": [
+        "epoch_index",
+        "selected_arm",
+        "actual_executed_instructions",
+        "attributable_new_count",
+        "reward"
+      ],
+      "supplemental_traces": [
+        "q_trace",
+        "epoch_trace"
+      ]
+    },
+    "update_rule": {
+      "authority": [
+        "week10_contract",
+        "decision_engine"
+      ],
+      "classical_q_learning": false,
+      "classification": "recency_weighted_action_value",
+      "equation": "Q_new = Q_old + alpha * (reward - Q_old)",
+      "selected_arm_only": true,
+      "unselected_arms_unchanged": true
+    }
+  },
+  "gate_policy": {
+    "gate_must_derive_checklist_from_contract": true,
+    "manual_retyped_freeze_checklist_is_authoritative": false,
+    "performance_metric_may_select_gate_result": false,
+    "qualification_equals_optimization": false,
+    "required_field_source": "required_freeze_fields",
+    "undefined_required_field_fails_gate": true
+  },
+  "method": {
+    "adaptive_objective": "L2 Intent Coverage",
+    "classification": "epsilon-greedy multi-armed bandit",
+    "id": "M3-ACGS"
+  },
+  "post_contract_policy": {
+    "final_seed_use_before_gate_t15": false,
+    "qualification_output_may_tune_arm_taxonomy": false,
+    "qualification_output_may_tune_filler": false,
+    "qualification_output_may_tune_generator": false,
+    "qualification_output_may_tune_hyperparameters": false,
+    "qualification_output_may_tune_reward": false,
+    "qualification_output_may_tune_rng": false,
+    "qualification_output_may_tune_targeting": false,
+    "qualification_output_may_tune_templates": false,
+    "qualification_output_may_tune_tie_break": false
+  },
+  "provenance": {
+    "authority_manifest": {
+      "path": "research/week15/audit/adaptive_cgs_authority_manifest.json",
+      "sha256": "8e776ccc39329556e3876260d46bc15d6f3f8ad865ecd559a7f9d89e973c6e52"
+    },
+    "gate_t14_commit": "08549178134cc2dce65a8b4e8a651e25307176fd",
+    "true_open_protocol_items": [],
+    "week15_authority_audit_commit": "5cb46ffed132a6c79184896388268a92899a0fde"
+  },
+  "required_freeze_fields": [
+    "arm_taxonomy",
+    "template_library",
+    "reward",
+    "epsilon",
+    "alpha",
+    "q_floor",
+    "update_rule",
+    "batch_semantics",
+    "initialization",
+    "action_selection",
+    "register_targeting",
+    "template_filler_policy",
+    "seed_handling",
+    "stopping_rule",
+    "trace_schema",
+    "canonical_serialization",
+    "reproducibility_rule",
+    "requalification_rule"
+  ],
+  "schema": "week15.adaptive-cgs-freeze.v1",
+  "status": "FROZEN_FOR_T15_QUALIFICATION"
+}
