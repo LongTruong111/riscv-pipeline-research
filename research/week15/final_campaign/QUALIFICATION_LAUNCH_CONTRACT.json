@@ -27,10 +27,10 @@
     },
     "qualification_runner": {
       "path": "research/week15/final_campaign/run_infra_qualification.py",
-      "sha256": "649ef725bb8e9385a73c285cb0321945dde95cfff28ef1f524a029db9610d571"
+      "sha256": "564f9424f3eed54741e8c9f39f17c4116d59e504d3544aa25588347e2c26bd6a"
     }
   },
-  "execution_infra_head": "d9d781ec622533248fbb491717b7232df1814422",
+  "execution_infra_head": "4de914d07b6ebbca189c7aaf9996e29a3f537c82",
   "failure_policy": {
     "any_lifecycle_mismatch": "INFRA_INVALID",
     "any_missing_result": "INFRA_INVALID",
@@ -131,10 +131,29 @@
       "runs_started": 3,
       "selective_rerun_used": false,
       "signal_source_identified": false
+    },
+    {
+      "M1_execution_valid": true,
+      "M2_execution_valid": true,
+      "M3_execution_valid": true,
+      "M3_result_status": "COMPLETED",
+      "M3_simulator_returncode": 0,
+      "affected_component": "qualification_runner_schema_adapter",
+      "archive_head": "87561c1b6f45db20831872d75f2a1e2b15486329",
+      "attempt": 5,
+      "classification": "INFRA_INVALID_POST_RUN_RESULT_SCHEMA_ADAPTER_M3_ACCEPTED_BUDGET",
+      "code_repair_required": true,
+      "final_seed_use": 0,
+      "method_repair_required": false,
+      "repair_head": "4de914d07b6ebbca189c7aaf9996e29a3f537c82",
+      "runner_validation_error": "M3: accepted budget mismatch",
+      "runs_executed": 3,
+      "runs_started": 3,
+      "selective_rerun_used": false
     }
   ],
   "requalification": {
-    "attempt_number": 5,
+    "attempt_number": 6,
     "coverage_level_is_gate": false,
     "matrix_scope": "FULL_M1_M2_M3",
     "performance_level_is_gate": false,
@@ -143,5 +162,5 @@
     "selective_rerun_allowed": false
   },
   "schema": "week15.infra-qualification-launch-contract.v1",
-  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_005"
+  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_006"
 }
