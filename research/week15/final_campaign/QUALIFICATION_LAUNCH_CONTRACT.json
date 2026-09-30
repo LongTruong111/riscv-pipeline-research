@@ -25,10 +25,6 @@
       "path": "research/week15/final_campaign/IMPLEMENTATION_PLAN.json",
       "sha256": "fb5b0b5d5a03062cadc630d6ddd9ab2b33863081ca053e3a70c7756c32c00169"
     },
-    "infra_qualification_closure": {
-      "path": "research/week15/final_campaign/INFRA_QUALIFICATION_CLOSURE.json",
-      "sha256": "07e1a297deb61143ca7cbb9ca06df770a14edc92a65544179682d0ab86b71b3b"
-    },
     "qualification_runner": {
       "path": "research/week15/final_campaign/run_infra_qualification.py",
       "sha256": "564f9424f3eed54741e8c9f39f17c4116d59e504d3544aa25588347e2c26bd6a"
@@ -44,7 +40,7 @@
   },
   "final_campaign": {
     "final_seed_use": 0,
-    "status": "AUTHORIZED_AFTER_INFRA_QUALIFICATION_CLOSURE"
+    "status": "LOCKED_PENDING_EXECUTION_INFRA_REPAIR"
   },
   "make_contract": {
     "cocotb_results_file_location": "outside_repository",
@@ -161,21 +157,31 @@
     "attempt": 6,
     "closure_path": "research/week15/final_campaign/INFRA_QUALIFICATION_CLOSURE.json",
     "closure_sha256": "07e1a297deb61143ca7cbb9ca06df770a14edc92a65544179682d0ab86b71b3b",
-    "qualification_head": "131034b795665dca00f0f8e081c9c8aa66a33e85"
+    "qualification_head": "131034b795665dca00f0f8e081c9c8aa66a33e85",
+    "superseded_before_any_final_seed": true,
+    "superseded_for_final_execution": true
   },
   "requalification": {
-    "archive_head": "fb765f19523cc559710f489e705b4b340befbee1",
-    "attempt_number": 6,
-    "closure_sha256": "07e1a297deb61143ca7cbb9ca06df770a14edc92a65544179682d0ab86b71b3b",
+    "attempt_number": 7,
     "coverage_level_is_gate": false,
     "matrix_scope": "FULL_M1_M2_M3",
     "performance_level_is_gate": false,
-    "qualification_head": "131034b795665dca00f0f8e081c9c8aa66a33e85",
-    "required": false,
+    "reason": "Execution-affecting evidence repair: M2 terminal telemetry is absent and M3 final telemetry retains a qualification-only phase label.",
+    "required": true,
     "results_may_drive_tuning": false,
     "selective_rerun_allowed": false,
-    "status": "PASS"
+    "status": "PENDING_AFTER_PRE_FINAL_EVIDENCE_AUDIT"
   },
   "schema": "week15.infra-qualification-launch-contract.v1",
-  "status": "INFRA_QUALIFICATION_PASS_CLOSED"
+  "status": "RELOCKED_PENDING_EXECUTION_INFRA_REPAIR",
+  "superseded_final_authorization": {
+    "closure_head": "2433408736b3160b19b4bc531b1b853c52291647",
+    "closure_path": "research/week15/final_campaign/INFRA_QUALIFICATION_CLOSURE.json",
+    "closure_sha256": "07e1a297deb61143ca7cbb9ca06df770a14edc92a65544179682d0ab86b71b3b",
+    "final_seed_use_at_supersession": 0,
+    "qualification_attempt": 6,
+    "qualification_result": "PASS",
+    "reason": "Pre-final audit found execution-infrastructure evidence/provenance defects requiring repair and complete requalification.",
+    "superseded_before_any_final_seed": true
+  }
 }
