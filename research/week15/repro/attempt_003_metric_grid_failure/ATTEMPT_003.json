@@ -1,0 +1,83 @@
+{
+  "attempt_id": "T15_REPRO_ATTEMPT_003",
+  "completed_result_artifacts_before_failure": [
+    {
+      "accepted_budget": 10000,
+      "repetition": "A",
+      "seed": 15001
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "B",
+      "seed": 15001
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "A",
+      "seed": 15002
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "B",
+      "seed": 15002
+    }
+  ],
+  "diagnosed_fix": {
+    "required_call_arguments": [
+      "n_max=ACCEPTED_BUDGET",
+      "checkpoint_interval=CHECKPOINT_INTERVAL"
+    ],
+    "scope": "Week15 post-run telemetry call only",
+    "week13_authority_modified": false
+  },
+  "disposition": "ARCHIVE_THEN_FIX_NON_GATING_METRIC_INTEGRATION_AND_RESTART_FULL_MATRIX",
+  "failure": {
+    "checkpoint_interval": 1000,
+    "exception": "ValueError",
+    "function": "normalized_l2_intent_auc",
+    "message": "checkpoint count does not match the frozen integration grid",
+    "week13_default_expected_checkpoint_count": 10,
+    "week13_default_n_max": 10000,
+    "week15_runtime_checkpoint_count": 100,
+    "week15_runtime_n_max": 100000
+  },
+  "failure_class": "WEEK13_PILOT_AUC_DEFAULT_GRID_IN_WEEK15_LONG_RUN",
+  "failure_run": {
+    "accepted_budget": 100000,
+    "repetition": "A",
+    "seed": 15003
+  },
+  "failure_stage": "POST_CAMPAIGN_NON_GATING_METRIC_FINALIZATION",
+  "final_seed_used": false,
+  "full_matrix_restart_required": true,
+  "gate_interpretation": {
+    "coverage_level_is_gate_condition": false,
+    "gate_required_trace_comparison_reached": false,
+    "performance_metric_may_select_gate_result": false,
+    "qualification_summary_produced": false,
+    "reproducibility_pair_mismatch_observed": false
+  },
+  "not_started": [
+    {
+      "accepted_budget": 100000,
+      "repetition": "B",
+      "seed": 15003
+    }
+  ],
+  "performance_evidence_used_for_tuning": false,
+  "qualification_head": "66b36f0b0ad3cba3e44d1441b9cf7f14a73c7508",
+  "qualification_results_used_for_tuning": false,
+  "schema": "week15.adaptive-repro.invalid-attempt.v1",
+  "selective_rerun_allowed": false,
+  "semantic_effect": {
+    "adaptive_algorithm_changed": false,
+    "arm_taxonomy_changed": false,
+    "canonical_trace_changed": false,
+    "contract_changed": false,
+    "dut_changed": false,
+    "hyperparameters_changed": false,
+    "reward_changed": false,
+    "rng_changed": false
+  },
+  "status": "INFRA_INVALID"
+}

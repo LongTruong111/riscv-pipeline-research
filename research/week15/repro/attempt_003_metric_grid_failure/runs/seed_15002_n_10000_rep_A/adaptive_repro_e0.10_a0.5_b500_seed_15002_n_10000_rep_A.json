@@ -1,0 +1,6095 @@
+{
+  "adaptive": {
+    "checkpoint_records": [
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 1000,
+        "epoch_index": 1,
+        "executed_instructions": 1000,
+        "l1_intent_count": 2,
+        "l1_validated_count": 2,
+        "l2_intent_count": 4,
+        "l2_validated_count": 4,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            1
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            1.9880715705765408
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 2000,
+        "epoch_index": 3,
+        "executed_instructions": 2000,
+        "l1_intent_count": 2,
+        "l1_validated_count": 2,
+        "l2_intent_count": 8,
+        "l2_validated_count": 8,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            3
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.497017892644135
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 3000,
+        "epoch_index": 5,
+        "executed_instructions": 3000,
+        "l1_intent_count": 2,
+        "l1_validated_count": 2,
+        "l2_intent_count": 12,
+        "l2_validated_count": 12,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            5
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.868290258449304
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 4000,
+        "epoch_index": 7,
+        "executed_instructions": 4000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 15,
+        "l2_validated_count": 15,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            6
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9341451292246523
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 5000,
+        "epoch_index": 9,
+        "executed_instructions": 5000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 19,
+        "l2_validated_count": 19,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            8
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9775720675944335
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 6000,
+        "epoch_index": 11,
+        "executed_instructions": 6000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 23,
+        "l2_validated_count": 23,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            10
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.982464587475149
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 7000,
+        "epoch_index": 13,
+        "executed_instructions": 7000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 27,
+        "l2_validated_count": 27,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            12
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9956161468687874
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 8000,
+        "epoch_index": 15,
+        "executed_instructions": 8000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 31,
+        "l2_validated_count": 31,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            14
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.992939822005467
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 9000,
+        "epoch_index": 17,
+        "executed_instructions": 9000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 35,
+        "l2_validated_count": 35,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            16
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9863065260779074
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 10000,
+        "epoch_index": 19,
+        "executed_instructions": 10000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 39,
+        "l2_validated_count": 39,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            18
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.996576631519477
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      }
+    ],
+    "completed_epochs": 20,
+    "epoch_records": [
+      {
+        "actual_executed_instructions": 503,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A0",
+          "A1",
+          "A2",
+          "A3",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A8",
+          "A9"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 0,
+        "epoch_index": 0,
+        "first_executed_instruction": 1,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 503,
+        "max_q_before": 0.0,
+        "new_q": 1.9880715705765408,
+        "old_q": 0.0,
+        "pull_count": 1,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            1
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 0.0,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            1.9880715705765408
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 3.9761431411530817,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 15,
+        "target_d2": 2
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 2,
+        "epoch_index": 1,
+        "first_executed_instruction": 504,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 1003,
+        "max_q_before": 1.9880715705765408,
+        "new_q": 2.99403578528827,
+        "old_q": 1.9880715705765408,
+        "pull_count": 2,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            2
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 1.9880715705765408,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            2.99403578528827
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 13,
+        "target_d2": 22
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 4,
+        "epoch_index": 2,
+        "first_executed_instruction": 1004,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 1503,
+        "max_q_before": 2.99403578528827,
+        "new_q": 3.497017892644135,
+        "old_q": 2.99403578528827,
+        "pull_count": 3,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            3
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 2.99403578528827,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.497017892644135
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 26,
+        "target_d2": 3
+      },
+      {
+        "actual_executed_instructions": 503,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 6,
+        "epoch_index": 3,
+        "first_executed_instruction": 1504,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 2006,
+        "max_q_before": 3.497017892644135,
+        "new_q": 3.7365805168986084,
+        "old_q": 3.497017892644135,
+        "pull_count": 4,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            4
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.497017892644135,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.7365805168986084
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 3.9761431411530817,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 23,
+        "target_d2": 20
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 8,
+        "epoch_index": 4,
+        "first_executed_instruction": 2007,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 2506,
+        "max_q_before": 3.7365805168986084,
+        "new_q": 3.868290258449304,
+        "old_q": 3.7365805168986084,
+        "pull_count": 5,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            5
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.7365805168986084,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.868290258449304
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 4,
+        "target_d2": 31
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 10,
+        "epoch_index": 5,
+        "first_executed_instruction": 2507,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 3006,
+        "max_q_before": 3.868290258449304,
+        "new_q": 3.9341451292246523,
+        "old_q": 3.868290258449304,
+        "pull_count": 6,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            6
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.868290258449304,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9341451292246523
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 11,
+        "target_d2": 30
+      },
+      {
+        "actual_executed_instructions": 501,
+        "attributable_new_l2_intent_count": 1,
+        "attributable_observed_l2_intent_count": 1,
+        "candidate_arms": [
+          "A0",
+          "A1",
+          "A2",
+          "A3",
+          "A4",
+          "A5",
+          "A6",
+          "A7",
+          "A8",
+          "A9"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 12,
+        "epoch_index": 6,
+        "first_executed_instruction": 3007,
+        "global_new_l2_intent_count": 1,
+        "global_observed_l2_intent_count": 1,
+        "last_executed_instruction": 3507,
+        "max_q_before": 3.9341451292246523,
+        "new_q": 0.998003992015968,
+        "old_q": 0.0,
+        "pull_count": 1,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            6
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 0.0,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9341451292246523
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 1.996007984031936,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A5",
+        "selection_mode": "epsilon_exploration",
+        "target_d1": 20,
+        "target_d2": null
+      },
+      {
+        "actual_executed_instructions": 503,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 13,
+        "epoch_index": 7,
+        "first_executed_instruction": 3508,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 4010,
+        "max_q_before": 3.9341451292246523,
+        "new_q": 3.955144135188867,
+        "old_q": 3.9341451292246523,
+        "pull_count": 7,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            7
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9341451292246523,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.955144135188867
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 3.9761431411530817,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 22,
+        "target_d2": 12
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 15,
+        "epoch_index": 8,
+        "first_executed_instruction": 4011,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 4510,
+        "max_q_before": 3.955144135188867,
+        "new_q": 3.9775720675944335,
+        "old_q": 3.955144135188867,
+        "pull_count": 8,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            8
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.955144135188867,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9775720675944335
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 29,
+        "target_d2": 9
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 17,
+        "epoch_index": 9,
+        "first_executed_instruction": 4511,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 5010,
+        "max_q_before": 3.9775720675944335,
+        "new_q": 3.9887860337972167,
+        "old_q": 3.9775720675944335,
+        "pull_count": 9,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            9
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9775720675944335,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9887860337972167
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 28,
+        "target_d2": 23
+      },
+      {
+        "actual_executed_instructions": 503,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 19,
+        "epoch_index": 10,
+        "first_executed_instruction": 5011,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 5513,
+        "max_q_before": 3.9887860337972167,
+        "new_q": 3.982464587475149,
+        "old_q": 3.9887860337972167,
+        "pull_count": 10,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            10
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9887860337972167,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.982464587475149
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 3.9761431411530817,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 2,
+        "target_d2": 15
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 21,
+        "epoch_index": 11,
+        "first_executed_instruction": 5514,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 6013,
+        "max_q_before": 3.982464587475149,
+        "new_q": 3.991232293737575,
+        "old_q": 3.982464587475149,
+        "pull_count": 11,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            11
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.982464587475149,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.991232293737575
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 10,
+        "target_d2": 1
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 23,
+        "epoch_index": 12,
+        "first_executed_instruction": 6014,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 6513,
+        "max_q_before": 3.991232293737575,
+        "new_q": 3.9956161468687874,
+        "old_q": 3.991232293737575,
+        "pull_count": 12,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            12
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.991232293737575,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9956161468687874
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 19,
+        "target_d2": 27
+      },
+      {
+        "actual_executed_instructions": 503,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 25,
+        "epoch_index": 13,
+        "first_executed_instruction": 6514,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 7016,
+        "max_q_before": 3.9956161468687874,
+        "new_q": 3.9858796440109345,
+        "old_q": 3.9956161468687874,
+        "pull_count": 13,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            13
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9956161468687874,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9858796440109345
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 3.9761431411530817,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 3,
+        "target_d2": 28
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 27,
+        "epoch_index": 14,
+        "first_executed_instruction": 7017,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 7516,
+        "max_q_before": 3.9858796440109345,
+        "new_q": 3.992939822005467,
+        "old_q": 3.9858796440109345,
+        "pull_count": 14,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            14
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9858796440109345,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.992939822005467
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 16,
+        "target_d2": 11
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 29,
+        "epoch_index": 15,
+        "first_executed_instruction": 7517,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 8016,
+        "max_q_before": 3.992939822005467,
+        "new_q": 3.9964699110027335,
+        "old_q": 3.992939822005467,
+        "pull_count": 15,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            15
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.992939822005467,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9964699110027335
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 9,
+        "target_d2": 10
+      },
+      {
+        "actual_executed_instructions": 503,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 31,
+        "epoch_index": 16,
+        "first_executed_instruction": 8017,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 8519,
+        "max_q_before": 3.9964699110027335,
+        "new_q": 3.9863065260779074,
+        "old_q": 3.9964699110027335,
+        "pull_count": 16,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            16
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9964699110027335,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9863065260779074
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 3.9761431411530817,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 24,
+        "target_d2": 13
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 33,
+        "epoch_index": 17,
+        "first_executed_instruction": 8520,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 9019,
+        "max_q_before": 3.9863065260779074,
+        "new_q": 3.9931532630389537,
+        "old_q": 3.9863065260779074,
+        "pull_count": 17,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            17
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9863065260779074,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9931532630389537
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 7,
+        "target_d2": 25
+      },
+      {
+        "actual_executed_instructions": 500,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 35,
+        "epoch_index": 18,
+        "first_executed_instruction": 9020,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 9519,
+        "max_q_before": 3.9931532630389537,
+        "new_q": 3.996576631519477,
+        "old_q": 3.9931532630389537,
+        "pull_count": 18,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            18
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.9931532630389537,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.996576631519477
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.0,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 18,
+        "target_d2": 14
+      },
+      {
+        "actual_executed_instructions": 481,
+        "attributable_new_l2_intent_count": 2,
+        "attributable_observed_l2_intent_count": 2,
+        "candidate_arms": [
+          "A4"
+        ],
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "covered_at_epoch_start_count": 37,
+        "epoch_index": 19,
+        "first_executed_instruction": 9520,
+        "global_new_l2_intent_count": 2,
+        "global_observed_l2_intent_count": 2,
+        "last_executed_instruction": 10000,
+        "max_q_before": 3.996576631519477,
+        "new_q": 4.0772903947618175,
+        "old_q": 3.996576631519477,
+        "pull_count": 19,
+        "pull_counts_after": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            19
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_value_before": 3.996576631519477,
+        "q_values_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0772903947618175
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards_after": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.158004158004158
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "reward": 4.158004158004158,
+        "schema_version": "week10-adaptive-v1",
+        "selected_arm": "A4",
+        "selection_mode": "greedy_exploitation",
+        "target_d1": 12,
+        "target_d2": 16
+      }
+    ],
+    "selection_metric": {
+      "l2_intent_bins_at_10000": 39,
+      "normalized_l2_intent_auc": 0.31209677419354837
+    },
+    "summary": {
+      "alpha": 0.5,
+      "checkpoint_semantics": "post_instruction_cut_v1",
+      "completed_epochs": 20,
+      "epsilon": 0.1,
+      "executed_instructions": 10000,
+      "final_l1_intent_count": 4,
+      "final_l1_validated_count": 4,
+      "final_l2_intent_count": 39,
+      "final_l2_validated_count": 39,
+      "final_pull_counts": [
+        [
+          "A0",
+          0
+        ],
+        [
+          "A1",
+          0
+        ],
+        [
+          "A2",
+          0
+        ],
+        [
+          "A3",
+          0
+        ],
+        [
+          "A4",
+          19
+        ],
+        [
+          "A5",
+          1
+        ],
+        [
+          "A6",
+          0
+        ],
+        [
+          "A7",
+          0
+        ],
+        [
+          "A8",
+          0
+        ],
+        [
+          "A9",
+          0
+        ]
+      ],
+      "final_q_values": [
+        [
+          "A0",
+          0.0
+        ],
+        [
+          "A1",
+          0.0
+        ],
+        [
+          "A2",
+          0.0
+        ],
+        [
+          "A3",
+          0.0
+        ],
+        [
+          "A4",
+          4.0772903947618175
+        ],
+        [
+          "A5",
+          0.998003992015968
+        ],
+        [
+          "A6",
+          0.0
+        ],
+        [
+          "A7",
+          0.0
+        ],
+        [
+          "A8",
+          0.0
+        ],
+        [
+          "A9",
+          0.0
+        ]
+      ],
+      "final_recent_rewards": [
+        [
+          "A0",
+          0.0
+        ],
+        [
+          "A1",
+          0.0
+        ],
+        [
+          "A2",
+          0.0
+        ],
+        [
+          "A3",
+          0.0
+        ],
+        [
+          "A4",
+          4.158004158004158
+        ],
+        [
+          "A5",
+          1.996007984031936
+        ],
+        [
+          "A6",
+          0.0
+        ],
+        [
+          "A7",
+          0.0
+        ],
+        [
+          "A8",
+          0.0
+        ],
+        [
+          "A9",
+          0.0
+        ]
+      ],
+      "instruction_budget": 10000,
+      "nominal_batch": 500,
+      "q_floor": 0.05,
+      "schema_version": "week10-adaptive-v1",
+      "seed": 15002,
+      "termination_reason": "instruction_budget_reached"
+    }
+  },
+  "benchmark": {
+    "accepted_per_s": 1870.9661982797336,
+    "cycles_per_s": 1870.9661982797336,
+    "peak_rss_kib": 38988,
+    "peak_rss_start_kib": 38424,
+    "wall_ns": 5344831996
+  },
+  "checker_mismatch_breakdown": {
+    "functional_failed_instructions": 0,
+    "performance_failed_instructions": 0
+  },
+  "checker_mismatch_count": 0,
+  "configuration": {
+    "accepted_budget": 10000,
+    "alpha": 0.5,
+    "checkpoint_interval": 1000,
+    "config_id": "e0.10_a0.5_b500",
+    "epsilon": 0.1,
+    "nominal_batch": 500,
+    "q_floor": 0.05
+  },
+  "coverage": {
+    "checkpoint_count": 10,
+    "checkpoints": [
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 1000,
+        "epoch_index": 1,
+        "executed_instructions": 1000,
+        "l1_intent_count": 2,
+        "l1_validated_count": 2,
+        "l2_intent_count": 4,
+        "l2_validated_count": 4,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            1
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            1.9880715705765408
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 2000,
+        "epoch_index": 3,
+        "executed_instructions": 2000,
+        "l1_intent_count": 2,
+        "l1_validated_count": 2,
+        "l2_intent_count": 8,
+        "l2_validated_count": 8,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            3
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.497017892644135
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 3000,
+        "epoch_index": 5,
+        "executed_instructions": 3000,
+        "l1_intent_count": 2,
+        "l1_validated_count": 2,
+        "l2_intent_count": 12,
+        "l2_validated_count": 12,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            5
+          ],
+          [
+            "A5",
+            0
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.868290258449304
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            0.0
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 4000,
+        "epoch_index": 7,
+        "executed_instructions": 4000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 15,
+        "l2_validated_count": 15,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            6
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9341451292246523
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 5000,
+        "epoch_index": 9,
+        "executed_instructions": 5000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 19,
+        "l2_validated_count": 19,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            8
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9775720675944335
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 6000,
+        "epoch_index": 11,
+        "executed_instructions": 6000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 23,
+        "l2_validated_count": 23,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            10
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.982464587475149
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 7000,
+        "epoch_index": 13,
+        "executed_instructions": 7000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 27,
+        "l2_validated_count": 27,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            12
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9956161468687874
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 8000,
+        "epoch_index": 15,
+        "executed_instructions": 8000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 31,
+        "l2_validated_count": 31,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            14
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.992939822005467
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 9000,
+        "epoch_index": 17,
+        "executed_instructions": 9000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 35,
+        "l2_validated_count": 35,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            16
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9863065260779074
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.9761431411530817
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      },
+      {
+        "checkpoint_semantics": "post_instruction_cut_v1",
+        "cycle": 10000,
+        "epoch_index": 19,
+        "executed_instructions": 10000,
+        "l1_intent_count": 4,
+        "l1_validated_count": 4,
+        "l2_intent_count": 39,
+        "l2_validated_count": 39,
+        "pull_counts": [
+          [
+            "A0",
+            0
+          ],
+          [
+            "A1",
+            0
+          ],
+          [
+            "A2",
+            0
+          ],
+          [
+            "A3",
+            0
+          ],
+          [
+            "A4",
+            18
+          ],
+          [
+            "A5",
+            1
+          ],
+          [
+            "A6",
+            0
+          ],
+          [
+            "A7",
+            0
+          ],
+          [
+            "A8",
+            0
+          ],
+          [
+            "A9",
+            0
+          ]
+        ],
+        "q_values": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            3.996576631519477
+          ],
+          [
+            "A5",
+            0.998003992015968
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "recent_rewards": [
+          [
+            "A0",
+            0.0
+          ],
+          [
+            "A1",
+            0.0
+          ],
+          [
+            "A2",
+            0.0
+          ],
+          [
+            "A3",
+            0.0
+          ],
+          [
+            "A4",
+            4.0
+          ],
+          [
+            "A5",
+            1.996007984031936
+          ],
+          [
+            "A6",
+            0.0
+          ],
+          [
+            "A7",
+            0.0
+          ],
+          [
+            "A8",
+            0.0
+          ],
+          [
+            "A9",
+            0.0
+          ]
+        ],
+        "schema_version": "week10-adaptive-v1"
+      }
+    ],
+    "denominator": 10000,
+    "l1_intent": 4,
+    "l1_pending_hits": 2,
+    "l1_registered_hits": 5256,
+    "l1_rejected_hits": 0,
+    "l1_validated": 4,
+    "l1_validated_hits": 5254,
+    "l2_intent": 39,
+    "l2_pending_hits": 2,
+    "l2_registered_hits": 5256,
+    "l2_rejected_hits": 0,
+    "l2_validated": 39,
+    "l2_validated_hits": 5254,
+    "max_intent_consumer_id": 9999
+  },
+  "eligibility": {
+    "auc": true,
+    "fixed_budget_metrics": true,
+    "ordinary_fixed_n_inference": true,
+    "throughput": true
+  },
+  "execution": {
+    "completed_epochs": 20,
+    "cut_cycle": 10000,
+    "cycles": 10000,
+    "flush_cycles": 0,
+    "kill_cycle": 10000,
+    "max_resident_words": 126,
+    "refill_pauses": 1983,
+    "released_entries": 2748,
+    "stall_cycles": 0
+  },
+  "first_failure": null,
+  "fixed_budget_complete": true,
+  "functional": {
+    "checked": 9997,
+    "denominator": 9997,
+    "failed": 0,
+    "failure_diagnostics": [],
+    "first_failure": null,
+    "passed": 9997,
+    "pending": 3
+  },
+  "lifecycle": {
+    "accepted": 10000,
+    "functional_pending": 3,
+    "in_flight_at_cut": 3,
+    "performance_pending": 3,
+    "retired_checked": 9997
+  },
+  "method": "M3-Adaptive-CGS",
+  "performance": {
+    "checked": 9997,
+    "denominator": 9997,
+    "failed": 0,
+    "failure_diagnostics": [],
+    "first_failure": null,
+    "max_excess_cycles": 0,
+    "passed": 9997,
+    "pending": 3,
+    "total_excess_cycles": 0
+  },
+  "phase": "reproducibility_qualification",
+  "post_cut_clock_edges": 0,
+  "provenance": {
+    "adaptive_stack_revision": "git-tree:44b09d01ec1e7e1dbd059fc9065d8b6609f86072",
+    "dut_revision": "595ed75dcf8544c4f7ab3f16966df34ba1c11ee7",
+    "git_dirty": false,
+    "harness_revision": "66b36f0b0ad3cba3e44d1441b9cf7f14a73c7508",
+    "pilot_contract_revision": "git-blob:c147bda43a54296c7bb532175d9fe5efa528dfc2",
+    "pilot_metrics_revision": "git-blob:bed537e146ada369b20083ef328097acf16b2610",
+    "protocol_revision": "fa906a3f8c6630c6e41d9321d79b2c408d04adc5"
+  },
+  "reproducibility": {
+    "contract_sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d",
+    "repetition": "A",
+    "selection_counts": {
+      "epsilon_exploration": 1,
+      "greedy_exploitation": 19,
+      "q_floor_uniform": 0
+    },
+    "trace_digests": {
+      "arm_decision_trace": "c815060b89a8866d79affa77f0b859931999d773eb0abafec258617e74bb665f",
+      "coverage_trace": "61dcfef93822309fb537f984270750f4f6d0dfeac03f2d01382e48e719be34d3",
+      "epoch_trace": "1e85fc50c845bc065f16e7880165e366790aa5f6101e98522f552bff31a169ef",
+      "instruction_stream": "3c7c157c1e8b2903ac8a0f7f7850e69476ec6b1e65e8fa0b6f420a2b1b2bfea3",
+      "q_trace": "5a344fdb96a10756fe2676864f6bfabcc2da7a0cb514b637fb45f336cc58d5d2",
+      "reward_trace": "08bda346b48bc34cf4c855b89e756a51ca79307b912b0ae8d4ee4d545b3ddebb"
+    },
+    "trace_record_counts": {
+      "arm_decision_trace": 20,
+      "coverage_trace": 10,
+      "epoch_trace": 20,
+      "instruction_stream": 10000,
+      "q_trace": 20,
+      "reward_trace": 20
+    }
+  },
+  "rng": {
+    "decision_seed": 9647071740180440137,
+    "realization_seed": 8318951436362633456,
+    "root_seed": 15002,
+    "seed_domain": "week10-adaptive-cgs-v1",
+    "target_seed": 7754325830518713548
+  },
+  "runtime_environment": {
+    "cocotb_version": "1.9.2",
+    "python_version": "3.10.12",
+    "simulator_name": "Verilator",
+    "simulator_version": "5.034 2025-02-24",
+    "timestamp_utc": "2026-09-30T03:32:44.279230+00:00"
+  },
+  "schema_version": "w15.adaptive-repro.telemetry.v1",
+  "seed": 15002,
+  "status": "COMPLETED",
+  "terminal_divergence_status": "NOT_OBSERVED"
+}
