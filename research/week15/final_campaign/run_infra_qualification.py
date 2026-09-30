@@ -110,8 +110,62 @@ def validate_result(
             f"{method}: result seed mismatch"
         )
 
+    accepted_budget_fields = []
+
+    if "accepted_budget" in result:
+        accepted_budget_fields.append(
+            (
+                "accepted_budget",
+                result["accepted_budget"],
+            )
+        )
+
+    configuration = result.get(
+        "configuration"
+    )
+
     if (
-        result.get("accepted_budget")
+        isinstance(configuration, dict)
+        and "accepted_budget"
+        in configuration
+    ):
+        accepted_budget_fields.append(
+            (
+                "configuration.accepted_budget",
+                configuration["accepted_budget"],
+            )
+        )
+
+    if not accepted_budget_fields:
+        raise RuntimeError(
+            f"{method}: missing accepted budget"
+        )
+
+    for (
+        accepted_budget_field,
+        accepted_budget_value,
+    ) in accepted_budget_fields:
+        if type(accepted_budget_value) is not int:
+            raise RuntimeError(
+                f"{method}: invalid accepted budget "
+                f"at {accepted_budget_field}"
+            )
+
+    if (
+        len(accepted_budget_fields) == 2
+        and accepted_budget_fields[0][1]
+        != accepted_budget_fields[1][1]
+    ):
+        raise RuntimeError(
+            f"{method}: conflicting accepted budgets"
+        )
+
+    reported_accepted_budget = (
+        accepted_budget_fields[0][1]
+    )
+
+    if (
+        reported_accepted_budget
         != accepted_budget
     ):
         raise RuntimeError(

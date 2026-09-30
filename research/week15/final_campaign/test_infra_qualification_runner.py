@@ -268,3 +268,117 @@ def test_runner_preserves_validation_failure_as_infra_invalid():
         '"INFRA_INVALID"'
         in text
     )
+
+
+
+def _budget_adapter_valid_result():
+    return {
+        "seed": 16003,
+        "status": "COMPLETED",
+        "post_cut_clock_edges": 0,
+        "lifecycle": {
+            "accepted": 100000,
+            "retired_checked": 99997,
+            "in_flight_at_cut": 3,
+        },
+    }
+
+
+def test_validate_result_accepts_nested_configuration_budget():
+    from research.week15.final_campaign.run_infra_qualification import (
+        validate_result,
+    )
+
+    result = _budget_adapter_valid_result()
+
+    result["configuration"] = {
+        "accepted_budget": 100000,
+    }
+
+    lifecycle = validate_result(
+        result,
+        method="M3",
+        seed=16003,
+        accepted_budget=100000,
+    )
+
+    assert lifecycle == {
+        "accepted": 100000,
+        "retired_checked": 99997,
+        "in_flight": 3,
+        "in_flight_source_field": (
+            "in_flight_at_cut"
+        ),
+    }
+
+
+def test_validate_result_accepts_equal_budget_representations():
+    from research.week15.final_campaign.run_infra_qualification import (
+        validate_result,
+    )
+
+    result = _budget_adapter_valid_result()
+
+    result["accepted_budget"] = 100000
+
+    result["configuration"] = {
+        "accepted_budget": 100000,
+    }
+
+    lifecycle = validate_result(
+        result,
+        method="M3",
+        seed=16003,
+        accepted_budget=100000,
+    )
+
+    assert lifecycle["accepted"] == 100000
+    assert lifecycle["in_flight"] == 3
+
+
+def test_validate_result_rejects_conflicting_budget_representations():
+    import pytest
+
+    from research.week15.final_campaign.run_infra_qualification import (
+        validate_result,
+    )
+
+    result = _budget_adapter_valid_result()
+
+    result["accepted_budget"] = 100000
+
+    result["configuration"] = {
+        "accepted_budget": 99999,
+    }
+
+    with pytest.raises(
+        RuntimeError,
+        match="conflicting accepted budgets",
+    ):
+        validate_result(
+            result,
+            method="M3",
+            seed=16003,
+            accepted_budget=100000,
+        )
+
+
+def test_validate_result_rejects_missing_budget_representation():
+    import pytest
+
+    from research.week15.final_campaign.run_infra_qualification import (
+        validate_result,
+    )
+
+    result = _budget_adapter_valid_result()
+
+    with pytest.raises(
+        RuntimeError,
+        match="missing accepted budget",
+    ):
+        validate_result(
+            result,
+            method="M3",
+            seed=16003,
+            accepted_budget=100000,
+        )
