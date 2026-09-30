@@ -1,0 +1,3 @@
+# Week-15 derived CSV is an immutable evidence artifact.
+# Preserve its original CRLF bytes; do not apply Git EOL normalization.
+results/final_001/PER_RUN_METRICS.csv -text

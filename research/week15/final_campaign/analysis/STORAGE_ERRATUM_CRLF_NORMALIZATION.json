@@ -1,0 +1,43 @@
+{
+  "affected_object": {
+    "defect": "Git text=auto normalized CRLF working-tree bytes to LF in the committed blob.",
+    "expected_original_byte_sha256": "752fe73cb96f880154095988904941d7d349c31aeace61b0822d9cf427ea48f1",
+    "path": "research/week15/final_campaign/analysis/results/final_001/PER_RUN_METRICS.csv",
+    "previous_git_blob_byte_sha256": "5c519e867dbe398336a092ed53711fdf36066b5aed8c93a8bb98c6f0613c1a26"
+  },
+  "closure_policy": {
+    "new_superseding_closure_required": true,
+    "original_closure_content_modified": false,
+    "original_closure_storage_binding_superseded": true
+  },
+  "correction": {
+    "csv_semantic_content_changed": false,
+    "csv_working_tree_bytes_changed": false,
+    "derived_statistics_recomputed": false,
+    "method": "Add path-specific -text attribute and restage the unchanged working-tree CSV byte-exact.",
+    "raw_execution_evidence_changed": false
+  },
+  "id": "CRLF_GIT_NORMALIZATION_PER_RUN_METRICS",
+  "previous_authority": {
+    "derived_results_commit": "1259b4a351ffdfb7681c56285f32aba9aac3af00",
+    "final_analysis_closure_sha256": "8c859f52c29c091f04e3c7c0aed2da1ba45904f527dab518b35b1f6621e88f2d",
+    "final_analysis_commit": "bf186d78b45aa7b1d536bff51020a560498cb842"
+  },
+  "research_validity": {
+    "analysis_contract_affected": false,
+    "analysis_implementation_affected": false,
+    "final_runs_affected": false,
+    "reanalysis_required": false,
+    "rerun_required": false,
+    "scientific_results_affected": false,
+    "statistical_results_affected": false
+  },
+  "root_cause": {
+    "git_attribute_before_correction": "text=auto",
+    "index_eol": "lf",
+    "working_tree_eol": "crlf"
+  },
+  "schema": "week15.storage-erratum.v1",
+  "scope": "repository_storage_provenance_only",
+  "status": "CONFIRMED_AND_CORRECTED"
+}
