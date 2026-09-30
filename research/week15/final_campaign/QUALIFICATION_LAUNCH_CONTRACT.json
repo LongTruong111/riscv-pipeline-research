@@ -19,14 +19,14 @@
     },
     "harness_manifest": {
       "path": "research/week15/final_campaign/HARNESS_MANIFEST.json",
-      "sha256": "1e86ac7fc6037e6e2ae05c60ada2980ac2e4820ee2ae25356034e0f4d6f8ac25"
+      "sha256": "a2a010e46b33de5efee9c52166d1f09c13a332c7aaebfa362cdd07a7431641ef"
     },
     "implementation_plan": {
       "path": "research/week15/final_campaign/IMPLEMENTATION_PLAN.json",
       "sha256": "fb5b0b5d5a03062cadc630d6ddd9ab2b33863081ca053e3a70c7756c32c00169"
     }
   },
-  "execution_infra_head": "34e92842c52581d6c54bf332589d78357af95759",
+  "execution_infra_head": "1911eb48404f7ce08cb2815570c7b8b28f3406ba",
   "failure_policy": {
     "any_lifecycle_mismatch": "INFRA_INVALID",
     "any_missing_result": "INFRA_INVALID",
@@ -36,7 +36,7 @@
   },
   "final_campaign": {
     "final_seed_use": 0,
-    "status": "LOCKED"
+    "status": "LOCKED_PENDING_INFRA_REQUALIFICATION"
   },
   "make_contract": {
     "cocotb_results_file_location": "outside_repository",
@@ -74,6 +74,28 @@
       "seed": 16003
     }
   ],
+  "prior_invalid_attempts": [
+    {
+      "M2_executed": false,
+      "M3_executed": false,
+      "accepted_before_failure": 0,
+      "affected_method": "M1",
+      "attempt": 1,
+      "classification": "INFRA_INVALID_PRE_CAMPAIGN_PROVENANCE_ROOT",
+      "final_seed_use": 0,
+      "runs_executed": 1,
+      "selective_rerun_used": false
+    }
+  ],
+  "requalification": {
+    "attempt_number": 2,
+    "coverage_level_is_gate": false,
+    "matrix_scope": "FULL_M1_M2_M3",
+    "performance_level_is_gate": false,
+    "required": true,
+    "results_may_drive_tuning": false,
+    "selective_rerun_allowed": false
+  },
   "schema": "week15.infra-qualification-launch-contract.v1",
-  "status": "FROZEN_BEFORE_INFRA_QUALIFICATION"
+  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION"
 }
