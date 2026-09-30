@@ -6,7 +6,7 @@
     },
     {
       "path": "research/week15/final_campaign/derive_harnesses.py",
-      "sha256": "735f3369a3478e08643c1f7c27341406fbeda87c962af5d1785241ca12ba4cf6"
+      "sha256": "c0afc5fece1511e9c56c8352144539098dc8d7ec6e7c065fe9e76cac6dbf5f09"
     },
     {
       "path": "research/week15/final_campaign/test_m1_final.py",
@@ -14,7 +14,7 @@
     },
     {
       "path": "research/week15/final_campaign/test_m2_final.py",
-      "sha256": "393b45f96715296805475007861dea258f85c07863421695c1eb9431099c4328"
+      "sha256": "c6dc2cb2c0ccc68e7b24862e623452d138b0da6e9b59402c3c154886ee028e65"
     },
     {
       "path": "research/week15/final_campaign/test_m3_final.py",
@@ -22,7 +22,7 @@
     },
     {
       "path": "research/week15/final_campaign/test_infrastructure_static.py",
-      "sha256": "a9c94f9262eba7aa6ce4f55d30b01a93c00587f46eaff7c70459aea7813b3dd4"
+      "sha256": "15f821497b1035107fbac45e312691bc5f67c14fbce05997d6d90efe92fb9102"
     }
   ],
   "implementation_base_head": "1adc8e73d2f05f633f261e551892bb2d4f5320dc",
@@ -45,7 +45,7 @@
         "seed": 16003
       }
     ],
-    "status": "NOT_RUN_AFTER_REPAIR"
+    "status": "NOT_RUN_AFTER_M2_DERIVATION_REPAIR"
   },
   "repair_history": [
     {
@@ -60,6 +60,19 @@
       "generator_changed": false,
       "method_semantics_changed": false,
       "repair_parent_head": "5f16f283a7118846d3bda23e3c5bd34efd303e11"
+    },
+    {
+      "M1_changed": false,
+      "M3_changed": false,
+      "affected_method": "M2",
+      "after_attempt": 3,
+      "change": "Deterministic M2 final derivation removes the preflight-only N=1000 complete-template boundary comment and assertion while preserving campaign-generic exact-cut checks.",
+      "classification": "INFRA_INVALID_M2_DERIVATION_RETAINED_PREFLIGHT_BOUNDARY_ASSERTION",
+      "dut_changed": false,
+      "full_requalification_required": true,
+      "generator_changed": false,
+      "method_semantics_changed": false,
+      "repair_parent_head": "04324706930919cc0ed729c879be43d017735bd4"
     }
   ],
   "schema": "week15.final-execution-harness-manifest.v1",

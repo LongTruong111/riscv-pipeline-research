@@ -365,11 +365,6 @@ async def test_m2_preflight_exact_cut_1000(
 
 
 
-    # M2 N=1000 is frozen at a complete template boundary.
-    # No synthetic final_expected_pc field is introduced:
-    # exact accepted PC/word identity is checked by the
-    # frozen runtime tracker for every accepted event.
-    assert not plan.blocks[-1].is_partial
 
 
     accepted_logical_words = tuple(

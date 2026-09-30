@@ -356,3 +356,101 @@ def test_final_harness_repo_root_relocation_contract():
     assert m3_segment is not None
     assert ".parents[3]" in m3_segment
     assert ".parents[4]" not in m3_segment
+
+
+def test_m2_final_excludes_preflight_complete_template_boundary():
+    import ast
+
+    path = (
+        FINAL_ROOT
+        / "test_m2_final.py"
+    )
+
+    text = path.read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        "M2 N=1000 is frozen at a "
+        "complete template boundary."
+        not in text
+    )
+
+    assert (
+        "assert not "
+        "plan.blocks[-1].is_partial"
+        not in text
+    )
+
+    # The audit established this was the only
+    # residual is_partial assertion in the derived
+    # final harness.
+    assert "is_partial" not in text
+
+    for banned in (
+        "EXPECTED_PLAN_HASH",
+        "EXPECTED_BLOCK_COUNT",
+        "EXPECTED_IMAGE_WORDS",
+        "EXPECTED_LAST_GENERATION",
+        "EXPECTED_ARMS",
+    ):
+        assert banned not in text
+
+    tree = ast.parse(text)
+
+    compact_asserts = []
+
+    for node in ast.walk(tree):
+        if not isinstance(
+            node,
+            ast.Assert,
+        ):
+            continue
+
+        segment = ast.get_source_segment(
+            text,
+            node,
+        )
+
+        assert segment is not None
+
+        compact_asserts.append(
+            "".join(
+                segment.split()
+            )
+        )
+
+    # Campaign-generic exact-cut invariants must
+    # survive the derivation repair.
+    required_fragments = (
+        (
+            "plan.accepted_instruction_count"
+            "==ACCEPTED_BUDGET"
+        ),
+        (
+            "adapter.instruction_count"
+            "==ACCEPTED_BUDGET"
+        ),
+        (
+            "window.accepted_count"
+            "==ACCEPTED_BUDGET"
+        ),
+        (
+            "cut_driver.accepted_count"
+            "==ACCEPTED_BUDGET"
+        ),
+        (
+            "coverage.executed_instructions"
+            "==ACCEPTED_BUDGET"
+        ),
+        (
+            "cut_driver.coverage_observed_count"
+            "==ACCEPTED_BUDGET"
+        ),
+    )
+
+    for fragment in required_fragments:
+        assert any(
+            fragment in item
+            for item in compact_asserts
+        ), fragment

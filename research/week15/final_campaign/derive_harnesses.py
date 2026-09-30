@@ -602,6 +602,141 @@ def replace_m2_checkpoint_assert(
     )
 
 
+def remove_m2_initial_boundary_special_case(
+    source: str,
+) -> str:
+    """
+    Remove the M2 preflight-only assumption that
+    N=1000 ends on a complete static template.
+
+    The final campaign uses exact accepted-instruction
+    cut semantics and may legitimately truncate the
+    final generated template.
+    """
+    import ast
+
+    tree = ast.parse(
+        source
+    )
+
+    matches = []
+
+    for node in ast.walk(
+        tree
+    ):
+        if not isinstance(
+            node,
+            ast.Assert,
+        ):
+            continue
+
+        segment = ast.get_source_segment(
+            source,
+            node,
+        )
+
+        if segment is None:
+            raise AssertionError(
+                "cannot recover M2 boundary assert "
+                "source"
+            )
+
+        compact = "".join(
+            segment.split()
+        )
+
+        if (
+            compact
+            == "assertnotplan.blocks[-1].is_partial"
+        ):
+            matches.append(
+                node
+            )
+
+    if len(matches) != 1:
+        raise AssertionError(
+            "expected one M2 initial complete-template "
+            "boundary assert, "
+            f"got {len(matches)}"
+        )
+
+    node = matches[0]
+
+    lines = source.splitlines(
+        keepends=True
+    )
+
+    assert_index = node.lineno - 1
+
+    comment_matches = [
+        i
+        for i, line in enumerate(
+            lines
+        )
+        if (
+            "M2 N=1000 is frozen at a "
+            "complete template boundary."
+            in line
+        )
+    ]
+
+    if len(comment_matches) != 1:
+        raise AssertionError(
+            "expected one M2 N=1000 boundary "
+            "comment, "
+            f"got {len(comment_matches)}"
+        )
+
+    start = comment_matches[0]
+
+    if start >= assert_index:
+        raise AssertionError(
+            "M2 boundary comment is not before "
+            "its assertion"
+        )
+
+    for line in lines[
+        start:assert_index
+    ]:
+        stripped = line.strip()
+
+        if (
+            stripped
+            and not stripped.startswith("#")
+        ):
+            raise AssertionError(
+                "unexpected executable content "
+                "inside M2 boundary-comment region"
+            )
+
+    del lines[
+        start:node.end_lineno
+    ]
+
+    result = "".join(
+        lines
+    )
+
+    if (
+        "M2 N=1000 is frozen at a "
+        "complete template boundary."
+        in result
+    ):
+        raise AssertionError(
+            "M2 boundary comment survived removal"
+        )
+
+    if (
+        "assert not plan.blocks[-1].is_partial"
+        in result
+    ):
+        raise AssertionError(
+            "M2 boundary assertion survived removal"
+        )
+
+    return result
+
+
 def remove_m2_boundary_special_case(
     source: str,
 ) -> str:
@@ -739,6 +874,12 @@ RESULT_PATH = FINAL_CONFIG.result_path
     source = apply_ranges(
         source,
         replacements,
+    )
+
+    source = (
+        remove_m2_initial_boundary_special_case(
+            source
+        )
     )
 
     source = (
