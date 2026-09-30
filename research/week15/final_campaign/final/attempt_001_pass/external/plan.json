@@ -1,0 +1,324 @@
+{
+  "accepted_budget_per_run": 100000,
+  "authorities": {
+    "M1_sha256": "0bb3566a001ed7760b82e92ed6d25815967eb3b0845e6209ac1c64833163d100",
+    "M2_sha256": "e22821b80364b85d243be322ba76dc395a4a645a9d1e0d8aadfb2dab3d1a2a79",
+    "M3_sha256": "d4e2ae4a1b3dae78a3fa1ed4d8d2041dd4885785f1b2e37a13c7adcbe02142e3",
+    "execution_contract_sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f",
+    "harness_manifest_sha256": "ca03d7d2ce24e4b5d69353db871acce7f0b7e7404db03668c03a933f64a659c4",
+    "infra_closure_sha256": "ab46fd743f734e5cf56af82ff577c5a4d0fc94a7a76a158fc1e0d3ea5fe3f008",
+    "launch_contract_sha256": "9aa2304dfe144bfa3e751638777ffa6ed5e9eeeb6ae080391c0ca49f00d6b6cd",
+    "runtime_config_sha256": "bf0a8f0ced9c5cbed5d4ffced37f490248e1d5d303d064e6c5d76e9dbeb9ae6b"
+  },
+  "authority_head": "086e8127101aca9a934bec77af84dc5f87160f09",
+  "driver_path": "/tmp/week15_final_campaign_attempt_001.driver.py",
+  "driver_sha256": "6fea68a005d00210a3582e8320af81e2f2f59b9de1c9f4f4608089f3af7dbc33",
+  "final_seed_use_before_launch": 0,
+  "fresh_build_directory_per_run": true,
+  "fresh_process_per_run": true,
+  "make_specs": {
+    "M1": {
+      "make_directory": "research/week13/pure_random/rtl",
+      "module": "research.week15.final_campaign.test_m1_final"
+    },
+    "M2": {
+      "make_directory": "research/week14/weighted_random/rtl",
+      "module": "research.week15.final_campaign.test_m2_final"
+    },
+    "M3": {
+      "make_directory": "research/week15/rtl",
+      "module": "research.week15.final_campaign.test_m3_final"
+    }
+  },
+  "output_root": "/tmp/week15_final_campaign_attempt_001",
+  "plan_path": "/tmp/week15_final_campaign_attempt_001.plan.json",
+  "run_order": "M1_1001_1015_THEN_M2_2001_2015_THEN_M3_3001_3015",
+  "runs": [
+    {
+      "accepted_budget": 100000,
+      "index": 1,
+      "method": "M1",
+      "seed": 1001
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 2,
+      "method": "M1",
+      "seed": 1002
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 3,
+      "method": "M1",
+      "seed": 1003
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 4,
+      "method": "M1",
+      "seed": 1004
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 5,
+      "method": "M1",
+      "seed": 1005
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 6,
+      "method": "M1",
+      "seed": 1006
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 7,
+      "method": "M1",
+      "seed": 1007
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 8,
+      "method": "M1",
+      "seed": 1008
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 9,
+      "method": "M1",
+      "seed": 1009
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 10,
+      "method": "M1",
+      "seed": 1010
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 11,
+      "method": "M1",
+      "seed": 1011
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 12,
+      "method": "M1",
+      "seed": 1012
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 13,
+      "method": "M1",
+      "seed": 1013
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 14,
+      "method": "M1",
+      "seed": 1014
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 15,
+      "method": "M1",
+      "seed": 1015
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 16,
+      "method": "M2",
+      "seed": 2001
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 17,
+      "method": "M2",
+      "seed": 2002
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 18,
+      "method": "M2",
+      "seed": 2003
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 19,
+      "method": "M2",
+      "seed": 2004
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 20,
+      "method": "M2",
+      "seed": 2005
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 21,
+      "method": "M2",
+      "seed": 2006
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 22,
+      "method": "M2",
+      "seed": 2007
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 23,
+      "method": "M2",
+      "seed": 2008
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 24,
+      "method": "M2",
+      "seed": 2009
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 25,
+      "method": "M2",
+      "seed": 2010
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 26,
+      "method": "M2",
+      "seed": 2011
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 27,
+      "method": "M2",
+      "seed": 2012
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 28,
+      "method": "M2",
+      "seed": 2013
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 29,
+      "method": "M2",
+      "seed": 2014
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 30,
+      "method": "M2",
+      "seed": 2015
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 31,
+      "method": "M3",
+      "seed": 3001
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 32,
+      "method": "M3",
+      "seed": 3002
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 33,
+      "method": "M3",
+      "seed": 3003
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 34,
+      "method": "M3",
+      "seed": 3004
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 35,
+      "method": "M3",
+      "seed": 3005
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 36,
+      "method": "M3",
+      "seed": 3006
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 37,
+      "method": "M3",
+      "seed": 3007
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 38,
+      "method": "M3",
+      "seed": 3008
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 39,
+      "method": "M3",
+      "seed": 3009
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 40,
+      "method": "M3",
+      "seed": 3010
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 41,
+      "method": "M3",
+      "seed": 3011
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 42,
+      "method": "M3",
+      "seed": 3012
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 43,
+      "method": "M3",
+      "seed": 3013
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 44,
+      "method": "M3",
+      "seed": 3014
+    },
+    {
+      "accepted_budget": 100000,
+      "index": 45,
+      "method": "M3",
+      "seed": 3015
+    }
+  ],
+  "runs_expected": 45,
+  "schema": "week15.final-campaign-external-driver-plan.v1",
+  "status": "FROZEN_BEFORE_FIRST_FINAL_SEED",
+  "stop_policy": {
+    "automatic_rerun": false,
+    "fixed_n_eligible": [
+      "COMPLETED",
+      "VALID_DUT_FAILURE_NONTERMINAL"
+    ],
+    "infra_invalid": "STOP_AND_PRESERVE_PREFIX",
+    "result_driven_tuning": false,
+    "seed_deletion": false,
+    "seed_replacement": false,
+    "terminal_dut_failure": "STOP_AND_PRESERVE_PREFIX"
+  },
+  "total_accepted_budget": 4500000
+}

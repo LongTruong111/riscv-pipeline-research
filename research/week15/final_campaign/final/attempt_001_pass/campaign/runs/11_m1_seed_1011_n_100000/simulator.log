@@ -1,0 +1,96 @@
+make: Entering directory '/home/logan/nckh/risc-v-pipeline/research/week13/pure_random/rtl'
+rm -f /tmp/week15_final_campaign_attempt_001/runs/11_m1_seed_1011_n_100000/results.xml
+"make" -f Makefile /tmp/week15_final_campaign_attempt_001/runs/11_m1_seed_1011_n_100000/results.xml
+make[1]: Entering directory '/home/logan/nckh/risc-v-pipeline/research/week13/pure_random/rtl'
+/usr/local/bin/verilator -cc --exe -Mdir /tmp/week15_final_campaign_attempt_001/_build/11_m1_seed_1011_n_100000 -DCOCOTB_SIM=1 --top-module adaptive_execution_stream_tb -Wno-fatal --timescale 1ns/1ps --vpi --public-flat-rw --prefix Vtop -o Vtop -LDFLAGS "-Wl,-rpath,/home/logan/.local/lib/python3.10/site-packages/cocotb/libs -L/home/logan/.local/lib/python3.10/site-packages/cocotb/libs -lcocotbvpi_verilator"  /home/logan/nckh/risc-v-pipeline/design/RegPack.sv /home/logan/nckh/risc-v-pipeline/design/ALUController.sv /home/logan/nckh/risc-v-pipeline/design/BranchUnit.sv /home/logan/nckh/risc-v-pipeline/design/Controller.sv /home/logan/nckh/risc-v-pipeline/design/Datapath.sv /home/logan/nckh/risc-v-pipeline/design/ForwardingUnit.sv /home/logan/nckh/risc-v-pipeline/design/HazardDetection.sv /home/logan/nckh/risc-v-pipeline/design/Memoria32.sv /home/logan/nckh/risc-v-pipeline/design/Memoria32Data.sv /home/logan/nckh/risc-v-pipeline/design/RISC_V.sv /home/logan/nckh/risc-v-pipeline/design/RegFile.sv /home/logan/nckh/risc-v-pipeline/design/adder.sv /home/logan/nckh/risc-v-pipeline/design/alu.sv /home/logan/nckh/risc-v-pipeline/design/datamemory.sv /home/logan/nckh/risc-v-pipeline/design/flopr.sv /home/logan/nckh/risc-v-pipeline/design/imm_Gen.sv /home/logan/nckh/risc-v-pipeline/design/instructionmemory.sv /home/logan/nckh/risc-v-pipeline/design/mux2.sv /home/logan/nckh/risc-v-pipeline/design/mux4.sv /home/logan/nckh/risc-v-pipeline/design/ramOnChip32.v /home/logan/nckh/risc-v-pipeline/design/ramOnChipData.v /home/logan/nckh/risc-v-pipeline/research/week10/rtl/adaptive_execution_stream_tb.sv /home/logan/.local/lib/python3.10/site-packages/cocotb/share/lib/verilator/verilator.cpp
+%Warning-WIDTHEXPAND: /home/logan/nckh/risc-v-pipeline/design/imm_Gen.sv:41:90: Operator COND expects 32 bits on the Conditional True, but Conditional True's REPLICATE generates 12 bits.
+                                                                              : ... note: In instance 'adaptive_execution_stream_tb.core.dp.Ext_Imm'
+   41 |             Imm_out = ((inst_code[31:25] == 7'b0100000) && (inst_code[14:12] == 3'b101)) ? {7'b0, inst_code[24:20]} :   
+      |                                                                                          ^
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.034
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-WIDTHEXPAND: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:53:14: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's REPLICATE generates 31 bits.
+                                                                                 : ... note: In instance 'adaptive_execution_stream_tb.core.dp.data_mem'
+   53 |     raddress = {{22{1'b0}}, a};
+      |              ^
+%Warning-WIDTHEXPAND: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:54:14: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's REPLICATE generates 31 bits.
+                                                                                 : ... note: In instance 'adaptive_execution_stream_tb.core.dp.data_mem'
+   54 |     waddress = {{22{1'b0}}, {a[8:2], {2{1'b0}}}};
+      |              ^
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:70:21: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   70 |         default: rd <= Dataout;
+      |                     ^~
+                  *** See https://verilator.org/warn/COMBDLY before disabling this,
+                  else you may end up with different sim results.
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:75:14: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   75 |           Wr <= (a[1:0]==2'b00) ? 4'b0001 : ((a[1:0]==2'b01) ? 4'b0010 : ((a[1:0]==2'b10) ? 4'b0100 : 4'b1000));
+      |              ^~
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:76:18: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   76 |           Datain <= (a[1:0]==2'b00) ? {{24{1'b0}}, wd[7:0]} : ((a[1:0]==2'b01) ? {{16{1'b0}}, {wd[7:0], {8{1'b0}}}} : ((a[1:0]==2'b10) ? {{8{1'b0}}, {wd[7:0], {16{1'b0}}}} : {wd[7:0], {24{1'b0}}}));
+      |                  ^~
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:79:14: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   79 |           Wr <= (a[1:0] == 2'b00 || a[1:0] == 2'b01) ? 4'b0011 : 4'b1100;
+      |              ^~
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:80:18: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   80 |           Datain <= (a[1:0]==2'b00) || (a[1:0]==2'b01) ? {{16{1'b0}}, wd[15:0]} : {wd[15:0], {16{1'b0}}};
+      |                  ^~
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:83:14: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   83 |           Wr <= 4'b1111;
+      |              ^~
+%Warning-COMBDLY: /home/logan/nckh/risc-v-pipeline/design/datamemory.sv:84:18: Non-blocking assignment '<=' in combinational logic process
+                                                                             : ... This will be executed as a blocking assignment '='!
+   84 |           Datain <= wd;
+      |                  ^~
+- V e r i l a t i o n   R e p o r t: Verilator 5.034 2025-02-24 rev v5.034
+- Verilator: Built from 0.851 MB sources in 24 modules, into 0.517 MB in 10 C++ files needing 0.000 MB
+- Verilator: Walltime 0.073 s (elab=0.004, cvt=0.052, bld=0.000); cpu 0.073 s on 1 threads; alloced 12.418 MB
+make -C /tmp/week15_final_campaign_attempt_001/_build/11_m1_seed_1011_n_100000  -f Vtop.mk
+make[2]: Entering directory '/tmp/week15_final_campaign_attempt_001/_build/11_m1_seed_1011_n_100000'
+ccache g++  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -Os  -c -o verilator.o /home/logan/.local/lib/python3.10/site-packages/cocotb/share/lib/verilator/verilator.cpp
+ccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated.o /usr/local/share/verilator/include/verilated.cpp
+ccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_dpi.o /usr/local/share/verilator/include/verilated_dpi.cpp
+ccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_vpi.o /usr/local/share/verilator/include/verilated_vpi.cpp
+ccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o verilated_threads.o /usr/local/share/verilator/include/verilated_threads.cpp
+python3 /usr/local/share/verilator/bin/verilator_includer -DVL_INCLUDE_OPT=include Vtop.cpp Vtop___024root__DepSet_h84412442__0.cpp Vtop___024root__DepSet_heccd7ead__0.cpp Vtop__Dpi.cpp Vtop___024root__Slow.cpp Vtop___024root__DepSet_h84412442__0__Slow.cpp Vtop___024root__DepSet_heccd7ead__0__Slow.cpp Vtop___024unit__Slow.cpp Vtop___024unit__DepSet_hff17caec__0__Slow.cpp Vtop__Syms.cpp > Vtop__ALL.cpp
+ccache g++ -Os  -I.  -MMD -I/usr/local/share/verilator/include -I/usr/local/share/verilator/include/vltstd -DVM_COVERAGE=0 -DVM_SC=0 -DVM_TIMING=0 -DVM_TRACE=0 -DVM_TRACE_FST=0 -DVM_TRACE_VCD=0 -faligned-new -fcf-protection=none -Wno-bool-operation -Wno-shadow -Wno-sign-compare -Wno-subobject-linkage -Wno-tautological-compare -Wno-uninitialized -Wno-unused-but-set-parameter -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable      -c -o Vtop__ALL.o Vtop__ALL.cpp
+echo "" > Vtop__ALL.verilator_deplist.tmp
+g++    verilator.o verilated.o verilated_dpi.o verilated_vpi.o verilated_threads.o Vtop__ALL.a   -Wl,-rpath,/home/logan/.local/lib/python3.10/site-packages/cocotb/libs -L/home/logan/.local/lib/python3.10/site-packages/cocotb/libs -lcocotbvpi_verilator  -pthread -lpthread -latomic   -o Vtop
+rm Vtop__ALL.verilator_deplist.tmp
+make[2]: Leaving directory '/tmp/week15_final_campaign_attempt_001/_build/11_m1_seed_1011_n_100000'
+rm -f /tmp/week15_final_campaign_attempt_001/runs/11_m1_seed_1011_n_100000/results.xml
+MODULE=research.week15.final_campaign.test_m1_final TESTCASE= TOPLEVEL=adaptive_execution_stream_tb TOPLEVEL_LANG=verilog \
+         /tmp/week15_final_campaign_attempt_001/_build/11_m1_seed_1011_n_100000/Vtop    
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:79   in set_program_name_in_venv        Did not detect Python virtual environment. Using system-wide Python interpreter
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:101  in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Verilator version 5.034 2025-02-24
+     0.00ns INFO     cocotb                             Running tests with cocotb v1.9.2 from /home/logan/.local/lib/python3.10/site-packages/cocotb
+     0.00ns INFO     cocotb                             Seeding Python random module with 1790775069
+     0.00ns INFO     cocotb.regression                  Found test research.week15.final_campaign.test_m1_final.test_m1_pilot_exact_cut_10000
+     0.00ns INFO     cocotb.regression                  running test_m1_pilot_exact_cut_10000 (1/1)
+%Warning: instruction.hex:0: $readmem file not found
+%Warning: instruction.hex:0: $readmem file not found
+%Warning: instruction.hex:0: $readmem file not found
+%Warning: instruction.hex:0: $readmem file not found
+%Warning: data.hex:0: $readmem file not found
+%Warning: data.hex:0: $readmem file not found
+%Warning: data.hex:0: $readmem file not found
+%Warning: data.hex:0: $readmem file not found
+1710935.00ns INFO     ..otb.adaptive_execution_stream_tb W15_M1_FINAL_RESULT status=COMPLETED seed=1011 accepted=100000 retired=99997 in_flight=3 cycles=139389 stalls=241 flushes=19574 released_entries=69067 refill_pauses=33480 patched_words=139151 patch_reuses=139023 max_resident_words=128 l1_intent=18 l1_validated=18 l2_intent=62 l2_validated=62 wall_ns=105570515446 accepted_per_s=947.23 cycles_per_s=1320.34 peak_rss_kib=115056 peak_rss_start_kib=36032 checkpoints=100 plan_hash=d9988f02332f9349f71f2d925738cf06dd54340412f2ea5ac463b6aefa05ea70 telemetry=/tmp/week15_final_campaign_attempt_001/runs/11_m1_seed_1011_n_100000/m1_final_seed_1011_n_100000.json
+1710935.00ns INFO     cocotb.regression                  test_m1_pilot_exact_cut_10000 passed
+1710935.00ns INFO     cocotb.regression                  ************************************************************************************************************************************
+                                                         ** TEST                                                                        STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                         ************************************************************************************************************************************
+                                                         ** research.week15.final_campaign.test_m1_final.test_m1_pilot_exact_cut_10000   PASS     1710935.00         107.67      15890.19  **
+                                                         ************************************************************************************************************************************
+                                                         ** TESTS=1 PASS=1 FAIL=0 SKIP=0                                                          1710935.00         107.82      15868.04  **
+                                                         ************************************************************************************************************************************
+                                                         
+- :0: Verilog $finish
+make[1]: Leaving directory '/home/logan/nckh/risc-v-pipeline/research/week13/pure_random/rtl'
+make: Leaving directory '/home/logan/nckh/risc-v-pipeline/research/week13/pure_random/rtl'

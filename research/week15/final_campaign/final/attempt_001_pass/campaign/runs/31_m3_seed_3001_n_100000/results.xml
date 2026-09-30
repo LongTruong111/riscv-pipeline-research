@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1790776886" />
+    <testcase name="test_adaptive_reproducibility_exact_cut" classname="research.week15.final_campaign.test_m3_final" file="/home/logan/nckh/risc-v-pipeline/research/week15/final_campaign/test_m3_final.py" lineno="594" time="71.67375254631042" sim_time_ns="1352100.001" ratio_time="18864.64644259236" />
+  </testsuite>
+</testsuites>

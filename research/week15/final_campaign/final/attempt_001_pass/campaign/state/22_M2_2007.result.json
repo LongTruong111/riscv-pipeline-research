@@ -1,0 +1,30 @@
+{
+  "accepted_budget": 100000,
+  "classification": "FINAL_FIXED_N_VALID",
+  "final_seed_use": 22,
+  "index": 22,
+  "make_returncode": 0,
+  "method": "M2",
+  "paths": {
+    "build_dir": "/tmp/week15_final_campaign_attempt_001/_build/22_m2_seed_2007_n_100000",
+    "result_json": "/tmp/week15_final_campaign_attempt_001/runs/22_m2_seed_2007_n_100000/m2_final_seed_2007_n_100000.json",
+    "results_xml": "/tmp/week15_final_campaign_attempt_001/runs/22_m2_seed_2007_n_100000/results.xml",
+    "run_dir": "/tmp/week15_final_campaign_attempt_001/runs/22_m2_seed_2007_n_100000",
+    "simulator_log": "/tmp/week15_final_campaign_attempt_001/runs/22_m2_seed_2007_n_100000/simulator.log"
+  },
+  "result_parse_error": null,
+  "schema": "week15.final-campaign-run-result.v1",
+  "seed": 2007,
+  "sha256": {
+    "result_json": "5779a3aa1da7872afa2e9cb6d075a4c2fac3e0a05c2a4f09dc43a1ac303951bd",
+    "results_xml": "f09f91b5cedbeb7fda879bb96b4aca5ab6660cafe5c39489409d68e3cc2d56dc",
+    "simulator_log": "dbcac858d0904f60273e2962a29558101fa6dcae0b785a05ccea5f261f0fb09e"
+  },
+  "validation": {
+    "accepted": 100000,
+    "in_flight": 3,
+    "post_cut_clock_edges": 0,
+    "retired_checked": 99997,
+    "status": "COMPLETED"
+  }
+}

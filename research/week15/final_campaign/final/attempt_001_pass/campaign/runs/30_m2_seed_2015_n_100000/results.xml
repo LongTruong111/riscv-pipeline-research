@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1790776802" />
+    <testcase name="test_m2_preflight_exact_cut_1000" classname="research.week15.final_campaign.test_m2_final" file="/home/logan/nckh/risc-v-pipeline/research/week15/final_campaign/test_m2_final.py" lineno="334" time="79.73417115211487" sim_time_ns="1334649.001" ratio_time="16738.73298881843" />
+  </testsuite>
+</testsuites>

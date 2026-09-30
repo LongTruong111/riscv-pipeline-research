@@ -1,0 +1,9 @@
+{
+  "accepted_budget": 100000,
+  "authority_head": "086e8127101aca9a934bec77af84dc5f87160f09",
+  "final_seed_use_after_start": 13,
+  "index": 13,
+  "method": "M1",
+  "schema": "week15.final-campaign-run-start.v1",
+  "seed": 1013
+}

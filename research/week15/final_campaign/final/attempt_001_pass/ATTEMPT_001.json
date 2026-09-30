@@ -1,0 +1,55 @@
+{
+  "attempt": 1,
+  "authorities": {
+    "execution_contract_sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f",
+    "external_driver_sha256": "6fea68a005d00210a3582e8320af81e2f2f59b9de1c9f4f4608089f3af7dbc33",
+    "external_launcher_sha256": "f2634e65f83da572a903a4e38e28babcc305472749f808756abec7f3199f3778",
+    "external_plan_sha256": "1274955e6c58db3a27f779d5c02b7e0d15ab0cb8ec654f8d9fffd1d82e2d9ffc",
+    "harness_manifest_sha256": "ca03d7d2ce24e4b5d69353db871acce7f0b7e7404db03668c03a933f64a659c4",
+    "infra_qualification_closure_sha256": "ab46fd743f734e5cf56af82ff577c5a4d0fc94a7a76a158fc1e0d3ea5fe3f008",
+    "qualification_launch_contract_sha256": "9aa2304dfe144bfa3e751638777ffa6ed5e9eeeb6ae080391c0ca49f00d6b6cd"
+  },
+  "authority_head": "086e8127101aca9a934bec77af84dc5f87160f09",
+  "classification": "FINAL_CAMPAIGN_PASS",
+  "evidence": {
+    "build_products_committed": false,
+    "campaign_summary_sha256": "1d2460d63fb3d62bc2cde95d1623cf71f86d2d84df7ab18045dc3033e1d3fb9b",
+    "original_evidence_manifest_sha256": "3f183a6325752b732d2515c4f4561b5e35d259bba975618452cc598cff8790e6",
+    "raw_evidence_files": 237
+  },
+  "execution": {
+    "accepted_budget_per_run": 100000,
+    "final_seed_use": 45,
+    "first_run": {
+      "method": "M1",
+      "seed": 1001
+    },
+    "fixed_n_valid_runs": 45,
+    "last_run": {
+      "method": "M3",
+      "seed": 3015
+    },
+    "method_run_counts": {
+      "M1": 15,
+      "M2": 15,
+      "M3": 15
+    },
+    "runner_returncode": 0,
+    "runs_expected": 45,
+    "runs_finished": 45,
+    "runs_started": 45,
+    "total_fixed_n_accepted": 4500000
+  },
+  "protocol": {
+    "automatic_rerun_used": false,
+    "infra_invalid_observed": false,
+    "mixed_execution_harness_revisions_used": false,
+    "result_driven_tuning_used": false,
+    "seed_deletion_used": false,
+    "seed_replacement_used": false,
+    "selective_rerun_used": false,
+    "terminal_dut_failure_observed": false
+  },
+  "schema": "week15.final-campaign-attempt.v1",
+  "status": "PASS"
+}
