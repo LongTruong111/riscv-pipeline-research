@@ -1,0 +1,84 @@
+{
+  "analysis_state_at_freeze": {
+    "cross_method_statistics_computed": false,
+    "effect_sizes_computed": false,
+    "hypothesis_tests_computed": false
+  },
+  "authority": {
+    "analysis_contract_path": "research/week15/final_campaign/analysis/ANALYSIS_CONTRACT.json",
+    "analysis_contract_sha256": "fd1b04479486d70ebd285edbf50bea03de9949ea484d0af924f87119064f2f30",
+    "parent_head": "92fdf6d965741318dcc9f231926219322d91b492"
+  },
+  "cliffs_delta": {
+    "algorithm": "exact_all_pairwise_comparisons",
+    "formula": "(greater-less)/(n1*n2)",
+    "sign": "positive iff first listed method tends to have numerically larger values"
+  },
+  "descriptive_statistics": {
+    "mean": "arithmetic_mean",
+    "median": {
+      "method": "Hyndman-Fan type 7",
+      "quantile_probability": 0.5
+    },
+    "q1": {
+      "method": "Hyndman-Fan type 7",
+      "quantile_probability": 0.25
+    },
+    "q3": {
+      "method": "Hyndman-Fan type 7",
+      "quantile_probability": 0.75
+    },
+    "sample_standard_deviation": {
+      "ddof": 1
+    }
+  },
+  "kruskal_wallis": {
+    "asymptotic_reference": "chi_square",
+    "degrees_of_freedom": 2,
+    "groups": 3,
+    "p_value_for_df_2": "exp(-H/2)",
+    "scope": "each primary metric",
+    "tie_correction": true,
+    "two_sided": true
+  },
+  "mann_whitney_u": {
+    "alternative": "two-sided",
+    "continuity_correction": false,
+    "p_value": "two-sided standard-normal asymptotic",
+    "reported_u": "U for first method in listed pair",
+    "scope": "three pairwise comparisons for each primary metric",
+    "tie_rank_method": "average_rank",
+    "variance": "asymptotic_tie_corrected"
+  },
+  "multiple_testing": {
+    "adjusted_p_algorithm": "step-down Holm adjusted p-values; monotone cumulative maximum",
+    "family_definition": "3 pairwise tests x 2 primary metrics",
+    "family_size": 6,
+    "familywise_alpha": 0.05,
+    "method": "Holm"
+  },
+  "numeric_policy": {
+    "floating_point": "IEEE-754 Python float",
+    "m3_auc_crosscheck_abs_tolerance": 1e-12
+  },
+  "prohibitions": {
+    "additional_final_execution": true,
+    "metric_substitution_after_results": true,
+    "raw_evidence_rewrite": true,
+    "seed_deletion": true,
+    "seed_replacement": true
+  },
+  "ranking": {
+    "tie_rank_method": "average_rank"
+  },
+  "schema": "week15.final-analysis-implementation-spec.v1",
+  "secondary_metric_policy": {
+    "checkpoint_to_full_if_not_reached": "retain null/right-censored; do not impute 100000",
+    "confirmatory_hypothesis_testing": false
+  },
+  "status": "FROZEN_BEFORE_FIRST_CROSS_METHOD_COMPUTATION",
+  "telemetry_erratum_policy": {
+    "m3_10k_value_source": "raw canonical checkpoint at executed_instructions=10000",
+    "m3_stored_l2_intent_bins_at_10000": "never used"
+  }
+}
