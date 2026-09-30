@@ -1,0 +1,46 @@
+{
+  "contract_sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d",
+  "fresh_process_per_run": true,
+  "git_dirty": false,
+  "head": "c2a28aa4c90e7fd9be0d692bc136cfe6f0992783",
+  "plan": [
+    {
+      "accepted_budget": 10000,
+      "repetition": "A",
+      "seed": 15001
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "B",
+      "seed": 15001
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "A",
+      "seed": 15002
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "B",
+      "seed": 15002
+    },
+    {
+      "accepted_budget": 100000,
+      "repetition": "A",
+      "seed": 15003
+    },
+    {
+      "accepted_budget": 100000,
+      "repetition": "B",
+      "seed": 15003
+    }
+  ]
+}
+Traceback (most recent call last):
+  File "/home/logan/nckh/risc-v-pipeline/research/week15/reproducibility/run_reproducibility.py", line 742, in <module>
+    sys.exit(main())
+  File "/home/logan/nckh/risc-v-pipeline/research/week15/reproducibility/run_reproducibility.py", line 592, in main
+    result_path = run_one(
+  File "/home/logan/nckh/risc-v-pipeline/research/week15/reproducibility/run_reproducibility.py", line 453, in run_one
+    raise RuntimeError(
+RuntimeError: qualification process produced no result artifact; returncode=0, log=/tmp/week15_t15_repro_qualification_attempt_002/c2a28aa4c90e7fd9be0d692bc136cfe6f0992783/seed_15001_n_10000_rep_A/simulator.log

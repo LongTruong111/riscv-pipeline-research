@@ -1,0 +1,49 @@
+{
+  "accepted_instructions": 0,
+  "adaptive_campaign_started": false,
+  "attempt_id": "T15_REPRO_ATTEMPT_002",
+  "cocotb_test_discovered": true,
+  "cocotb_test_started": true,
+  "disposition": "PRESERVE_AND_RESTART_ENTIRE_MATRIX_AFTER_INFRASTRUCTURE_FIX",
+  "evidence": {
+    "qualification_runner_log": "research/week15/repro/attempt_002_provenance_root_failure/qualification_runner.log",
+    "qualification_runner_log_sha256": "f9657f617dbfff444f333187ca46fb551686e7269b6aa56fece56aebf14e987f",
+    "results_xml": "research/week15/repro/attempt_002_provenance_root_failure/results.xml",
+    "results_xml_sha256": "a2368d486a106865eae4d6e8b608b0f6e900671704d78bf8d87888c4d1d5d278",
+    "simulator_log": "research/week15/repro/attempt_002_provenance_root_failure/simulator.log",
+    "simulator_log_sha256": "d1154870d13ae463444a1852b3c7c0c3661a6494c004391350148d6568b639f5"
+  },
+  "failure_class": "WEEK15_HARNESS_REPO_ROOT_DEPTH",
+  "failure_detail": {
+    "failing_command": "git rev-parse HEAD",
+    "function": "validate_pilot_provenance",
+    "incorrect_resolved_root": "/home/logan/nckh",
+    "inherited_expression": "Path(__file__).resolve().parents[4]",
+    "required_expression": "Path(__file__).resolve().parents[3]",
+    "required_repo_root": "/home/logan/nckh/risc-v-pipeline"
+  },
+  "failure_stage": "HARNESS_PROVENANCE_PRE_CAMPAIGN",
+  "final_seed_used": false,
+  "full_matrix_restart_required": true,
+  "new_qualification_results_used": false,
+  "performance_evidence_used": false,
+  "planned_run": {
+    "accepted_budget": 10000,
+    "repetition": "A",
+    "seed": 15001
+  },
+  "qualification_head": "c2a28aa4c90e7fd9be0d692bc136cfe6f0992783",
+  "result_json_produced": false,
+  "results_xml_produced": true,
+  "schema": "week15.adaptive-repro.invalid-attempt.v1",
+  "selective_rerun_allowed": false,
+  "semantic_effect": {
+    "adaptive_algorithm_changed": false,
+    "canonical_trace_changed": false,
+    "contract_changed": false,
+    "dut_changed": false,
+    "qualification_result_obtained": false
+  },
+  "simulation_process_started": true,
+  "status": "INFRA_INVALID"
+}
