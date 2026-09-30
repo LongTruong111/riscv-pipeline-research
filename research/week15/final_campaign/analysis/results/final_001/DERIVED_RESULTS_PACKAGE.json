@@ -1,0 +1,99 @@
+{
+  "additional_final_runs": false,
+  "artifacts": {
+    "derived_comparative_analysis": {
+      "note": "Exact immutable copy of the pre-commit derived JSON. Its internal DERIVED_UNCOMMITTED status records the state at derivation time and is retained without rewriting.",
+      "path": "research/week15/final_campaign/analysis/results/final_001/DERIVED_COMPARATIVE_ANALYSIS.json",
+      "sha256": "b8fe3949dee4891ab67e0e0c0cffb742a4180665cc27982384c7418c0d3755f0"
+    },
+    "derived_result_audit": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/DERIVED_RESULT_AUDIT.json",
+      "sha256": "9020a09e1c3398f13e4d48c05921931030fb725eb906d617b47cdfd4cbc953a4"
+    },
+    "per_run_metrics_csv": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/PER_RUN_METRICS.csv",
+      "sha256": "752fe73cb96f880154095988904941d7d349c31aeace61b0822d9cf427ea48f1"
+    }
+  },
+  "audit": {
+    "raw_runs_rederived": 45,
+    "required_internal_checks": {
+      "cliffs_delta": "PASS",
+      "descriptive": "PASS",
+      "holm": "PASS",
+      "kruskal_wallis": "PASS",
+      "mann_whitney": "PASS",
+      "primary_distribution_order": "PASS",
+      "raw_to_csv": "PASS",
+      "raw_to_draft": "PASS"
+    },
+    "scipy_external_crosscheck": "SKIPPED_NOT_INSTALLED",
+    "status": "PASS"
+  },
+  "authority": {
+    "analysis_contract_sha256": "fd1b04479486d70ebd285edbf50bea03de9949ea484d0af924f87119064f2f30",
+    "analysis_implementation_head": "930fae61d1f6de567f12e53a06e0368fd70beaf6",
+    "analysis_implementation_spec_sha256": "c74d2fe8c9f3b2981b3a90452acf3e110e702d486a2c1d8f18b8b99c40e585ef"
+  },
+  "interpretation_boundary": {
+    "claim_scope": "Frozen Week-15 workload, coverage model, seed domains, budgets, DUT and harnesses.",
+    "general_claim_about_all_adaptive_methods": false,
+    "l1_used_for_cross_method_inference": false,
+    "runtime_used_for_primary_ranking": false
+  },
+  "population": {
+    "M1": 15,
+    "M2": 15,
+    "M3": 15,
+    "total": 45
+  },
+  "primary_result_summary": {
+    "holm_pairwise_rejections_at_0_05": 6,
+    "holm_pairwise_test_count": 6,
+    "l2_intent_bins_at_10000": {
+      "kruskal_wallis": {
+        "H": 39.283497884344136,
+        "df": 2,
+        "p": 2.949149709611578e-09,
+        "tie_correction": 0.9341238471673254
+      },
+      "means": {
+        "M1": 60.53333333333333,
+        "M2": 62.0,
+        "M3": 23.933333333333334
+      },
+      "observed_mean_order_high_to_low": [
+        "M2",
+        "M1",
+        "M3"
+      ]
+    },
+    "normalized_l2_intent_auc": {
+      "kruskal_wallis": {
+        "H": 40.09720534629404,
+        "df": 2,
+        "p": 1.963371529970084e-09,
+        "tie_correction": 0.9758893280632411
+      },
+      "means": {
+        "M1": 0.9739139784946237,
+        "M2": 0.9949784946236558,
+        "M3": 0.859752688172043
+      },
+      "observed_mean_order_high_to_low": [
+        "M2",
+        "M1",
+        "M3"
+      ]
+    }
+  },
+  "raw_evidence_modified": false,
+  "schema": "week15.final-derived-results-package.v1",
+  "status": "FROZEN_AUDITED",
+  "telemetry_erratum": {
+    "m3_misnamed_10k_field": true,
+    "raw_checkpoint_trace_valid": true,
+    "rerun_required": false,
+    "stored_misnamed_field_used_for_10k_analysis": false
+  }
+}

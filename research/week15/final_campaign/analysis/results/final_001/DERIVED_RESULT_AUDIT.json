@@ -1,0 +1,23 @@
+{
+  "checks": {
+    "cliffs_delta": "PASS",
+    "descriptive": "PASS",
+    "holm": "PASS",
+    "kruskal_wallis": "PASS",
+    "mann_whitney": "PASS",
+    "primary_distribution_order": "PASS",
+    "raw_to_csv": "PASS",
+    "raw_to_draft": "PASS"
+  },
+  "csv_sha256": "752fe73cb96f880154095988904941d7d349c31aeace61b0822d9cf427ea48f1",
+  "draft_sha256": "b8fe3949dee4891ab67e0e0c0cffb742a4180665cc27982384c7418c0d3755f0",
+  "holm_family_size": 6,
+  "pairwise_tests_audited": 6,
+  "primary_metrics_audited": 2,
+  "raw_evidence_modified": false,
+  "raw_runs_rederived": 45,
+  "schema": "week15.final-derived-result-audit.v1",
+  "scipy_checks": 0,
+  "scipy_external_crosscheck": "SKIPPED_NOT_INSTALLED",
+  "status": "PASS"
+}
