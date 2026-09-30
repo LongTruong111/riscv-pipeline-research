@@ -1,0 +1,109 @@
+{
+  "coverage_level_used_for_gate": false,
+  "final_seed_use": 0,
+  "performance_used_for_gate": false,
+  "qualification_head": "b75160748626506b36d7e6a6b2d099e6940a115c",
+  "results_used_for_tuning": false,
+  "runs": [
+    {
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "command": [
+        "make",
+        "-C",
+        "/home/logan/nckh/risc-v-pipeline/research/week13/pure_random/rtl",
+        "MODULE=research.week15.final_campaign.test_m1_final",
+        "SIM_BUILD=/tmp/week15_infra_qualification_attempt_007/_build/m1",
+        "COCOTB_RESULTS_FILE=/tmp/week15_infra_qualification_attempt_007/m1_seed_16001_n_100000/results.xml"
+      ],
+      "lifecycle": {
+        "accepted": 100000,
+        "in_flight": 1,
+        "in_flight_source_field": "in_flight_at_cut",
+        "retired_checked": 99999
+      },
+      "method": "M1",
+      "post_cut_clock_edges": 0,
+      "result_exists": true,
+      "result_path": "/tmp/week15_infra_qualification_attempt_007/m1_seed_16001_n_100000/m1_qualification_seed_16001_n_100000.json",
+      "result_sha256": "3923e68092359e9df3e8fd1a6cb8a4f4f352320ffee9a51efd391abd02591276",
+      "result_status": "COMPLETED",
+      "results_xml": "/tmp/week15_infra_qualification_attempt_007/m1_seed_16001_n_100000/results.xml",
+      "results_xml_exists": true,
+      "results_xml_sha256": "00a0618ef20dd26c2b519ccad29083c95e018d15274d398e1247ae3d9587863c",
+      "returncode": 0,
+      "run_dir": "/tmp/week15_infra_qualification_attempt_007/m1_seed_16001_n_100000",
+      "seed": 16001,
+      "simulator_log": "/tmp/week15_infra_qualification_attempt_007/m1_seed_16001_n_100000/simulator.log",
+      "simulator_log_sha256": "b02a2a66a6998393d966195dedcc87fa48bcafa950174b19fc3872eb562539b5"
+    },
+    {
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "command": [
+        "make",
+        "-C",
+        "/home/logan/nckh/risc-v-pipeline/research/week14/weighted_random/rtl",
+        "MODULE=research.week15.final_campaign.test_m2_final",
+        "SIM_BUILD=/tmp/week15_infra_qualification_attempt_007/_build/m2",
+        "COCOTB_RESULTS_FILE=/tmp/week15_infra_qualification_attempt_007/m2_seed_16002_n_100000/results.xml"
+      ],
+      "lifecycle": {
+        "accepted": 100000,
+        "in_flight": 3,
+        "in_flight_source_field": "in_flight",
+        "retired_checked": 99997
+      },
+      "method": "M2",
+      "post_cut_clock_edges": 0,
+      "result_exists": true,
+      "result_path": "/tmp/week15_infra_qualification_attempt_007/m2_seed_16002_n_100000/m2_qualification_seed_16002_n_100000.json",
+      "result_sha256": "a7fd530d41dbf4d1a25fe4e0be5918beb7a3bd818d7762caa78f2daefaee4cbb",
+      "result_status": "COMPLETED",
+      "results_xml": "/tmp/week15_infra_qualification_attempt_007/m2_seed_16002_n_100000/results.xml",
+      "results_xml_exists": true,
+      "results_xml_sha256": "a0e4c202d9383edc35b003f01f1d644209b1b332e1ac946da83cc1a956cc6982",
+      "returncode": 0,
+      "run_dir": "/tmp/week15_infra_qualification_attempt_007/m2_seed_16002_n_100000",
+      "seed": 16002,
+      "simulator_log": "/tmp/week15_infra_qualification_attempt_007/m2_seed_16002_n_100000/simulator.log",
+      "simulator_log_sha256": "1964e9a93eee6cb6e4f51b2b39a05b660be5da7520d4564ff334778b3a84c1c0"
+    },
+    {
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "command": [
+        "make",
+        "-C",
+        "/home/logan/nckh/risc-v-pipeline/research/week15/rtl",
+        "MODULE=research.week15.final_campaign.test_m3_final",
+        "SIM_BUILD=/tmp/week15_infra_qualification_attempt_007/_build/m3",
+        "COCOTB_RESULTS_FILE=/tmp/week15_infra_qualification_attempt_007/m3_seed_16003_n_100000/results.xml"
+      ],
+      "lifecycle": {
+        "accepted": 100000,
+        "in_flight": 3,
+        "in_flight_source_field": "in_flight_at_cut",
+        "retired_checked": 99997
+      },
+      "method": "M3",
+      "post_cut_clock_edges": 0,
+      "result_exists": true,
+      "result_path": "/tmp/week15_infra_qualification_attempt_007/m3_seed_16003_n_100000/m3_qualification_seed_16003_n_100000.json",
+      "result_sha256": "828a79ec1c29c5568f6dd3502c3a78171cdbda3933bfc9afc2a5fb72e3df1ba8",
+      "result_status": "COMPLETED",
+      "results_xml": "/tmp/week15_infra_qualification_attempt_007/m3_seed_16003_n_100000/results.xml",
+      "results_xml_exists": true,
+      "results_xml_sha256": "65b26f37ee02827c4f8f47d97597cba6de1104dd027c44469f0c5b54d18214af",
+      "returncode": 0,
+      "run_dir": "/tmp/week15_infra_qualification_attempt_007/m3_seed_16003_n_100000",
+      "seed": 16003,
+      "simulator_log": "/tmp/week15_infra_qualification_attempt_007/m3_seed_16003_n_100000/simulator.log",
+      "simulator_log_sha256": "53bdece5c2b041f21c3d8f84ad6594a0182e679f867bb9044e32f562310cd9a1"
+    }
+  ],
+  "runs_executed": 3,
+  "runs_expected": 3,
+  "schema": "week15.infra-qualification-result.v1",
+  "status": "PASS"
+}
