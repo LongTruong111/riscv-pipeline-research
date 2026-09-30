@@ -19,7 +19,7 @@
     },
     "harness_manifest": {
       "path": "research/week15/final_campaign/HARNESS_MANIFEST.json",
-      "sha256": "707407e1b9c1bc4321512a437dd6083e3c0936c860ea261350613f9cb657ebcd"
+      "sha256": "ca03d7d2ce24e4b5d69353db871acce7f0b7e7404db03668c03a933f64a659c4"
     },
     "implementation_plan": {
       "path": "research/week15/final_campaign/IMPLEMENTATION_PLAN.json",
@@ -30,7 +30,7 @@
       "sha256": "564f9424f3eed54741e8c9f39f17c4116d59e504d3544aa25588347e2c26bd6a"
     }
   },
-  "execution_infra_head": "4de914d07b6ebbca189c7aaf9996e29a3f537c82",
+  "execution_infra_head": "d9df18358604eda1d8ba0665d344da7cb57984b5",
   "failure_policy": {
     "any_lifecycle_mismatch": "INFRA_INVALID",
     "any_missing_result": "INFRA_INVALID",
@@ -40,7 +40,7 @@
   },
   "final_campaign": {
     "final_seed_use": 0,
-    "status": "LOCKED_PENDING_EXECUTION_INFRA_REPAIR"
+    "status": "LOCKED_PENDING_INFRA_REQUALIFICATION_ATTEMPT_007"
   },
   "make_contract": {
     "cocotb_results_file_location": "outside_repository",
@@ -162,18 +162,24 @@
     "superseded_for_final_execution": true
   },
   "requalification": {
+    "M1_sha256": "0bb3566a001ed7760b82e92ed6d25815967eb3b0845e6209ac1c64833163d100",
+    "M2_sha256": "e22821b80364b85d243be322ba76dc395a4a645a9d1e0d8aadfb2dab3d1a2a79",
+    "M3_sha256": "d4e2ae4a1b3dae78a3fa1ed4d8d2041dd4885785f1b2e37a13c7adcbe02142e3",
     "attempt_number": 7,
     "coverage_level_is_gate": false,
+    "harness_manifest_sha256": "ca03d7d2ce24e4b5d69353db871acce7f0b7e7404db03668c03a933f64a659c4",
     "matrix_scope": "FULL_M1_M2_M3",
     "performance_level_is_gate": false,
+    "qualification_runner_sha256": "564f9424f3eed54741e8c9f39f17c4116d59e504d3544aa25588347e2c26bd6a",
     "reason": "Execution-affecting evidence repair: M2 terminal telemetry is absent and M3 final telemetry retains a qualification-only phase label.",
+    "repair_head": "d9df18358604eda1d8ba0665d344da7cb57984b5",
     "required": true,
     "results_may_drive_tuning": false,
     "selective_rerun_allowed": false,
-    "status": "PENDING_AFTER_PRE_FINAL_EVIDENCE_AUDIT"
+    "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_007"
   },
   "schema": "week15.infra-qualification-launch-contract.v1",
-  "status": "RELOCKED_PENDING_EXECUTION_INFRA_REPAIR",
+  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_007",
   "superseded_final_authorization": {
     "closure_head": "2433408736b3160b19b4bc531b1b853c52291647",
     "closure_path": "research/week15/final_campaign/INFRA_QUALIFICATION_CLOSURE.json",
