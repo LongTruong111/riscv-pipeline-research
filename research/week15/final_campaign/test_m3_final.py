@@ -1126,7 +1126,7 @@ async def test_adaptive_reproducibility_exact_cut(
                 PILOT_SCHEMA_VERSION
             ),
             "method": "M3-Adaptive-CGS",
-            "phase": "reproducibility_qualification",
+            "phase": REPRO_CONFIG.phase,
 
             "seed": ROOT_SEED,
 
@@ -2921,7 +2921,7 @@ async def test_adaptive_reproducibility_exact_cut(
             PILOT_SCHEMA_VERSION
         ),
         "method": "M3-Adaptive-CGS",
-        "phase": "reproducibility_qualification",
+        "phase": REPRO_CONFIG.phase,
 
         "seed": ROOT_SEED,
 

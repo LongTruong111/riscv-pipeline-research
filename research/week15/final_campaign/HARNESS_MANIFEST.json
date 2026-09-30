@@ -6,7 +6,7 @@
     },
     {
       "path": "research/week15/final_campaign/derive_harnesses.py",
-      "sha256": "c0afc5fece1511e9c56c8352144539098dc8d7ec6e7c065fe9e76cac6dbf5f09"
+      "sha256": "4fed72f093c8e256c5180979856e22e567948501ee422cdd7609dcec539fb556"
     },
     {
       "path": "research/week15/final_campaign/test_m1_final.py",
@@ -14,15 +14,15 @@
     },
     {
       "path": "research/week15/final_campaign/test_m2_final.py",
-      "sha256": "c6dc2cb2c0ccc68e7b24862e623452d138b0da6e9b59402c3c154886ee028e65"
+      "sha256": "e22821b80364b85d243be322ba76dc395a4a645a9d1e0d8aadfb2dab3d1a2a79"
     },
     {
       "path": "research/week15/final_campaign/test_m3_final.py",
-      "sha256": "ffe2b5aa03550ab477c9e16e76eba4014b71035bdb3e5feb23a260fcd80637ba"
+      "sha256": "d4e2ae4a1b3dae78a3fa1ed4d8d2041dd4885785f1b2e37a13c7adcbe02142e3"
     },
     {
       "path": "research/week15/final_campaign/test_infrastructure_static.py",
-      "sha256": "15f821497b1035107fbac45e312691bc5f67c14fbce05997d6d90efe92fb9102"
+      "sha256": "01d53a5b1a755a40944666d8330830d7e689b8ae4a1083d03b57ead06dc482fc"
     }
   ],
   "implementation_base_head": "1adc8e73d2f05f633f261e551892bb2d4f5320dc",
@@ -45,7 +45,7 @@
         "seed": 16003
       }
     ],
-    "status": "NOT_RUN_AFTER_M2_DERIVATION_REPAIR"
+    "status": "PENDING_ATTEMPT_007_AFTER_PRE_FINAL_EVIDENCE_REPAIR"
   },
   "repair_history": [
     {
@@ -73,8 +73,34 @@
       "generator_changed": false,
       "method_semantics_changed": false,
       "repair_parent_head": "04324706930919cc0ed729c879be43d017735bd4"
+    },
+    {
+      "M1_changed": false,
+      "M3_changed": false,
+      "affected_method": "M2",
+      "after_attempt": 6,
+      "change": "Deterministic M2 final derivation now writes structured terminal-prefix telemetry before raising VALID_DUT_FAILURE_TERMINAL; generator, checker, cut, and fixed-N semantics are unchanged.",
+      "classification": "PRE_FINAL_EVIDENCE_AUDIT_REPAIR",
+      "dut_changed": false,
+      "full_requalification_required": true,
+      "generator_changed": false,
+      "method_semantics_changed": false,
+      "repair_parent_head": "af7c65ef858dc500d3df9688352660e1a25c70e4"
+    },
+    {
+      "M1_changed": false,
+      "M2_changed": false,
+      "affected_method": "M3",
+      "after_attempt": 6,
+      "change": "Deterministic M3 final derivation replaces the source qualification-only telemetry phase literal with REPRO_CONFIG.phase so final and qualification evidence report their runtime phase correctly.",
+      "classification": "PRE_FINAL_EVIDENCE_AUDIT_REPAIR",
+      "dut_changed": false,
+      "full_requalification_required": true,
+      "generator_changed": false,
+      "method_semantics_changed": false,
+      "repair_parent_head": "af7c65ef858dc500d3df9688352660e1a25c70e4"
     }
   ],
   "schema": "week15.final-execution-harness-manifest.v1",
-  "status": "IMPLEMENTED_NOT_YET_INFRA_QUALIFIED"
+  "status": "REPAIRED_PENDING_INFRA_REQUALIFICATION_ATTEMPT_007"
 }

@@ -203,18 +203,40 @@ def test_m3_diff_is_runtime_import_only():
         encoding="utf-8"
     )
 
+    old_import = (
+        "from research.week15."
+        "reproducibility.runtime_config "
+        "import ("
+    )
+
+    new_import = (
+        "from research.week15."
+        "final_campaign.runtime_config "
+        "import ("
+    )
+
+    assert source.count(old_import) == 1
+
     expected = source.replace(
-        (
-            "from research.week15."
-            "reproducibility.runtime_config "
-            "import ("
-        ),
-        (
-            "from research.week15."
-            "final_campaign.runtime_config "
-            "import ("
-        ),
+        old_import,
+        new_import,
         1,
+    )
+
+    old_phase = (
+        '"phase": '
+        '"reproducibility_qualification"'
+    )
+
+    new_phase = (
+        '"phase": REPRO_CONFIG.phase'
+    )
+
+    assert expected.count(old_phase) == 2
+
+    expected = expected.replace(
+        old_phase,
+        new_phase,
     )
 
     actual = (
@@ -454,3 +476,55 @@ def test_m2_final_excludes_preflight_complete_template_boundary():
             fragment in item
             for item in compact_asserts
         ), fragment
+
+
+def test_m2_terminal_divergence_has_structured_evidence():
+    text = (
+        FINAL_ROOT
+        / "test_m2_final.py"
+    ).read_text(
+        encoding="utf-8"
+    )
+
+    required = (
+        '"status": ('
+        '\n                    '
+        '"VALID_DUT_FAILURE_TERMINAL"',
+        '"terminal_divergence_status": (',
+        '"observed_accepted_at_divergence": (',
+        '"attributable_accepted_prefix": (',
+        '"post_cut_clock_edges": None',
+        '"fixed_budget_complete": False',
+        'f"telemetry={RESULT_PATH}"',
+    )
+
+    for fragment in required:
+        assert fragment in text, fragment
+
+    assert (
+        "raise AssertionError(\n"
+        "                terminal_reason\n"
+        "            )"
+        in text
+    )
+
+
+def test_m3_final_telemetry_uses_runtime_phase():
+    text = (
+        FINAL_ROOT
+        / "test_m3_final.py"
+    ).read_text(
+        encoding="utf-8"
+    )
+
+    assert (
+        '"phase": "reproducibility_qualification"'
+        not in text
+    )
+
+    assert (
+        text.count(
+            '"phase": REPRO_CONFIG.phase'
+        )
+        == 2
+    )

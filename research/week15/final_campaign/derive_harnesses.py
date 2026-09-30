@@ -802,6 +802,202 @@ def remove_m2_boundary_special_case(
     )
 
 
+def add_m2_terminal_telemetry(
+    source: str,
+) -> str:
+    """
+    Preserve structured terminal-prefix evidence for M2.
+
+    The divergent instruction is physically observed by the
+    adapter but must remain outside the attributable checker /
+    coverage prefix. This does not change generator, checker,
+    cut, or fixed-N semantics.
+    """
+    old = """\
+            raise AssertionError(
+                "VALID_DUT_FAILURE_TERMINAL: "
+                f"instruction_index="
+                f"{event.instruction_index}, "
+                f"expected_pc="
+                f"0x{expected_pc:03x}, "
+                f"observed_pc="
+                f"0x{event.pc:03x}, "
+                f"expected_word="
+                f"0x{expected_word:08x}, "
+                f"observed_word="
+                f"0x{event.instruction:08x}"
+            )
+"""
+
+    new = """\
+            terminal_reason = (
+                "VALID_DUT_FAILURE_TERMINAL: "
+                f"instruction_index="
+                f"{event.instruction_index}, "
+                f"expected_pc="
+                f"0x{expected_pc:03x}, "
+                f"observed_pc="
+                f"0x{event.pc:03x}, "
+                f"expected_word="
+                f"0x{expected_word:08x}, "
+                f"observed_word="
+                f"0x{event.instruction:08x}"
+            )
+
+            observed_accepted = (
+                adapter.instruction_count
+            )
+
+            attributable_accepted = (
+                coverage.executed_instructions
+            )
+
+            retired_checked = (
+                retire_monitor.retired_count
+            )
+
+            attributable_in_flight = (
+                attributable_accepted
+                - retired_checked
+            )
+
+            assert (
+                observed_accepted
+                == event.instruction_index
+            )
+
+            assert (
+                attributable_accepted
+                == event.instruction_index - 1
+            )
+
+            assert attributable_in_flight >= 0
+
+            RESULT_DIR.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            if RESULT_PATH.exists():
+                raise AssertionError(
+                    "refusing to overwrite existing "
+                    f"M2 terminal result: {RESULT_PATH}"
+                )
+
+            terminal_record = {
+                "schema_version": (
+                    "w15.m2-final.telemetry.v1"
+                ),
+                "phase": FINAL_CONFIG.phase,
+                "method": "M2",
+                "seed": ROOT_SEED,
+                "accepted_budget": (
+                    ACCEPTED_BUDGET
+                ),
+                "checkpoint_interval": (
+                    CHECKPOINT_INTERVAL
+                ),
+                "status": (
+                    "VALID_DUT_FAILURE_TERMINAL"
+                ),
+                "terminal_divergence_status": (
+                    "OBSERVED"
+                ),
+                "post_cut_clock_edges": None,
+                "fixed_budget_complete": False,
+                "eligibility": {
+                    "fixed_budget_metrics": False,
+                    "auc": False,
+                    "throughput": False,
+                    "ordinary_fixed_n_inference": False,
+                },
+                "lifecycle": {
+                    "observed_accepted_at_divergence": (
+                        observed_accepted
+                    ),
+                    "attributable_accepted_prefix": (
+                        attributable_accepted
+                    ),
+                    "retired_checked": (
+                        retired_checked
+                    ),
+                    "in_flight_attributable": (
+                        attributable_in_flight
+                    ),
+                },
+                "terminal_divergence": {
+                    "reason": terminal_reason,
+                    "instruction_index": (
+                        event.instruction_index
+                    ),
+                    "expected_pc": expected_pc,
+                    "observed_pc": event.pc,
+                    "expected_instruction": (
+                        expected_word
+                    ),
+                    "observed_instruction": (
+                        event.instruction
+                    ),
+                },
+            }
+
+            RESULT_PATH.write_text(
+                json.dumps(
+                    terminal_record,
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\\n",
+                encoding="utf-8",
+            )
+
+            dut._log.error(
+                "W15_M2_FINAL_RESULT "
+                "status="
+                "VALID_DUT_FAILURE_TERMINAL "
+                f"seed={ROOT_SEED} "
+                f"observed_accepted="
+                f"{observed_accepted} "
+                f"attributable_prefix="
+                f"{attributable_accepted} "
+                f"telemetry={RESULT_PATH}"
+            )
+
+            raise AssertionError(
+                terminal_reason
+            )
+"""
+
+    if source.count(old) != 1:
+        raise AssertionError(
+            "expected exactly one M2 terminal raise "
+            f"block, got {source.count(old)}"
+        )
+
+    result = source.replace(
+        old,
+        new,
+        1,
+    )
+
+    required = (
+        '"VALID_DUT_FAILURE_TERMINAL"',
+        '"terminal_divergence_status"',
+        '"observed_accepted_at_divergence"',
+        '"attributable_accepted_prefix"',
+        '"fixed_budget_complete": False',
+    )
+
+    for fragment in required:
+        if fragment not in result:
+            raise AssertionError(
+                "M2 terminal telemetry derivation "
+                f"missing {fragment}"
+            )
+
+    return result
+
+
 def derive_m2() -> str:
     verify_source(
         "M2",
@@ -911,6 +1107,10 @@ RESULT_PATH = FINAL_CONFIG.result_path
         "import time\n",
         "import json\nimport time\n",
         1,
+    )
+
+    source = add_m2_terminal_telemetry(
+        source
     )
 
     marker = (
@@ -1172,6 +1372,38 @@ def derive_m3() -> str:
         new,
         1,
     )
+
+    old_phase = (
+        '"phase": '
+        '"reproducibility_qualification"'
+    )
+
+    new_phase = (
+        '"phase": REPRO_CONFIG.phase'
+    )
+
+    if derived.count(old_phase) != 2:
+        raise AssertionError(
+            "expected two M3 qualification-only "
+            "phase labels, got "
+            f"{derived.count(old_phase)}"
+        )
+
+    derived = derived.replace(
+        old_phase,
+        new_phase,
+    )
+
+    if old_phase in derived:
+        raise AssertionError(
+            "M3 qualification-only phase label "
+            "survived final derivation"
+        )
+
+    if derived.count(new_phase) != 2:
+        raise AssertionError(
+            "unexpected M3 runtime-phase count"
+        )
 
     compile(
         derived,

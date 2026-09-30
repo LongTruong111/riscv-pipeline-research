@@ -1196,7 +1196,7 @@ async def test_m2_preflight_exact_cut_1000(
                 units="ns",
             )
 
-            raise AssertionError(
+            terminal_reason = (
                 "VALID_DUT_FAILURE_TERMINAL: "
                 f"instruction_index="
                 f"{event.instruction_index}, "
@@ -1208,6 +1208,129 @@ async def test_m2_preflight_exact_cut_1000(
                 f"0x{expected_word:08x}, "
                 f"observed_word="
                 f"0x{event.instruction:08x}"
+            )
+
+            observed_accepted = (
+                adapter.instruction_count
+            )
+
+            attributable_accepted = (
+                coverage.executed_instructions
+            )
+
+            retired_checked = (
+                retire_monitor.retired_count
+            )
+
+            attributable_in_flight = (
+                attributable_accepted
+                - retired_checked
+            )
+
+            assert (
+                observed_accepted
+                == event.instruction_index
+            )
+
+            assert (
+                attributable_accepted
+                == event.instruction_index - 1
+            )
+
+            assert attributable_in_flight >= 0
+
+            RESULT_DIR.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            if RESULT_PATH.exists():
+                raise AssertionError(
+                    "refusing to overwrite existing "
+                    f"M2 terminal result: {RESULT_PATH}"
+                )
+
+            terminal_record = {
+                "schema_version": (
+                    "w15.m2-final.telemetry.v1"
+                ),
+                "phase": FINAL_CONFIG.phase,
+                "method": "M2",
+                "seed": ROOT_SEED,
+                "accepted_budget": (
+                    ACCEPTED_BUDGET
+                ),
+                "checkpoint_interval": (
+                    CHECKPOINT_INTERVAL
+                ),
+                "status": (
+                    "VALID_DUT_FAILURE_TERMINAL"
+                ),
+                "terminal_divergence_status": (
+                    "OBSERVED"
+                ),
+                "post_cut_clock_edges": None,
+                "fixed_budget_complete": False,
+                "eligibility": {
+                    "fixed_budget_metrics": False,
+                    "auc": False,
+                    "throughput": False,
+                    "ordinary_fixed_n_inference": False,
+                },
+                "lifecycle": {
+                    "observed_accepted_at_divergence": (
+                        observed_accepted
+                    ),
+                    "attributable_accepted_prefix": (
+                        attributable_accepted
+                    ),
+                    "retired_checked": (
+                        retired_checked
+                    ),
+                    "in_flight_attributable": (
+                        attributable_in_flight
+                    ),
+                },
+                "terminal_divergence": {
+                    "reason": terminal_reason,
+                    "instruction_index": (
+                        event.instruction_index
+                    ),
+                    "expected_pc": expected_pc,
+                    "observed_pc": event.pc,
+                    "expected_instruction": (
+                        expected_word
+                    ),
+                    "observed_instruction": (
+                        event.instruction
+                    ),
+                },
+            }
+
+            RESULT_PATH.write_text(
+                json.dumps(
+                    terminal_record,
+                    indent=2,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            dut._log.error(
+                "W15_M2_FINAL_RESULT "
+                "status="
+                "VALID_DUT_FAILURE_TERMINAL "
+                f"seed={ROOT_SEED} "
+                f"observed_accepted="
+                f"{observed_accepted} "
+                f"attributable_prefix="
+                f"{attributable_accepted} "
+                f"telemetry={RESULT_PATH}"
+            )
+
+            raise AssertionError(
+                terminal_reason
             )
 
         logical_word = (
