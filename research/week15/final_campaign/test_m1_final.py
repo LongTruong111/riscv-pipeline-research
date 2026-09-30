@@ -106,7 +106,7 @@ CLOCK_NS = 10
 REPO_ROOT = (
     Path(__file__)
     .resolve()
-    .parents[4]
+    .parents[3]
 )
 
 DUT_REVISION = (

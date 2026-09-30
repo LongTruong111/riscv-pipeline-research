@@ -266,3 +266,93 @@ def test_all_final_harnesses_compile():
             str(FINAL_ROOT / name),
             doraise=True,
         )
+
+
+def test_final_harness_repo_root_relocation_contract():
+    import ast
+
+    def find_repo_root(path):
+        text = path.read_text(
+            encoding="utf-8"
+        )
+
+        tree = ast.parse(text)
+
+        nodes = []
+
+        for node in tree.body:
+            if not isinstance(
+                node,
+                (
+                    ast.Assign,
+                    ast.AnnAssign,
+                ),
+            ):
+                continue
+
+            targets = (
+                node.targets
+                if isinstance(
+                    node,
+                    ast.Assign,
+                )
+                else [node.target]
+            )
+
+            if any(
+                isinstance(
+                    target,
+                    ast.Name,
+                )
+                and target.id == "REPO_ROOT"
+                for target in targets
+            ):
+                nodes.append(node)
+
+        return text, nodes
+
+    m1_text, m1_nodes = find_repo_root(
+        FINAL_ROOT
+        / "test_m1_final.py"
+    )
+
+    m2_text, m2_nodes = find_repo_root(
+        FINAL_ROOT
+        / "test_m2_final.py"
+    )
+
+    m3_text, m3_nodes = find_repo_root(
+        FINAL_ROOT
+        / "test_m3_final.py"
+    )
+
+    assert len(m1_nodes) == 1
+
+    m1_segment = ast.get_source_segment(
+        m1_text,
+        m1_nodes[0],
+    )
+
+    assert m1_segment is not None
+    assert ".parents[3]" in m1_segment
+    assert ".parents[4]" not in m1_segment
+
+    # M2 does not own Git provenance and
+    # intentionally has no REPO_ROOT.
+    assert len(m2_nodes) == 0
+    assert "def git_text(" not in m2_text
+    assert (
+        "validate_pilot_provenance"
+        not in m2_text
+    )
+
+    assert len(m3_nodes) == 1
+
+    m3_segment = ast.get_source_segment(
+        m3_text,
+        m3_nodes[0],
+    )
+
+    assert m3_segment is not None
+    assert ".parents[3]" in m3_segment
+    assert ".parents[4]" not in m3_segment

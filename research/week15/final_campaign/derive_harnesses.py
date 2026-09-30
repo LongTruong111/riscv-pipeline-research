@@ -279,6 +279,11 @@ def derive_m1() -> str:
         source
     )
 
+    repo_root = top_assignment(
+        tree,
+        "REPO_ROOT",
+    )
+
     seed_start = top_assignment(
         tree,
         "PILOT_SEEDS",
@@ -376,6 +381,15 @@ def validate_pilot_provenance() -> str:
 """
 
     replacements = [
+        (
+            repo_root.lineno,
+            repo_root.end_lineno,
+            """REPO_ROOT = (
+    Path(__file__)
+    .resolve()
+    .parents[3]
+)""",
+        ),
         (
             schema.lineno,
             schema.end_lineno,

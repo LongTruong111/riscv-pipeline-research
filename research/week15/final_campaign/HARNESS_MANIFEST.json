@@ -6,11 +6,11 @@
     },
     {
       "path": "research/week15/final_campaign/derive_harnesses.py",
-      "sha256": "b527320db66616710b96fbe157b653575285a613dc92b7e329ddb3e2ff09110e"
+      "sha256": "735f3369a3478e08643c1f7c27341406fbeda87c962af5d1785241ca12ba4cf6"
     },
     {
       "path": "research/week15/final_campaign/test_m1_final.py",
-      "sha256": "cdb462c1e1fa09737cccfee3726d4dab329f016223598240625316b92c2f805e"
+      "sha256": "0bb3566a001ed7760b82e92ed6d25815967eb3b0845e6209ac1c64833163d100"
     },
     {
       "path": "research/week15/final_campaign/test_m2_final.py",
@@ -22,7 +22,7 @@
     },
     {
       "path": "research/week15/final_campaign/test_infrastructure_static.py",
-      "sha256": "b9b728dfefcc28b9cf5580cadc05d4229c8b852a1e69caca390d716b21591445"
+      "sha256": "a9c94f9262eba7aa6ce4f55d30b01a93c00587f46eaff7c70459aea7813b3dd4"
     }
   ],
   "implementation_base_head": "1adc8e73d2f05f633f261e551892bb2d4f5320dc",
@@ -45,8 +45,23 @@
         "seed": 16003
       }
     ],
-    "status": "NOT_RUN"
+    "status": "NOT_RUN_AFTER_REPAIR"
   },
+  "repair_history": [
+    {
+      "M2_changed": false,
+      "M3_changed": false,
+      "affected_method": "M1",
+      "after_attempt": 1,
+      "change": "Deterministic derivation rewrites the relocated M1 REPO_ROOT from source-location parents[4] to final_campaign parents[3].",
+      "classification": "INFRA_INVALID_PRE_CAMPAIGN_PROVENANCE_ROOT",
+      "dut_changed": false,
+      "full_requalification_required": true,
+      "generator_changed": false,
+      "method_semantics_changed": false,
+      "repair_parent_head": "5f16f283a7118846d3bda23e3c5bd34efd303e11"
+    }
+  ],
   "schema": "week15.final-execution-harness-manifest.v1",
   "status": "IMPLEMENTED_NOT_YET_INFRA_QUALIFIED"
 }
