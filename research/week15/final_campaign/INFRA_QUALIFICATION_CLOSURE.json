@@ -1,0 +1,165 @@
+{
+  "authorities": {
+    "execution_contract": {
+      "path": "research/week15/final_campaign/EXECUTION_CONTRACT.json",
+      "sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f"
+    },
+    "harness_manifest": {
+      "path": "research/week15/final_campaign/HARNESS_MANIFEST.json",
+      "sha256": "707407e1b9c1bc4321512a437dd6083e3c0936c860ea261350613f9cb657ebcd"
+    },
+    "implementation_plan": {
+      "path": "research/week15/final_campaign/IMPLEMENTATION_PLAN.json",
+      "sha256": "fb5b0b5d5a03062cadc630d6ddd9ab2b33863081ca053e3a70c7756c32c00169"
+    },
+    "qualification_launch_contract_at_run": {
+      "path": "research/week15/final_campaign/QUALIFICATION_LAUNCH_CONTRACT.json",
+      "sha256": "955211c5b5471f4ab6516276aa640c7cc803957794d830c476c9b1aa19900b9e"
+    },
+    "qualification_runner": {
+      "path": "research/week15/final_campaign/run_infra_qualification.py",
+      "sha256": "564f9424f3eed54741e8c9f39f17c4116d59e504d3544aa25588347e2c26bd6a"
+    }
+  },
+  "evidence": {
+    "archive_integrity_verified": true,
+    "archive_manifest_path": "research/week15/final_campaign/qualification/attempt_006_pass/ARCHIVE_SHA256.txt",
+    "archive_manifest_sha256": "281e12ad065ce451fc97728fa28f2cfe8d11d13ed154eaffc0bd18558ba69b34",
+    "attempt_006_path": "research/week15/final_campaign/qualification/attempt_006_pass/ATTEMPT_006.json",
+    "attempt_006_sha256": "ed4313f334f34cb6e1e59124183153420a5726b6e63f149f9c318fde22cddca7",
+    "qualification_summary_path": "research/week15/final_campaign/qualification/attempt_006_pass/qualification_summary.json",
+    "qualification_summary_sha256": "a1ec21f090a1952b616883c8fc8a05cebe8579d110aece34f3179db5cac667a5"
+  },
+  "execution_contract_sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f",
+  "final_campaign_authorization": {
+    "M1_seeds": [
+      1001,
+      1002,
+      1003,
+      1004,
+      1005,
+      1006,
+      1007,
+      1008,
+      1009,
+      1010,
+      1011,
+      1012,
+      1013,
+      1014,
+      1015
+    ],
+    "M2_seeds": [
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015
+    ],
+    "M3_seeds": [
+      3001,
+      3002,
+      3003,
+      3004,
+      3005,
+      3006,
+      3007,
+      3008,
+      3009,
+      3010,
+      3011,
+      3012,
+      3013,
+      3014,
+      3015
+    ],
+    "accepted_budget_per_run": 100000,
+    "authorized": true,
+    "authorized_only_after": "infrastructure qualification PASS",
+    "campaign_restart_rule": "If an execution-infrastructure defect is found after any final run starts, archive the invalid campaign prefix, fix infrastructure only, rerun the complete infrastructure qualification matrix, then restart all 45 final runs. Never combine results from different execution-harness revisions.",
+    "methods": [
+      "M1",
+      "M2",
+      "M3"
+    ],
+    "mixed_execution_harness_revisions_allowed": false,
+    "runs_per_method": 15,
+    "seed_deletion_allowed": false,
+    "seed_replacement_allowed": false,
+    "total_accepted_budget": 4500000,
+    "total_runs": 45,
+    "tuning_allowed": false
+  },
+  "final_seed_use_before_closure": 0,
+  "gate_semantics": {
+    "coverage_level_used_for_gate": false,
+    "performance_used_for_gate": false,
+    "results_used_for_tuning": false,
+    "selective_rerun_used": false
+  },
+  "implementation_plan_sha256": "fb5b0b5d5a03062cadc630d6ddd9ab2b33863081ca053e3a70c7756c32c00169",
+  "qualification": {
+    "archive_head": "fb765f19523cc559710f489e705b4b340befbee1",
+    "attempt": 6,
+    "classification": "INFRA_QUALIFICATION_PASS",
+    "methods": {
+      "M1": {
+        "accepted_budget": 100000,
+        "classification": "QUALIFICATION_VALID",
+        "lifecycle": {
+          "accepted": 100000,
+          "in_flight": 1,
+          "in_flight_source_field": "in_flight_at_cut",
+          "retired_checked": 99999
+        },
+        "post_cut_clock_edges": 0,
+        "result_status": "COMPLETED",
+        "returncode": 0,
+        "seed": 16001
+      },
+      "M2": {
+        "accepted_budget": 100000,
+        "classification": "QUALIFICATION_VALID",
+        "lifecycle": {
+          "accepted": 100000,
+          "in_flight": 3,
+          "in_flight_source_field": "in_flight",
+          "retired_checked": 99997
+        },
+        "post_cut_clock_edges": 0,
+        "result_status": "COMPLETED",
+        "returncode": 0,
+        "seed": 16002
+      },
+      "M3": {
+        "accepted_budget": 100000,
+        "classification": "QUALIFICATION_VALID",
+        "lifecycle": {
+          "accepted": 100000,
+          "in_flight": 3,
+          "in_flight_source_field": "in_flight_at_cut",
+          "retired_checked": 99997
+        },
+        "post_cut_clock_edges": 0,
+        "result_status": "COMPLETED",
+        "returncode": 0,
+        "seed": 16003
+      }
+    },
+    "qualification_head": "131034b795665dca00f0f8e081c9c8aa66a33e85",
+    "runs_executed": 3,
+    "runs_expected": 3
+  },
+  "schema": "week15.infra-qualification-closure.v1",
+  "status": "PASS"
+}
