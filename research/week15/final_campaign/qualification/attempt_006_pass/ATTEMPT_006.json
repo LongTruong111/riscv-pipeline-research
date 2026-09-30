@@ -1,0 +1,61 @@
+{
+  "attempt": 6,
+  "classification": "INFRA_QUALIFICATION_PASS",
+  "evidence": {
+    "build_products_committed": false,
+    "driver_log_sha256": "9b43e719682a71f40e0769e9bc7acc7df23c77cbe163e393fbfecaf01e7834d5",
+    "original_evidence_manifest_sha256": "ec689b3d3db016ad3d748cdbeb7b95a76e70dda04322fe3b7cb51bcf13a092fa",
+    "qualification_summary_sha256": "a1ec21f090a1952b616883c8fc8a05cebe8579d110aece34f3179db5cac667a5",
+    "runner_rc_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "summary_status": "PASS"
+  },
+  "gate_semantics": {
+    "coverage_level_used_for_gate": false,
+    "performance_used_for_gate": false,
+    "results_used_for_tuning": false
+  },
+  "matrix": {
+    "M1": {
+      "accepted": 100000,
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "in_flight": 1,
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99999,
+      "seed": 16001
+    },
+    "M2": {
+      "accepted": 100000,
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "in_flight": 3,
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99997,
+      "seed": 16002
+    },
+    "M3": {
+      "accepted": 100000,
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "in_flight": 3,
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99997,
+      "seed": 16003
+    },
+    "expected_runs": 3,
+    "runs_executed": 3
+  },
+  "policy": {
+    "closure_commit_required_before_final_seeds": true,
+    "final_campaign_authorized_by_execution": true,
+    "final_seed_use_before_closure": 0,
+    "qualification_pass": true,
+    "selective_rerun_used": false
+  },
+  "qualification_head": "131034b795665dca00f0f8e081c9c8aa66a33e85",
+  "schema": "week15.infra-qualification-attempt.v1",
+  "status": "PASS"
+}
