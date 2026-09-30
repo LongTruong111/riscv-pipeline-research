@@ -547,3 +547,53 @@ def test_week15_python_harness_resolves_repo_root_at_correct_depth():
     assert (
         ROOT / "design/RegPack.sv"
     ).is_file()
+
+
+
+def test_week15_long_budget_auc_uses_runtime_checkpoint_grid():
+    harness = (
+        ROOT
+        / "research/week15/rtl/"
+        "test_adaptive_reproducibility.py"
+    )
+
+    source = harness.read_text(
+        encoding="utf-8"
+    )
+
+    expected_call = """normalized_l2_intent_auc(
+            auc_points,
+            n_max=ACCEPTED_BUDGET,
+            checkpoint_interval=CHECKPOINT_INTERVAL,
+        )
+"""
+
+    assert source.count(expected_call) == 1
+
+    from research.week13.adaptive.pilot_metrics import (
+        L2IntentCheckpoint,
+        normalized_l2_intent_auc,
+    )
+
+    checkpoints = tuple(
+        L2IntentCheckpoint(
+            accepted=accepted,
+            l2_intent_bins=0,
+        )
+        for accepted in range(
+            1000,
+            100000 + 1,
+            1000,
+        )
+    )
+
+    assert len(checkpoints) == 100
+
+    assert (
+        normalized_l2_intent_auc(
+            checkpoints,
+            n_max=100000,
+            checkpoint_interval=1000,
+        )
+        == 0.0
+    )

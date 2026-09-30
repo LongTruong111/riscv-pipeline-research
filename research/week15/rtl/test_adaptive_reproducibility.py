@@ -2834,7 +2834,9 @@ async def test_adaptive_reproducibility_exact_cut(
 
     normalized_auc = (
         normalized_l2_intent_auc(
-            auc_points
+            auc_points,
+            n_max=ACCEPTED_BUDGET,
+            checkpoint_interval=CHECKPOINT_INTERVAL,
         )
     )
 
