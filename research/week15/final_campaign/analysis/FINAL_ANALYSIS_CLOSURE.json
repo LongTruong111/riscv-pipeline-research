@@ -1,0 +1,341 @@
+{
+  "audit": {
+    "cliffs_delta": "PASS",
+    "derived_result_audit": "PASS",
+    "descriptive": "PASS",
+    "holm": "PASS",
+    "kruskal_wallis": "PASS",
+    "mann_whitney": "PASS",
+    "raw_runs_rederived": 45,
+    "raw_to_csv": "PASS",
+    "raw_to_draft": "PASS",
+    "scipy_external_crosscheck": "SKIPPED_NOT_INSTALLED",
+    "scipy_external_crosscheck_required": false
+  },
+  "authority": {
+    "analysis_contract": {
+      "path": "research/week15/final_campaign/analysis/ANALYSIS_CONTRACT.json",
+      "sha256": "fd1b04479486d70ebd285edbf50bea03de9949ea484d0af924f87119064f2f30"
+    },
+    "analysis_implementation_spec": {
+      "path": "research/week15/final_campaign/analysis/ANALYSIS_IMPLEMENTATION_SPEC.json",
+      "sha256": "c74d2fe8c9f3b2981b3a90452acf3e110e702d486a2c1d8f18b8b99c40e585ef"
+    },
+    "derived_comparative_analysis": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/DERIVED_COMPARATIVE_ANALYSIS.json",
+      "sha256": "b8fe3949dee4891ab67e0e0c0cffb742a4180665cc27982384c7418c0d3755f0"
+    },
+    "derived_files_manifest": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/FILES_SHA256.txt",
+      "sha256": "0ed14b9286101e2b8e9f8142033eea93128f0fd43e695b61a59fa854c21f1fa3"
+    },
+    "derived_result_audit": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/DERIVED_RESULT_AUDIT.json",
+      "sha256": "9020a09e1c3398f13e4d48c05921931030fb725eb906d617b47cdfd4cbc953a4"
+    },
+    "derived_results_commit": "1259b4a351ffdfb7681c56285f32aba9aac3af00",
+    "derived_results_package": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/DERIVED_RESULTS_PACKAGE.json",
+      "sha256": "3ed175ca93fa198aa2a0ced3a45f36449fa2d4228cfa6972869194aabd8e393a"
+    },
+    "final_execution_closure": {
+      "path": "research/week15/final_campaign/FINAL_EXECUTION_CLOSURE.json",
+      "sha256": "47d6cd628b60cb9a631eb2211b95fa3cc60cbe7899e14453d60ce35421ea3da4"
+    },
+    "per_run_metrics": {
+      "path": "research/week15/final_campaign/analysis/results/final_001/PER_RUN_METRICS.csv",
+      "sha256": "752fe73cb96f880154095988904941d7d349c31aeace61b0822d9cf427ea48f1"
+    }
+  },
+  "classification": "FINAL_COMPARATIVE_ANALYSIS_CLOSED",
+  "integrity": {
+    "additional_final_runs": false,
+    "analysis_contract_modified_after_results": false,
+    "implementation_spec_modified_after_results": false,
+    "raw_execution_evidence_modified": false,
+    "result_driven_tuning": false,
+    "seed_deletion": false,
+    "seed_replacement": false
+  },
+  "interpretation": {
+    "causal_superiority_claim_allowed": false,
+    "general_adaptive_method_claim_allowed": false,
+    "l1_cross_method_inference_allowed": false,
+    "primary_pairwise_differences_after_holm": "all_six_rejected_at_familywise_alpha_0.05",
+    "runtime_primary_ranking_allowed": false,
+    "scope_limitation": "The result applies to the frozen DUT, coverage universe, generators, adaptive policy, hyperparameters, seed domains and 100000-instruction budget used here.",
+    "supported_observation": "Under the frozen Week-15 experimental conditions, M2 has the highest observed primary-metric values, followed by M1, then M3."
+  },
+  "pairwise_inference": {
+    "holm_alpha": 0.05,
+    "holm_family_size": 6,
+    "holm_rejections": 6,
+    "records": [
+      {
+        "U_first": 0.0,
+        "cliffs_delta": -1.0,
+        "cliffs_equal": 0,
+        "cliffs_greater": 0,
+        "cliffs_less": 225,
+        "continuity_correction": false,
+        "holm_adjusted_p": 5.6166023412776765e-06,
+        "metric": "normalized_l2_intent_auc",
+        "pair": [
+          "M1",
+          "M2"
+        ],
+        "raw_p": 1.1266755461575987e-06,
+        "reject_fwer_0_05": true,
+        "z": -4.868115365877884
+      },
+      {
+        "U_first": 225.0,
+        "cliffs_delta": 1.0,
+        "cliffs_equal": 0,
+        "cliffs_greater": 225,
+        "cliffs_less": 0,
+        "continuity_correction": false,
+        "holm_adjusted_p": 6.118484406440465e-06,
+        "metric": "normalized_l2_intent_auc",
+        "pair": [
+          "M1",
+          "M3"
+        ],
+        "raw_p": 3.0592422032202326e-06,
+        "reject_fwer_0_05": true,
+        "z": 4.666801765480408
+      },
+      {
+        "U_first": 225.0,
+        "cliffs_delta": 1.0,
+        "cliffs_equal": 0,
+        "cliffs_greater": 225,
+        "cliffs_less": 0,
+        "continuity_correction": false,
+        "holm_adjusted_p": 5.6166023412776765e-06,
+        "metric": "normalized_l2_intent_auc",
+        "pair": [
+          "M2",
+          "M3"
+        ],
+        "raw_p": 1.1233204682555353e-06,
+        "reject_fwer_0_05": true,
+        "z": 4.868704833139944
+      },
+      {
+        "U_first": 15.0,
+        "cliffs_delta": -0.8666666666666667,
+        "cliffs_equal": 30,
+        "cliffs_greater": 0,
+        "cliffs_less": 195,
+        "continuity_correction": false,
+        "holm_adjusted_p": 6.496330009501436e-06,
+        "metric": "l2_intent_bins_at_10000",
+        "pair": [
+          "M1",
+          "M2"
+        ],
+        "raw_p": 6.496330009501436e-06,
+        "reject_fwer_0_05": true,
+        "z": -4.509556473209115
+      },
+      {
+        "U_first": 225.0,
+        "cliffs_delta": 1.0,
+        "cliffs_equal": 0,
+        "cliffs_greater": 225,
+        "cliffs_less": 0,
+        "continuity_correction": false,
+        "holm_adjusted_p": 5.655029500701863e-06,
+        "metric": "l2_intent_bins_at_10000",
+        "pair": [
+          "M1",
+          "M3"
+        ],
+        "raw_p": 1.8850098335672878e-06,
+        "reject_fwer_0_05": true,
+        "z": 4.765376869182166
+      },
+      {
+        "U_first": 225.0,
+        "cliffs_delta": 1.0,
+        "cliffs_equal": 0,
+        "cliffs_greater": 225,
+        "cliffs_less": 0,
+        "continuity_correction": false,
+        "holm_adjusted_p": 2.449027297022348e-06,
+        "metric": "l2_intent_bins_at_10000",
+        "pair": [
+          "M2",
+          "M3"
+        ],
+        "raw_p": 4.0817121617039137e-07,
+        "reject_fwer_0_05": true,
+        "z": 5.065106908522024
+      }
+    ],
+    "test_count": 6
+  },
+  "population": {
+    "accepted_budget_per_run": 100000,
+    "methods": 3,
+    "runs_per_method": 15,
+    "total_accepted": 4500000,
+    "total_runs": 45
+  },
+  "primary_metrics": {
+    "l2_intent_bins_at_10000": {
+      "direction": "higher_is_better",
+      "kruskal_wallis": {
+        "H": 39.283497884344136,
+        "df": 2,
+        "p": 2.949149709611578e-09,
+        "tie_correction": 0.9341238471673254
+      },
+      "mean": {
+        "M1": 60.53333333333333,
+        "M2": 62.0,
+        "M3": 23.933333333333334
+      },
+      "observed_mean_order": [
+        "M2",
+        "M1",
+        "M3"
+      ]
+    },
+    "normalized_l2_intent_auc": {
+      "direction": "higher_is_better",
+      "kruskal_wallis": {
+        "H": 40.09720534629404,
+        "df": 2,
+        "p": 1.963371529970084e-09,
+        "tie_correction": 0.9758893280632411
+      },
+      "mean": {
+        "M1": 0.9739139784946237,
+        "M2": 0.9949784946236558,
+        "M3": 0.859752688172043
+      },
+      "observed_mean_order": [
+        "M2",
+        "M1",
+        "M3"
+      ]
+    }
+  },
+  "schema": "week15.final-analysis-closure.v1",
+  "secondary_observations": {
+    "checkpoint_to_full_l2_intent": {
+      "M1": {
+        "n_observed": 15,
+        "n_right_censored": 0,
+        "n_total": 15,
+        "observed_summary": {
+          "max": 20000.0,
+          "mean": 14066.666666666666,
+          "median": 14000.0,
+          "min": 9000.0,
+          "n": 15,
+          "q1": 12000.0,
+          "q3": 16000.0,
+          "sample_standard_deviation": 3261.6093018777156
+        }
+      },
+      "M2": {
+        "n_observed": 15,
+        "n_right_censored": 0,
+        "n_total": 15,
+        "observed_summary": {
+          "max": 2000.0,
+          "mean": 1133.3333333333333,
+          "median": 1000.0,
+          "min": 1000.0,
+          "n": 15,
+          "q1": 1000.0,
+          "q3": 1000.0,
+          "sample_standard_deviation": 351.8657752744984
+        }
+      },
+      "M3": {
+        "n_observed": 15,
+        "n_right_censored": 0,
+        "n_total": 15,
+        "observed_summary": {
+          "max": 41000.0,
+          "mean": 28533.333333333332,
+          "median": 32000.0,
+          "min": 16000.0,
+          "n": 15,
+          "q1": 24000.0,
+          "q3": 32000.0,
+          "sample_standard_deviation": 7347.173087722405
+        }
+      }
+    },
+    "checkpoint_to_full_l2_validated": {
+      "M1": {
+        "n_observed": 15,
+        "n_right_censored": 0,
+        "n_total": 15,
+        "observed_summary": {
+          "max": 20000.0,
+          "mean": 14066.666666666666,
+          "median": 14000.0,
+          "min": 9000.0,
+          "n": 15,
+          "q1": 12000.0,
+          "q3": 16000.0,
+          "sample_standard_deviation": 3261.6093018777156
+        }
+      },
+      "M2": {
+        "n_observed": 15,
+        "n_right_censored": 0,
+        "n_total": 15,
+        "observed_summary": {
+          "max": 2000.0,
+          "mean": 1133.3333333333333,
+          "median": 1000.0,
+          "min": 1000.0,
+          "n": 15,
+          "q1": 1000.0,
+          "q3": 1000.0,
+          "sample_standard_deviation": 351.8657752744984
+        }
+      },
+      "M3": {
+        "n_observed": 15,
+        "n_right_censored": 0,
+        "n_total": 15,
+        "observed_summary": {
+          "max": 41000.0,
+          "mean": 28533.333333333332,
+          "median": 32000.0,
+          "min": 16000.0,
+          "n": 15,
+          "q1": 24000.0,
+          "q3": 32000.0,
+          "sample_standard_deviation": 7347.173087722405
+        }
+      }
+    }
+  },
+  "status": "PASS",
+  "telemetry_erratum": {
+    "analysis_validity_affected_after_erratum": false,
+    "execution_validity_affected": false,
+    "id": "M3_MISNAMED_L2_INTENT_BINS_AT_10000",
+    "raw_checkpoint_trace_valid": true,
+    "rerun_required": false,
+    "stored_misnamed_field_used": false
+  },
+  "week15": {
+    "analysis_closed": true,
+    "analysis_contract_frozen": true,
+    "derived_results_audited": true,
+    "derived_results_frozen": true,
+    "execution_closed": true,
+    "implementation_spec_frozen": true,
+    "status": "COMPLETE"
+  }
+}
