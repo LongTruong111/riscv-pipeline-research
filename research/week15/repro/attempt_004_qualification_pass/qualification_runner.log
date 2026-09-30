@@ -1,0 +1,40 @@
+{
+  "contract_sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d",
+  "fresh_process_per_run": true,
+  "git_dirty": false,
+  "head": "f20effb72167f78a61b97ae7032b62e377cea4e4",
+  "plan": [
+    {
+      "accepted_budget": 10000,
+      "repetition": "A",
+      "seed": 15001
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "B",
+      "seed": 15001
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "A",
+      "seed": 15002
+    },
+    {
+      "accepted_budget": 10000,
+      "repetition": "B",
+      "seed": 15002
+    },
+    {
+      "accepted_budget": 100000,
+      "repetition": "A",
+      "seed": 15003
+    },
+    {
+      "accepted_budget": 100000,
+      "repetition": "B",
+      "seed": 15003
+    }
+  ]
+}
+SUMMARY=/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/qualification_summary.json
+STATUS=PASS

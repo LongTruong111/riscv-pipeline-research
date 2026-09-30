@@ -1,0 +1,26 @@
+{
+  "attempt_id": "T15_REPRO_ATTEMPT_004",
+  "contract_sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d",
+  "coverage_level_used_for_gate": false,
+  "disposition": "QUALIFICATION_PASS_PRESERVE_FOR_GATE_T15_AUDIT",
+  "final_seed_use_count": 0,
+  "final_seed_used": false,
+  "fresh_process_per_run": true,
+  "gate_required_trace_equality": "PASS",
+  "independent_audit_sha256": "cf98989d1455884c2ac24c1b8f9c93df27b07ffd2ee3dcdeb0b24514415db0f4",
+  "performance_used_for_gate": false,
+  "prior_attempts": {
+    "001": "INFRA_INVALID",
+    "002": "INFRA_INVALID",
+    "003": "INFRA_INVALID"
+  },
+  "qualification_accepted_total": 240000,
+  "qualification_head": "f20effb72167f78a61b97ae7032b62e377cea4e4",
+  "qualification_results_used_for_tuning": false,
+  "qualification_runner_sha256": "36696eea95c6d16592515e81bae86655eabed6950ecdea99c19cd5ab57bcef1b",
+  "qualification_runs": 6,
+  "qualification_summary_sha256": "3b8a1736349331d2f41da47f6ae50c6b380a88716a75f1ca619d3cc1b8bda4ab",
+  "schema": "week15.adaptive-repro.qualification-attempt.v1",
+  "selective_rerun_used": false,
+  "status": "PASS"
+}

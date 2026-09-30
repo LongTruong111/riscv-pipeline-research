@@ -1,0 +1,147 @@
+{
+  "contract_sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d",
+  "coverage_level_used_for_gate": false,
+  "fresh_process_per_run": true,
+  "head": "f20effb72167f78a61b97ae7032b62e377cea4e4",
+  "individual_results": [
+    {
+      "repetition": "A",
+      "result_path": "/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/seed_15001_n_10000_rep_A/adaptive_repro_e0.10_a0.5_b500_seed_15001_n_10000_rep_A.json",
+      "result_sha256": "aa84d94e3273ad87fd696b65207e661af593278668e8246eca29f9b0c83afe3c",
+      "seed": 15001
+    },
+    {
+      "repetition": "B",
+      "result_path": "/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/seed_15001_n_10000_rep_B/adaptive_repro_e0.10_a0.5_b500_seed_15001_n_10000_rep_B.json",
+      "result_sha256": "c244b09654d8e53307585054c029a32254971e7379c829fcb11310b41a9effcf",
+      "seed": 15001
+    },
+    {
+      "repetition": "A",
+      "result_path": "/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/seed_15002_n_10000_rep_A/adaptive_repro_e0.10_a0.5_b500_seed_15002_n_10000_rep_A.json",
+      "result_sha256": "2880ce55f50027409b6fc95a3c8a585192eeeb75edcf7bbcc63dfd43c9d0f09b",
+      "seed": 15002
+    },
+    {
+      "repetition": "B",
+      "result_path": "/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/seed_15002_n_10000_rep_B/adaptive_repro_e0.10_a0.5_b500_seed_15002_n_10000_rep_B.json",
+      "result_sha256": "33dc16ff1e59465388c9574b456490f7a1dbf3aac01bcc70c364eadb882d59de",
+      "seed": 15002
+    },
+    {
+      "repetition": "A",
+      "result_path": "/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/seed_15003_n_100000_rep_A/adaptive_repro_e0.10_a0.5_b500_seed_15003_n_100000_rep_A.json",
+      "result_sha256": "0066ba9f2f01df98594fea6bab9891e0c989457ad538104d962b455340200ae8",
+      "seed": 15003
+    },
+    {
+      "repetition": "B",
+      "result_path": "/tmp/week15_t15_repro_qualification_attempt_004/f20effb72167f78a61b97ae7032b62e377cea4e4/seed_15003_n_100000_rep_B/adaptive_repro_e0.10_a0.5_b500_seed_15003_n_100000_rep_B.json",
+      "result_sha256": "3a805d00a54e426165beb640e6c11c82f390f3aae21a32f21d4e92081ebbe776",
+      "seed": 15003
+    }
+  ],
+  "pairs": [
+    {
+      "a_trace_digests": {
+        "arm_decision_trace": "b6708955db2e71787c2c7d5c285a6d2b330f6b59261598f7a1e596cdc417e193",
+        "coverage_trace": "aed64158ba979abf081fe17c0d937cbc4bf4288916695835cb3f409e7f70fad2",
+        "epoch_trace": "2fa38494496fafb2d38ed2ff2e6103f66f032e8a8173054a3e94fcc18db9d951",
+        "instruction_stream": "e0222abd8a6b9e8ece6aa5fa480139fc6e0fdd9825b1e6bdbcd6f8374c34d623",
+        "q_trace": "84d4156f09dbac0f450736461c2aaed9aa9b78b8a58b241d93c98cb290d12c3f",
+        "reward_trace": "74bc495fc0b5e8d96a8a2ec0be8eca17514f877fccdd4f54e1e3dfe1688e1fed"
+      },
+      "accepted_budget": 10000,
+      "b_trace_digests": {
+        "arm_decision_trace": "b6708955db2e71787c2c7d5c285a6d2b330f6b59261598f7a1e596cdc417e193",
+        "coverage_trace": "aed64158ba979abf081fe17c0d937cbc4bf4288916695835cb3f409e7f70fad2",
+        "epoch_trace": "2fa38494496fafb2d38ed2ff2e6103f66f032e8a8173054a3e94fcc18db9d951",
+        "instruction_stream": "e0222abd8a6b9e8ece6aa5fa480139fc6e0fdd9825b1e6bdbcd6f8374c34d623",
+        "q_trace": "84d4156f09dbac0f450736461c2aaed9aa9b78b8a58b241d93c98cb290d12c3f",
+        "reward_trace": "74bc495fc0b5e8d96a8a2ec0be8eca17514f877fccdd4f54e1e3dfe1688e1fed"
+      },
+      "gate_required_equal": true,
+      "gate_required_trace_equality": {
+        "arm_decision_trace": true,
+        "coverage_trace": true,
+        "instruction_stream": true,
+        "reward_trace": true
+      },
+      "seed": 15001,
+      "supplemental_equal": true,
+      "supplemental_trace_equality": {
+        "epoch_trace": true,
+        "q_trace": true
+      }
+    },
+    {
+      "a_trace_digests": {
+        "arm_decision_trace": "c815060b89a8866d79affa77f0b859931999d773eb0abafec258617e74bb665f",
+        "coverage_trace": "61dcfef93822309fb537f984270750f4f6d0dfeac03f2d01382e48e719be34d3",
+        "epoch_trace": "1e85fc50c845bc065f16e7880165e366790aa5f6101e98522f552bff31a169ef",
+        "instruction_stream": "3c7c157c1e8b2903ac8a0f7f7850e69476ec6b1e65e8fa0b6f420a2b1b2bfea3",
+        "q_trace": "5a344fdb96a10756fe2676864f6bfabcc2da7a0cb514b637fb45f336cc58d5d2",
+        "reward_trace": "08bda346b48bc34cf4c855b89e756a51ca79307b912b0ae8d4ee4d545b3ddebb"
+      },
+      "accepted_budget": 10000,
+      "b_trace_digests": {
+        "arm_decision_trace": "c815060b89a8866d79affa77f0b859931999d773eb0abafec258617e74bb665f",
+        "coverage_trace": "61dcfef93822309fb537f984270750f4f6d0dfeac03f2d01382e48e719be34d3",
+        "epoch_trace": "1e85fc50c845bc065f16e7880165e366790aa5f6101e98522f552bff31a169ef",
+        "instruction_stream": "3c7c157c1e8b2903ac8a0f7f7850e69476ec6b1e65e8fa0b6f420a2b1b2bfea3",
+        "q_trace": "5a344fdb96a10756fe2676864f6bfabcc2da7a0cb514b637fb45f336cc58d5d2",
+        "reward_trace": "08bda346b48bc34cf4c855b89e756a51ca79307b912b0ae8d4ee4d545b3ddebb"
+      },
+      "gate_required_equal": true,
+      "gate_required_trace_equality": {
+        "arm_decision_trace": true,
+        "coverage_trace": true,
+        "instruction_stream": true,
+        "reward_trace": true
+      },
+      "seed": 15002,
+      "supplemental_equal": true,
+      "supplemental_trace_equality": {
+        "epoch_trace": true,
+        "q_trace": true
+      }
+    },
+    {
+      "a_trace_digests": {
+        "arm_decision_trace": "b30bb79e40b4a38ab07f216cc9f7621e639243fe85e778db8afc229ddaab8a1f",
+        "coverage_trace": "36c37cc1e299ca29daa84f221073429ab571d3828d21706c420f5368183324d1",
+        "epoch_trace": "e194a09c80d7e730bd18258848da687304f202b585cfa6608e98bddf12a332cc",
+        "instruction_stream": "2761e2c59ac39cf9ee12ee56c384af38a66bc6a8e1106c14235bfb5ead7c7fe2",
+        "q_trace": "4166ffd9f13ee9e3b27d8ede920c82ff4b1fa41460b44047b4c1f2b33b6dcaef",
+        "reward_trace": "47e765420db9445d95cfa09932a93ace49585fca5c39fae9b6b09576d23f2cf8"
+      },
+      "accepted_budget": 100000,
+      "b_trace_digests": {
+        "arm_decision_trace": "b30bb79e40b4a38ab07f216cc9f7621e639243fe85e778db8afc229ddaab8a1f",
+        "coverage_trace": "36c37cc1e299ca29daa84f221073429ab571d3828d21706c420f5368183324d1",
+        "epoch_trace": "e194a09c80d7e730bd18258848da687304f202b585cfa6608e98bddf12a332cc",
+        "instruction_stream": "2761e2c59ac39cf9ee12ee56c384af38a66bc6a8e1106c14235bfb5ead7c7fe2",
+        "q_trace": "4166ffd9f13ee9e3b27d8ede920c82ff4b1fa41460b44047b4c1f2b33b6dcaef",
+        "reward_trace": "47e765420db9445d95cfa09932a93ace49585fca5c39fae9b6b09576d23f2cf8"
+      },
+      "gate_required_equal": true,
+      "gate_required_trace_equality": {
+        "arm_decision_trace": true,
+        "coverage_trace": true,
+        "instruction_stream": true,
+        "reward_trace": true
+      },
+      "seed": 15003,
+      "supplemental_equal": true,
+      "supplemental_trace_equality": {
+        "epoch_trace": true,
+        "q_trace": true
+      }
+    }
+  ],
+  "performance_used_for_gate": false,
+  "schema": "week15.adaptive-repro-qualification.v1",
+  "status": "PASS",
+  "total_accepted_budget": 240000,
+  "total_runs": 6
+}
