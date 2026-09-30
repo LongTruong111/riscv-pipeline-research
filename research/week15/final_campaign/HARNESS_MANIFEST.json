@@ -1,0 +1,52 @@
+{
+  "artifacts": [
+    {
+      "path": "research/week15/final_campaign/runtime_config.py",
+      "sha256": "bf0a8f0ced9c5cbed5d4ffced37f490248e1d5d303d064e6c5d76e9dbeb9ae6b"
+    },
+    {
+      "path": "research/week15/final_campaign/derive_harnesses.py",
+      "sha256": "b527320db66616710b96fbe157b653575285a613dc92b7e329ddb3e2ff09110e"
+    },
+    {
+      "path": "research/week15/final_campaign/test_m1_final.py",
+      "sha256": "cdb462c1e1fa09737cccfee3726d4dab329f016223598240625316b92c2f805e"
+    },
+    {
+      "path": "research/week15/final_campaign/test_m2_final.py",
+      "sha256": "393b45f96715296805475007861dea258f85c07863421695c1eb9431099c4328"
+    },
+    {
+      "path": "research/week15/final_campaign/test_m3_final.py",
+      "sha256": "ffe2b5aa03550ab477c9e16e76eba4014b71035bdb3e5feb23a260fcd80637ba"
+    },
+    {
+      "path": "research/week15/final_campaign/test_infrastructure_static.py",
+      "sha256": "b9b728dfefcc28b9cf5580cadc05d4229c8b852a1e69caca390d716b21591445"
+    }
+  ],
+  "implementation_base_head": "1adc8e73d2f05f633f261e551892bb2d4f5320dc",
+  "qualification": {
+    "final_seed_use": 0,
+    "matrix": [
+      {
+        "accepted_budget": 100000,
+        "method": "M1",
+        "seed": 16001
+      },
+      {
+        "accepted_budget": 100000,
+        "method": "M2",
+        "seed": 16002
+      },
+      {
+        "accepted_budget": 100000,
+        "method": "M3",
+        "seed": 16003
+      }
+    ],
+    "status": "NOT_RUN"
+  },
+  "schema": "week15.final-execution-harness-manifest.v1",
+  "status": "IMPLEMENTED_NOT_YET_INFRA_QUALIFIED"
+}
