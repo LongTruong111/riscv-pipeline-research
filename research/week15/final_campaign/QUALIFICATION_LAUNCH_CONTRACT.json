@@ -24,9 +24,13 @@
     "implementation_plan": {
       "path": "research/week15/final_campaign/IMPLEMENTATION_PLAN.json",
       "sha256": "fb5b0b5d5a03062cadc630d6ddd9ab2b33863081ca053e3a70c7756c32c00169"
+    },
+    "qualification_runner": {
+      "path": "research/week15/final_campaign/run_infra_qualification.py",
+      "sha256": "649ef725bb8e9385a73c285cb0321945dde95cfff28ef1f524a029db9610d571"
     }
   },
-  "execution_infra_head": "1911eb48404f7ce08cb2815570c7b8b28f3406ba",
+  "execution_infra_head": "83c6972ac606450a4319bb86c7c03bf90763cc69",
   "failure_policy": {
     "any_lifecycle_mismatch": "INFRA_INVALID",
     "any_missing_result": "INFRA_INVALID",
@@ -85,10 +89,23 @@
       "final_seed_use": 0,
       "runs_executed": 1,
       "selective_rerun_used": false
+    },
+    {
+      "M1_accepted": 100000,
+      "M1_execution_valid": true,
+      "M2_executed": false,
+      "M3_executed": false,
+      "affected_component": "qualification_runner",
+      "attempt": 2,
+      "classification": "INFRA_INVALID_POST_RUN_RESULT_SCHEMA_ADAPTER",
+      "final_seed_use": 0,
+      "qualification_summary_created": false,
+      "runs_executed": 1,
+      "selective_rerun_used": false
     }
   ],
   "requalification": {
-    "attempt_number": 2,
+    "attempt_number": 3,
     "coverage_level_is_gate": false,
     "matrix_scope": "FULL_M1_M2_M3",
     "performance_level_is_gate": false,
@@ -97,5 +114,5 @@
     "selective_rerun_allowed": false
   },
   "schema": "week15.infra-qualification-launch-contract.v1",
-  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION"
+  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_003"
 }
