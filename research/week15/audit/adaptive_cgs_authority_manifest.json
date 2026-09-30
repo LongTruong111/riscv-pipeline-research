@@ -7,19 +7,34 @@
   },
   "authorities": [
     {
-      "authority_id": "week10_contract",
-      "path": "research/week10/ADAPTIVE_CGS_CONTRACT.md",
-      "sha256": "3b59d6bfacaeaa59f3e768c42e300a9572e3fa5fd6725eb5d611314d0120cce0"
-    },
-    {
-      "authority_id": "week10_execution_semantics",
-      "path": "research/week10/CAMPAIGN_EXECUTION_SEMANTICS_AMENDMENT.md",
-      "sha256": "1d3730f7b89d5616b021dfc8cf4b98bbe8564389b1857feafaf3797c078be6fc"
+      "authority_id": "campaign_seed",
+      "path": "research/week10/adaptive/campaign_seed.py",
+      "sha256": "d233ed6ff1e508362ce29e4d7bb140cd96525b6fc2bfd0b905e99f074215914f"
     },
     {
       "authority_id": "decision_engine",
       "path": "research/week10/adaptive/decision_engine.py",
       "sha256": "839599a5e8915037833bc7bad44296fcf6cf3250a7e549aab7fe0634a384a00b"
+    },
+    {
+      "authority_id": "epoch_coordinator",
+      "path": "research/week10/adaptive/epoch_coordinator.py",
+      "sha256": "10fc7198f2655b1bf6625881aae089a4e4b44d34091a42bc749f054952410285"
+    },
+    {
+      "authority_id": "filler_policy",
+      "path": "research/week10/adaptive/filler_policy.py",
+      "sha256": "e90e4f876701135092adea57485379916658421749dbe5b34d85019d0a8f2ea1"
+    },
+    {
+      "authority_id": "production_campaign",
+      "path": "research/week10/adaptive/production_campaign.py",
+      "sha256": "0d716624581a7d16517b05de04b4418a89e4c792cfc41aab60b9836d00e16110"
+    },
+    {
+      "authority_id": "register_policy",
+      "path": "research/week10/adaptive/register_policy.py",
+      "sha256": "eec2f29a2c4118560023b8b04cada095332f0cfd0d049df51c7ac81bb5efca4c"
     },
     {
       "authority_id": "reward_engine",
@@ -37,29 +52,19 @@
       "sha256": "3a2a14bc4e1cb8803a52a3e96eaa0b9e2a33d63ac4a75504b74d0adaa76e2aa8"
     },
     {
-      "authority_id": "register_policy",
-      "path": "research/week10/adaptive/register_policy.py",
-      "sha256": "eec2f29a2c4118560023b8b04cada095332f0cfd0d049df51c7ac81bb5efca4c"
+      "authority_id": "week10_contract",
+      "path": "research/week10/ADAPTIVE_CGS_CONTRACT.md",
+      "sha256": "3b59d6bfacaeaa59f3e768c42e300a9572e3fa5fd6725eb5d611314d0120cce0"
     },
     {
-      "authority_id": "filler_policy",
-      "path": "research/week10/adaptive/filler_policy.py",
-      "sha256": "e90e4f876701135092adea57485379916658421749dbe5b34d85019d0a8f2ea1"
+      "authority_id": "week10_execution_semantics",
+      "path": "research/week10/CAMPAIGN_EXECUTION_SEMANTICS_AMENDMENT.md",
+      "sha256": "1d3730f7b89d5616b021dfc8cf4b98bbe8564389b1857feafaf3797c078be6fc"
     },
     {
-      "authority_id": "campaign_seed",
-      "path": "research/week10/adaptive/campaign_seed.py",
-      "sha256": "d233ed6ff1e508362ce29e4d7bb140cd96525b6fc2bfd0b905e99f074215914f"
-    },
-    {
-      "authority_id": "epoch_coordinator",
-      "path": "research/week10/adaptive/epoch_coordinator.py",
-      "sha256": "10fc7198f2655b1bf6625881aae089a4e4b44d34091a42bc749f054952410285"
-    },
-    {
-      "authority_id": "production_campaign",
-      "path": "research/week10/adaptive/production_campaign.py",
-      "sha256": "0d716624581a7d16517b05de04b4418a89e4c792cfc41aab60b9836d00e16110"
+      "authority_id": "week13_common_protocol",
+      "path": "research/week13/protocol/STOCHASTIC_GENERATOR_ADDENDUM.md",
+      "sha256": "be54886cac859ef2b1da542aea6ca805950e83f7475904d60fc427ac1d4b0f73"
     },
     {
       "authority_id": "week13_selected_config",

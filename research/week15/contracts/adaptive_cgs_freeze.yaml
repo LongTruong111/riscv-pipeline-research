@@ -395,7 +395,7 @@
   "provenance": {
     "authority_manifest": {
       "path": "research/week15/audit/adaptive_cgs_authority_manifest.json",
-      "sha256": "8e776ccc39329556e3876260d46bc15d6f3f8ad865ecd559a7f9d89e973c6e52"
+      "sha256": "618d91bb500214ab1e65f50df44f15bf94e4d2d9d95586e6fd34986f028a32da"
     },
     "gate_t14_commit": "08549178134cc2dce65a8b4e8a651e25307176fd",
     "true_open_protocol_items": [],
