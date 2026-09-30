@@ -1,0 +1,72 @@
+{
+  "attempt": 4,
+  "classification": "INFRA_INVALID_M3_EXTERNAL_PROCESS_HANGUP",
+  "evidence": {
+    "M1_log_sha256": "39cca51dbf3d1b1972204905a0e3c2fa2cec23b7ff3b673396d1a42d88fac6e1",
+    "M1_result_sha256": "cba6b06d5a4fbddb1abfd257c6d4d0efa0feb396ca97271386e7c440696c1dfa",
+    "M1_xml_sha256": "51b2f99433411ac926f570e0bbd511464b8194e74e275134d2744496d9c38a47",
+    "M2_log_sha256": "39079f767914b2ca0b40c012f945a13d8ade8e167c3e037e31de38de02b4e042",
+    "M2_result_sha256": "5b8e937d881ffd1b55eeff3d282a54fb5fb5e898b0bc3f60a714a4caff329688",
+    "M2_xml_sha256": "bef09d2aee25428d4c6e2daad608978e0c6e5d239d458d9c9a51afc66a516509",
+    "M3_log_sha256": "1ba17add4b6103f0caf21e10753bde1a3a2c1c7d22bc297ee600cd51302c177b",
+    "build_products_committed": false,
+    "original_evidence_manifest_sha256": "98fffd264f7d8b127287a4e01814b929476150e7be68b6300f8e00f282d88e8c"
+  },
+  "matrix": {
+    "M1": {
+      "accepted": 100000,
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "in_flight": 1,
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99999,
+      "seed": 16001
+    },
+    "M2": {
+      "accepted": 100000,
+      "accepted_budget": 100000,
+      "classification": "QUALIFICATION_VALID",
+      "in_flight": 3,
+      "post_cut_clock_edges": 0,
+      "result_status": "COMPLETED",
+      "retired_checked": 99997,
+      "seed": 16002
+    },
+    "M3": {
+      "accepted_budget": 100000,
+      "accepted_observed": null,
+      "observable_simulation_start": false,
+      "result_json_created": false,
+      "results_xml_created": false,
+      "run_attempted": true,
+      "seed": 16003,
+      "terminal_observation": "MAKE_HANGUP"
+    },
+    "expected_runs": 3,
+    "runs_started": 3
+  },
+  "policy": {
+    "attempt_rerun_allowed": false,
+    "final_seed_use": 0,
+    "full_matrix_requalification_required": true,
+    "next_attempt": 5,
+    "qualification_seeds_may_be_reused": true,
+    "results_may_drive_tuning": false,
+    "selective_rerun_allowed": false
+  },
+  "qualification_head": "64680888cd2f4010d59bffee4aedc7ee2febda6e",
+  "qualification_summary_created": false,
+  "root_cause": {
+    "M3_method_defect_evidence": false,
+    "class": "EXTERNAL_PROCESS_INTERRUPTION",
+    "code_repair_required_by_evidence": false,
+    "dut_defect_evidence": false,
+    "generator_defect_evidence": false,
+    "observed_event": "MAKE_HANGUP",
+    "runner_defect_evidence": false,
+    "signal_source_identified": false
+  },
+  "schema": "week15.infra-qualification-attempt.v1",
+  "status": "INFRA_INVALID"
+}

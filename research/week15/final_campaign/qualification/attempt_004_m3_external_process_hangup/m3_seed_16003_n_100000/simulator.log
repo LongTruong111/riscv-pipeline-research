@@ -1,0 +1,5 @@
+make: Entering directory '/home/logan/nckh/risc-v-pipeline/research/week15/rtl'
+rm -f /tmp/week15_infra_qualification_attempt_004/m3_seed_16003_n_100000/results.xml
+"make" -f Makefile /tmp/week15_infra_qualification_attempt_004/m3_seed_16003_n_100000/results.xml
+make[1]: Entering directory '/home/logan/nckh/risc-v-pipeline/research/week15/rtl'
+make: *** [/home/logan/.local/lib/python3.10/site-packages/cocotb/share/makefiles/Makefile.inc:40: sim] Hangup
