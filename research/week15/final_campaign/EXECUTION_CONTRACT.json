@@ -1,0 +1,280 @@
+{
+  "base_gate": {
+    "commit": "eefdc2da7afa6d5930fa0bf40ab460164d11958e",
+    "gate_status": "PASS",
+    "tag": "GATE_T15_COMPLETE"
+  },
+  "execution_contract": {
+    "accepted_budget_per_final_run": 100000,
+    "checkpoint_interval": 1000,
+    "complexity_target": "O(N) time with bounded runtime residency; stream evidence/checkpoints where practical",
+    "eligible_fixed_n_statuses": [
+      "COMPLETED",
+      "VALID_DUT_FAILURE_NONTERMINAL"
+    ],
+    "exact_n_required": true,
+    "infra_invalid_policy": "preserve evidence and do not interpret as method-performance evidence",
+    "lifecycle_invariant": "accepted = retired_checked + in_flight",
+    "measurement_denominator": "architecturally accepted instruction",
+    "nonterminal_dut_failure_policy": "continue to exact N and preserve failure evidence",
+    "other_statuses": [
+      "VALID_DUT_FAILURE_TERMINAL",
+      "INFRA_INVALID"
+    ],
+    "post_cut_clock_edges": 0,
+    "terminal_dut_failure_policy": "stop and preserve accepted prefix; do not claim fixed-N completion"
+  },
+  "final_campaign": {
+    "M1_seeds": [
+      1001,
+      1002,
+      1003,
+      1004,
+      1005,
+      1006,
+      1007,
+      1008,
+      1009,
+      1010,
+      1011,
+      1012,
+      1013,
+      1014,
+      1015
+    ],
+    "M2_seeds": [
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015
+    ],
+    "M3_seeds": [
+      3001,
+      3002,
+      3003,
+      3004,
+      3005,
+      3006,
+      3007,
+      3008,
+      3009,
+      3010,
+      3011,
+      3012,
+      3013,
+      3014,
+      3015
+    ],
+    "accepted_budget_per_run": 100000,
+    "authorized_only_after": "infrastructure qualification PASS",
+    "campaign_restart_rule": "If an execution-infrastructure defect is found after any final run starts, archive the invalid campaign prefix, fix infrastructure only, rerun the complete infrastructure qualification matrix, then restart all 45 final runs. Never combine results from different execution-harness revisions.",
+    "mixed_execution_harness_revisions_allowed": false,
+    "runs_per_method": 15,
+    "seed_deletion_allowed": false,
+    "seed_replacement_allowed": false,
+    "total_accepted_budget": 4500000,
+    "total_runs": 45,
+    "tuning_allowed": false
+  },
+  "infrastructure_qualification": {
+    "accepted_qualification_statuses": [
+      "COMPLETED",
+      "VALID_DUT_FAILURE_NONTERMINAL"
+    ],
+    "fresh_process_per_run": true,
+    "matrix": [
+      {
+        "accepted_budget": 100000,
+        "method": "M1",
+        "seed": 16001
+      },
+      {
+        "accepted_budget": 100000,
+        "method": "M2",
+        "seed": 16002
+      },
+      {
+        "accepted_budget": 100000,
+        "method": "M3",
+        "seed": 16003
+      }
+    ],
+    "performance_or_coverage_level_is_gate": false,
+    "qualification_pass_definition": "All three runs execute through the intended fixed-N lifecycle or expose only an already-valid nonterminal DUT failure while still reaching N; no infrastructure-invalid result is allowed.",
+    "requalification_rule": "Any execution-affecting infrastructure change requires rerunning the entire three-run infrastructure qualification matrix.",
+    "required_before_any_final_seed": true,
+    "result_use_for_tuning": false
+  },
+  "method_manifest": {
+    "path": "research/week15/audit/M0_M3_FREEZE_MANIFEST.json",
+    "sha256": "af3760acde56b4300aee0542bcc7285ede159f32c6ddc1a33f5bbc001b9bd6fd"
+  },
+  "methods": {
+    "M1": {
+      "final_budget": 100000,
+      "final_seeds": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007,
+        1008,
+        1009,
+        1010,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015
+      ],
+      "implementation_requirement": "New final RTL harness must invoke the frozen Pure-Random planner/runtime using runtime seed and budget. Smoke-only known-answer constants are not final campaign acceptance criteria.",
+      "name": "pure_random"
+    },
+    "M2": {
+      "final_budget": 100000,
+      "final_seeds": [
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015
+      ],
+      "implementation_requirement": "New final RTL harness must invoke the frozen weighted generator/runtime using runtime seed and budget. Seed-14001/N-1000 known-answer assertions remain historical smoke evidence and are not generalized.",
+      "name": "static_weighted_random"
+    },
+    "M3": {
+      "final_budget": 100000,
+      "final_seeds": [
+        3001,
+        3002,
+        3003,
+        3004,
+        3005,
+        3006,
+        3007,
+        3008,
+        3009,
+        3010,
+        3011,
+        3012,
+        3013,
+        3014,
+        3015
+      ],
+      "implementation_requirement": "Do not relax or modify the frozen qualification runtime_config. Add a separate final-campaign runtime configuration/harness under final_campaign while preserving the qualified Adaptive execution semantics.",
+      "name": "adaptive_cgs"
+    }
+  },
+  "new_infrastructure_scope": {
+    "allowed_prefix": "research/week15/final_campaign/",
+    "must_not_change": [
+      "generator probability policy",
+      "template library",
+      "register targeting policy",
+      "filler policy",
+      "reward definition",
+      "adaptive update rule",
+      "epsilon",
+      "alpha",
+      "q_floor",
+      "batch semantics",
+      "RNG derivation",
+      "coverage denominator",
+      "checkpoint interval",
+      "stopping rule",
+      "DUT",
+      "functional checker semantics",
+      "timing checker semantics"
+    ],
+    "purpose": "Parameterize and execute already-frozen M1/M2/M3 method semantics at the frozen final seeds and accepted budget."
+  },
+  "principle": {
+    "execution_infrastructure_may_be_added": true,
+    "final_results_may_tune_method": false,
+    "frozen_method_files_may_be_modified": false,
+    "method_semantics_frozen": true,
+    "qualification_results_may_tune_method": false
+  },
+  "provenance": {
+    "final_seed_use_at_preregistration": 0,
+    "git_tree": "4d9b4de8ab16de24e62340386ac9bf6f3d05ac66",
+    "preregistration_head": "eefdc2da7afa6d5930fa0bf40ab460164d11958e"
+  },
+  "schema": "week15.final-execution-contract.v1",
+  "source_identity": {
+    "M1": [
+      {
+        "path": "research/week14/configs/m1_pure_random.yaml",
+        "sha256": "a6b26fd249b228027a0442e0b5ca93e70cc8928b09c59bd5214b5f41e40ec58c"
+      },
+      {
+        "path": "research/week13/pure_random/stream_planner.py",
+        "sha256": "8ae2863499f0066b8d2d461c9584055bb10047f4a8a376579c35ef9530f62ff5"
+      },
+      {
+        "path": "research/week13/pure_random/runtime_stream.py",
+        "sha256": "defcd71d93fc17bfeea45149a41061469a4a07ea79c8db5b40b8b6499ee32644"
+      },
+      {
+        "path": "research/week13/pure_random/campaign_seed.py",
+        "sha256": "1b435ca8e87802ae4eb30b434cdde79724d30782514d4985da1d7544904d2209"
+      }
+    ],
+    "M2": [
+      {
+        "path": "research/week14/configs/m2_weighted_random.yaml",
+        "sha256": "48d8e6852e01b054ef2690c9057d073df080a6b3d026958d4673ece60610f443"
+      },
+      {
+        "path": "research/week14/weighted_random/static_generator.py",
+        "sha256": "d6155afb3c397a4633349d29811a4c56a605b905a97e0aa5bcf703e18c3d22f1"
+      },
+      {
+        "path": "research/week14/weighted_random/runtime_adapter.py",
+        "sha256": "6740b1acd18958f876f3b36cd1795d4402b491b06393ef26cae9f392a170b117"
+      }
+    ],
+    "M3": [
+      {
+        "path": "research/week15/contracts/adaptive_cgs_freeze.yaml",
+        "sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d"
+      },
+      {
+        "path": "research/week15/reproducibility/canonical_trace.py",
+        "sha256": "ecbc7754b365a843688aa927324edba9b1e2b52e59fb7563813f2c255209af2d"
+      },
+      {
+        "path": "research/week15/reproducibility/runtime_trace.py",
+        "sha256": "de2bb80a0d5e31102a725764aa69de87b34f2de2c953c36dfa3a664476f42743"
+      },
+      {
+        "path": "research/week15/rtl/test_adaptive_reproducibility.py",
+        "sha256": "395df5d92a5ce540d8b45f38c19780464defb0f0995a953c610f05a380653456"
+      }
+    ]
+  },
+  "status": "PREREGISTERED_BEFORE_FINAL_EXECUTION_INFRA_IMPLEMENTATION"
+}
