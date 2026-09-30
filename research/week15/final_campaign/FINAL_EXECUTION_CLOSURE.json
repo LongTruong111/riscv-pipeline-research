@@ -1,0 +1,134 @@
+{
+  "authorities": {
+    "archive_commit": "5ffc4d0c01d597297ef62127348d26bdc23f6595",
+    "execution_authority_head": "086e8127101aca9a934bec77af84dc5f87160f09",
+    "execution_contract": {
+      "path": "research/week15/final_campaign/EXECUTION_CONTRACT.json",
+      "sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f"
+    },
+    "external_driver_sha256": "6fea68a005d00210a3582e8320af81e2f2f59b9de1c9f4f4608089f3af7dbc33",
+    "external_launcher_sha256": "f2634e65f83da572a903a4e38e28babcc305472749f808756abec7f3199f3778",
+    "external_plan_sha256": "1274955e6c58db3a27f779d5c02b7e0d15ab0cb8ec654f8d9fffd1d82e2d9ffc",
+    "harness_manifest": {
+      "path": "research/week15/final_campaign/HARNESS_MANIFEST.json",
+      "sha256": "ca03d7d2ce24e4b5d69353db871acce7f0b7e7404db03668c03a933f64a659c4"
+    },
+    "infra_qualification_closure": {
+      "path": "research/week15/final_campaign/INFRA_QUALIFICATION_CLOSURE.json",
+      "sha256": "ab46fd743f734e5cf56af82ff577c5a4d0fc94a7a76a158fc1e0d3ea5fe3f008"
+    },
+    "qualification_launch_contract_at_execution": {
+      "path": "research/week15/final_campaign/QUALIFICATION_LAUNCH_CONTRACT.json",
+      "sha256": "9aa2304dfe144bfa3e751638777ffa6ed5e9eeeb6ae080391c0ca49f00d6b6cd"
+    }
+  },
+  "classification": "FINAL_CAMPAIGN_EXECUTION_CLOSED",
+  "evidence": {
+    "archive_files": 240,
+    "archive_manifest_sha256": "9c38544f9ae1d334bcab3fd43fabef03775969e449e2af154c52cdde583e3823",
+    "archive_path": "research/week15/final_campaign/final/attempt_001_pass",
+    "attempt_json_sha256": "46a1047a4f8e1c0caa3f7f0edfbfa97a193fac215e9527cb979f80494a4906ec",
+    "build_products_committed": false,
+    "campaign_state_sha256": "ed4ed60e3ab8010acb80056d24359774983a338a02148d3da3eaf79e16d4386c",
+    "campaign_summary_sha256": "1d2460d63fb3d62bc2cde95d1623cf71f86d2d84df7ab18045dc3033e1d3fb9b",
+    "launcher_log_sha256": "62da1fe3368c2b2431a947a89b8bba8ec1bcd273d707c5d66f89d4992e211001",
+    "original_evidence_manifest_sha256": "3f183a6325752b732d2515c4f4561b5e35d259bba975618452cc598cff8790e6",
+    "raw_evidence_files": 237,
+    "result_jsons": 45,
+    "result_xmls": 45,
+    "run_state_files": 90,
+    "runner_rc_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "simulator_logs": 45
+  },
+  "execution": {
+    "accepted_budget_per_run": 100000,
+    "attempt": 1,
+    "final_seed_use": 45,
+    "fixed_n_valid_runs": 45,
+    "method_run_counts": {
+      "M1": 15,
+      "M2": 15,
+      "M3": 15
+    },
+    "phase": "final",
+    "runner_returncode": 0,
+    "runs_expected": 45,
+    "runs_finished": 45,
+    "runs_started": 45,
+    "seed_domains": {
+      "M1": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007,
+        1008,
+        1009,
+        1010,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015
+      ],
+      "M2": [
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015
+      ],
+      "M3": [
+        3001,
+        3002,
+        3003,
+        3004,
+        3005,
+        3006,
+        3007,
+        3008,
+        3009,
+        3010,
+        3011,
+        3012,
+        3013,
+        3014,
+        3015
+      ]
+    },
+    "total_fixed_n_accepted": 4500000
+  },
+  "interpretation_boundary": {
+    "comparative_method_analysis_performed": false,
+    "coverage_performance_used_as_execution_gate": false,
+    "execution_integrity_closed": true,
+    "note": "This closure establishes protocol-compliant completion and immutable execution evidence only. Comparative coverage/performance analysis is a subsequent read-only derived-analysis stage.",
+    "result_driven_tuning_performed": false
+  },
+  "protocol_outcome": {
+    "all_fixed_n_lifecycle_invariants_satisfied": true,
+    "all_post_cut_clock_edges_zero": true,
+    "automatic_rerun_used": false,
+    "infra_invalid_observed": false,
+    "mixed_execution_harness_revisions_used": false,
+    "result_driven_tuning_used": false,
+    "seed_deletion_used": false,
+    "seed_replacement_used": false,
+    "selective_rerun_used": false,
+    "terminal_dut_failure_observed": false
+  },
+  "schema": "week15.final-execution-closure.v1",
+  "status": "PASS"
+}
