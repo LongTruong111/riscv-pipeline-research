@@ -1,0 +1,269 @@
+{
+  "final_campaign": {
+    "accepted_budget_per_run": 100000,
+    "launch_before_gate_t15_closure": false,
+    "methods": [
+      "M1",
+      "M2",
+      "M3"
+    ],
+    "runs_per_method": 15,
+    "seed_deletion_allowed": false,
+    "seed_replacement_allowed": false,
+    "total_accepted_budget": 4500000,
+    "total_runs": 45,
+    "tuning_after_gate_t15": false
+  },
+  "gate_t14": {
+    "commit": "08549178134cc2dce65a8b4e8a651e25307176fd",
+    "strongest_status": "RECOVERED_WITH_ERRATUM",
+    "tag": "GATE_T14_COMPLETE"
+  },
+  "gate_t15_constraints": {
+    "final_seed_use_before_gate_t15": false,
+    "performance_evidence_used_for_tuning": false,
+    "qualification_results_used_for_tuning": false,
+    "true_open_protocol_items": []
+  },
+  "methods": {
+    "M0": {
+      "freeze": {
+        "artifacts": [
+          {
+            "path": "research/week14/DIRECTED_RECOVERY_RESULT.md",
+            "sha256": "7a97a356f6541b81a5493a91ffeb6fba93ea43411ec8fc60b3afa1df4d65c300"
+          },
+          {
+            "path": "research/week14/results/recovery_confirmation/directed_recovery_confirmation.json",
+            "sha256": "04c7cb22fa725dd76a57fb0f3c69676c0a942e14434eebcc6a69d710b67332ec"
+          },
+          {
+            "path": "research/week14/results/recovery_confirmation/directed_recovery_confirmation_evidence.txt",
+            "sha256": "907a622c6825af3e4c7f4bd82061b1c55038823dc513c2199a5276b68d615597"
+          },
+          {
+            "path": "research/week14/tests/test_directed_recovery_result.py",
+            "sha256": "7eaf5f3420df5d60da516e9cb2b44736f7271b606aa58976a0fe0ec95c3bef4c"
+          }
+        ],
+        "commit": "1a80ca608864b17e4d6e54815992968db18b8994",
+        "subject": "research(week14): close directed recovery confirmation",
+        "tree": "034d61859f2d34e86b8863b50ca58b5efdd9131a"
+      },
+      "included_in_final_stochastic_campaign": false,
+      "name": "directed",
+      "role": "directed closure and defect-confirmation method",
+      "stochastic_final_seeds": []
+    },
+    "M1": {
+      "configuration": {
+        "path": "research/week14/configs/m1_pure_random.yaml",
+        "sha256": "a6b26fd249b228027a0442e0b5ca93e70cc8928b09c59bd5214b5f41e40ec58c"
+      },
+      "final_campaign": {
+        "accepted_budget_per_seed": 100000,
+        "checkpoint_interval": 1000,
+        "seed_count": 15,
+        "seeds": [
+          1001,
+          1002,
+          1003,
+          1004,
+          1005,
+          1006,
+          1007,
+          1008,
+          1009,
+          1010,
+          1011,
+          1012,
+          1013,
+          1014,
+          1015
+        ]
+      },
+      "freeze": {
+        "artifacts": [
+          {
+            "path": "research/week14/configs/m1_pure_random.sha256",
+            "sha256": "3d94860776fd674c355ac3227476555ce0efad7ccedf9bed604a5298840c51cf"
+          },
+          {
+            "path": "research/week14/configs/m1_pure_random.yaml",
+            "sha256": "a6b26fd249b228027a0442e0b5ca93e70cc8928b09c59bd5214b5f41e40ec58c"
+          },
+          {
+            "path": "research/week14/tests/test_m1_final_config.py",
+            "sha256": "4b8764969a5ea82c70b25fa436797d6be728e76f6c087035e768dde22e70ec79"
+          }
+        ],
+        "commit": "68a6c988dda6921f171a49b6f54438a965e8acf7",
+        "subject": "research(week14): freeze M1 final configuration",
+        "tree": "3fc3dfc695e6df3dcdfc3073e9e04794938c2853"
+      },
+      "name": "pure_random",
+      "role": "final stochastic baseline"
+    },
+    "M2": {
+      "configuration": {
+        "path": "research/week14/configs/m2_weighted_random.yaml",
+        "sha256": "48d8e6852e01b054ef2690c9057d073df080a6b3d026958d4673ece60610f443"
+      },
+      "final_campaign": {
+        "accepted_budget_per_seed": 100000,
+        "checkpoint_interval": 1000,
+        "seed_count": 15,
+        "seeds": [
+          2001,
+          2002,
+          2003,
+          2004,
+          2005,
+          2006,
+          2007,
+          2008,
+          2009,
+          2010,
+          2011,
+          2012,
+          2013,
+          2014,
+          2015
+        ]
+      },
+      "freeze": {
+        "artifacts": [
+          {
+            "path": "research/week14/configs/m2_weighted_random.sha256",
+            "sha256": "5baf1576b6fb48876e7681500afc7b5b6b8ad6fe797f1bca9ba32533cad06c2a"
+          },
+          {
+            "path": "research/week14/configs/m2_weighted_random.yaml",
+            "sha256": "48d8e6852e01b054ef2690c9057d073df080a6b3d026958d4673ece60610f443"
+          },
+          {
+            "path": "research/week14/results/m2_static_smoke/weighted_plan_seed14001.json",
+            "sha256": "1c27553a22ade39271854e5b4c7568db7ddff111352bc9b0da5da8b5d7de3b5d"
+          },
+          {
+            "path": "research/week14/tests/test_m2_final_config.py",
+            "sha256": "748dd713059fa02da8969b6b3e3b0b0c100e03843ef27693c4c624b5a027695d"
+          },
+          {
+            "path": "research/week14/tests/test_m2_static_generator.py",
+            "sha256": "2c6973df92004b852852fbad375b75b608a9c01658466898a7cd76861565b705"
+          },
+          {
+            "path": "research/week14/weighted_random/__init__.py",
+            "sha256": "ce497e0d9e5b7c18028d51ca7922a22faa45dd6bbaf8846d67f19aba238fabf1"
+          },
+          {
+            "path": "research/week14/weighted_random/static_generator.py",
+            "sha256": "d6155afb3c397a4633349d29811a4c56a605b905a97e0aa5bcf703e18c3d22f1"
+          }
+        ],
+        "commit": "0cd362e2ed027d1624f59faebad7ef49a0e97580",
+        "subject": "research(week14): freeze M2 static weighted generator",
+        "tree": "0de02177be828bd2d2785647300ce2ab06485efb"
+      },
+      "generator": {
+        "path": "research/week14/weighted_random/static_generator.py",
+        "sha256": "d6155afb3c397a4633349d29811a4c56a605b905a97e0aa5bcf703e18c3d22f1"
+      },
+      "name": "static_weighted_random",
+      "role": "final static-generator comparison method"
+    },
+    "M3": {
+      "artifacts": [
+        {
+          "path": "research/week15/contracts/adaptive_cgs_freeze.yaml",
+          "sha256": "e4c78ee54034e9e86cccf04eaa0a71087f309d85d7a5d0da00b70c077c068a4d"
+        },
+        {
+          "path": "research/week15/contracts/adaptive_cgs_freeze.yaml.sha256",
+          "sha256": "b3164d6b9a8d5e363b7fc57bcc332d441c31e322b61192ad6686a089ca7730ef"
+        },
+        {
+          "path": "research/week15/audit/adaptive_cgs_authority_manifest.json",
+          "sha256": "618d91bb500214ab1e65f50df44f15bf94e4d2d9d95586e6fd34986f028a32da"
+        },
+        {
+          "path": "research/week15/reproducibility/canonical_trace.py",
+          "sha256": "ecbc7754b365a843688aa927324edba9b1e2b52e59fb7563813f2c255209af2d"
+        },
+        {
+          "path": "research/week15/reproducibility/runtime_config.py",
+          "sha256": "488c76106c0dca364d02618a8c9dd04b2e3329320a28a6909394f860a3bb472f"
+        },
+        {
+          "path": "research/week15/reproducibility/runtime_trace.py",
+          "sha256": "de2bb80a0d5e31102a725764aa69de87b34f2de2c953c36dfa3a664476f42743"
+        },
+        {
+          "path": "research/week15/reproducibility/run_reproducibility.py",
+          "sha256": "ed041e474655b215d18b05370890d7f8a547f13ce1fb8665ce37cc694c8c95b3"
+        },
+        {
+          "path": "research/week15/rtl/test_adaptive_reproducibility.py",
+          "sha256": "395df5d92a5ce540d8b45f38c19780464defb0f0995a953c610f05a380653456"
+        }
+      ],
+      "final_campaign": {
+        "accepted_budget_per_seed": 100000,
+        "checkpoint_interval": 1000,
+        "seed_count": 15,
+        "seeds": [
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007,
+          3008,
+          3009,
+          3010,
+          3011,
+          3012,
+          3013,
+          3014,
+          3015
+        ]
+      },
+      "name": "adaptive_cgs",
+      "qualification": {
+        "accepted_total": 240000,
+        "attempt_004": {
+          "path": "research/week15/repro/attempt_004_qualification_pass/ATTEMPT_004.json",
+          "sha256": "b1a8cb03e334830d081b5a3ee830ba67f646b80031c0bfc88354980993b38e62"
+        },
+        "coverage_level_used_for_gate": false,
+        "evidence_manifest": {
+          "path": "research/week15/repro/attempt_004_qualification_pass/EVIDENCE_SHA256.txt",
+          "sha256": "ed01ce1c01bd7b17c5f23e6d01422f2e4fc67c77ebb43d24a041b2a39e334582"
+        },
+        "final_seed_use": 0,
+        "fresh_process_per_run": true,
+        "gate_required_trace_equality": "PASS",
+        "independent_audit": {
+          "path": "research/week15/repro/attempt_004_qualification_pass/INDEPENDENT_AUDIT.json",
+          "sha256": "cf98989d1455884c2ac24c1b8f9c93df27b07ffd2ee3dcdeb0b24514415db0f4"
+        },
+        "performance_used_for_gate": false,
+        "qualification_results_used_for_tuning": false,
+        "qualification_summary": {
+          "path": "research/week15/repro/attempt_004_qualification_pass/qualification_summary.json",
+          "sha256": "3b8a1736349331d2f41da47f6ae50c6b380a88716a75f1ca619d3cc1b8bda4ab"
+        },
+        "runs": 6,
+        "status": "PASS"
+      },
+      "qualification_evidence_head": "88001a0ef10116c065af6d0bda20dfa8fbc90932",
+      "qualification_head": "f20effb72167f78a61b97ae7032b62e377cea4e4",
+      "role": "final adaptive comparison method"
+    }
+  },
+  "schema": "week15.m0-m3-freeze-manifest.v1",
+  "source_head": "88001a0ef10116c065af6d0bda20dfa8fbc90932",
+  "status": "FROZEN_FOR_GATE_T15_CLOSURE"
+}
