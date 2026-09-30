@@ -1,0 +1,8 @@
+make: Entering directory '/home/logan/nckh/risc-v-pipeline/research/week15/rtl'
+rm -f /tmp/week15_t15_repro_qualification/afccf9f058f0644f0f92f2c2a1c8040e51fce611/seed_15001_n_10000_rep_A/results.xml
+"make" -f Makefile /tmp/week15_t15_repro_qualification/afccf9f058f0644f0f92f2c2a1c8040e51fce611/seed_15001_n_10000_rep_A/results.xml
+make[1]: Entering directory '/home/logan/nckh/risc-v-pipeline/research/week15/rtl'
+make[1]: *** No rule to make target '/home/logan/nckh/design/RegPack.sv', needed by '/tmp/week15_t15_repro_qualification/afccf9f058f0644f0f92f2c2a1c8040e51fce611/sim_build/Vtop.mk'.  Stop.
+make[1]: Leaving directory '/home/logan/nckh/risc-v-pipeline/research/week15/rtl'
+make: *** [/home/logan/.local/lib/python3.10/site-packages/cocotb/share/makefiles/Makefile.inc:40: sim] Error 2
+make: Leaving directory '/home/logan/nckh/risc-v-pipeline/research/week15/rtl'

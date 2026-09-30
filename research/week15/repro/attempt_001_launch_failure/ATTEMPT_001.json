@@ -1,0 +1,39 @@
+{
+  "accepted_instructions": 0,
+  "attempt_id": "T15_REPRO_ATTEMPT_001",
+  "diagnosis": {
+    "incorrect_expression": "$(abspath $(THIS_DIR)/../../../..)",
+    "incorrect_resolved_root": "/home/logan/nckh",
+    "missing_dependency_observed": "/home/logan/nckh/design/RegPack.sv",
+    "required_expression": "$(abspath $(THIS_DIR)/../../..)",
+    "required_repo_root": "/home/logan/nckh/risc-v-pipeline",
+    "week15_rtl_directory": "research/week15/rtl"
+  },
+  "disposition": "PRESERVE_AND_RESTART_ENTIRE_MATRIX_AFTER_INFRASTRUCTURE_FIX",
+  "evidence": {
+    "simulator_log": "research/week15/repro/attempt_001_launch_failure/simulator.log",
+    "simulator_log_sha256": "922416fccc8515603dc0bbeb6d26f1e9aca38a82e8b63fd2e3c4060bc877f826"
+  },
+  "failure_class": "WEEK15_MAKEFILE_REPO_ROOT_DEPTH",
+  "failure_stage": "PRE_SIMULATION_BUILD",
+  "final_seed_used": false,
+  "planned_run": {
+    "accepted_budget": 10000,
+    "repetition": "A",
+    "seed": 15001
+  },
+  "qualification_head": "afccf9f058f0644f0f92f2c2a1c8040e51fce611",
+  "result_json_produced": false,
+  "results_xml_produced": false,
+  "schema": "week15.adaptive-repro.invalid-attempt.v1",
+  "selective_rerun_allowed": false,
+  "semantic_effect": {
+    "adaptive_algorithm_changed": false,
+    "canonical_trace_changed": false,
+    "contract_changed": false,
+    "dut_changed": false,
+    "qualification_result_obtained": false
+  },
+  "simulation_started": false,
+  "status": "INFRA_INVALID"
+}
