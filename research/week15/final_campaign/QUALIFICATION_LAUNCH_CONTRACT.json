@@ -1,0 +1,79 @@
+{
+  "acceptance": {
+    "accepted_exact": 100000,
+    "allowed_result_statuses": [
+      "COMPLETED",
+      "VALID_DUT_FAILURE_NONTERMINAL"
+    ],
+    "coverage_level_is_gate": false,
+    "lifecycle_invariant": "accepted = retired_checked + in_flight",
+    "make_returncode": 0,
+    "performance_level_is_gate": false,
+    "post_cut_clock_edges": 0,
+    "results_may_drive_tuning": false
+  },
+  "authorities": {
+    "execution_contract": {
+      "path": "research/week15/final_campaign/EXECUTION_CONTRACT.json",
+      "sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f"
+    },
+    "harness_manifest": {
+      "path": "research/week15/final_campaign/HARNESS_MANIFEST.json",
+      "sha256": "1e86ac7fc6037e6e2ae05c60ada2980ac2e4820ee2ae25356034e0f4d6f8ac25"
+    },
+    "implementation_plan": {
+      "path": "research/week15/final_campaign/IMPLEMENTATION_PLAN.json",
+      "sha256": "fb5b0b5d5a03062cadc630d6ddd9ab2b33863081ca053e3a70c7756c32c00169"
+    }
+  },
+  "execution_infra_head": "34e92842c52581d6c54bf332589d78357af95759",
+  "failure_policy": {
+    "any_lifecycle_mismatch": "INFRA_INVALID",
+    "any_missing_result": "INFRA_INVALID",
+    "any_nonzero_make_returncode": "INFRA_INVALID",
+    "execution_affecting_fix": "rerun complete M1/M2/M3 matrix",
+    "selective_rerun_allowed": false
+  },
+  "final_campaign": {
+    "final_seed_use": 0,
+    "status": "LOCKED"
+  },
+  "make_contract": {
+    "cocotb_results_file_location": "outside_repository",
+    "fresh_simulator_process_per_run": true,
+    "reuse_build_between_methods": false,
+    "sim_build_location": "outside_repository",
+    "simulator": "verilator",
+    "test_module_variable": "MODULE",
+    "toplevel": "adaptive_execution_stream_tb",
+    "toplevel_lang": "verilog"
+  },
+  "matrix": [
+    {
+      "accepted_budget": 100000,
+      "expected_result_name": "m1_qualification_seed_16001_n_100000.json",
+      "make_directory": "research/week13/pure_random/rtl",
+      "method": "M1",
+      "module": "research.week15.final_campaign.test_m1_final",
+      "seed": 16001
+    },
+    {
+      "accepted_budget": 100000,
+      "expected_result_name": "m2_qualification_seed_16002_n_100000.json",
+      "make_directory": "research/week14/weighted_random/rtl",
+      "method": "M2",
+      "module": "research.week15.final_campaign.test_m2_final",
+      "seed": 16002
+    },
+    {
+      "accepted_budget": 100000,
+      "expected_result_name": "m3_qualification_seed_16003_n_100000.json",
+      "make_directory": "research/week15/rtl",
+      "method": "M3",
+      "module": "research.week15.final_campaign.test_m3_final",
+      "seed": 16003
+    }
+  ],
+  "schema": "week15.infra-qualification-launch-contract.v1",
+  "status": "FROZEN_BEFORE_INFRA_QUALIFICATION"
+}
