@@ -115,10 +115,26 @@
       "final_seed_use": 0,
       "runs_executed": 2,
       "selective_rerun_used": false
+    },
+    {
+      "M1_execution_valid": true,
+      "M2_execution_valid": true,
+      "M3_observable_simulation_start": false,
+      "M3_run_attempted": true,
+      "M3_terminal_observation": "MAKE_HANGUP",
+      "affected_component": "external_process_environment",
+      "archive_head": "2cf362c44ff60282afd0f9b298e8c9df3c15b6bb",
+      "attempt": 4,
+      "classification": "INFRA_INVALID_M3_EXTERNAL_PROCESS_HANGUP",
+      "code_repair_required": false,
+      "final_seed_use": 0,
+      "runs_started": 3,
+      "selective_rerun_used": false,
+      "signal_source_identified": false
     }
   ],
   "requalification": {
-    "attempt_number": 4,
+    "attempt_number": 5,
     "coverage_level_is_gate": false,
     "matrix_scope": "FULL_M1_M2_M3",
     "performance_level_is_gate": false,
@@ -127,5 +143,5 @@
     "selective_rerun_allowed": false
   },
   "schema": "week15.infra-qualification-launch-contract.v1",
-  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_004"
+  "status": "REFROZEN_BEFORE_INFRA_REQUALIFICATION_ATTEMPT_005"
 }
