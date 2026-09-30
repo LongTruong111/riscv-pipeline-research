@@ -129,7 +129,7 @@ from research.week13.campaign.snapshot_adapter import (
 REPO_ROOT = (
     Path(__file__)
     .resolve()
-    .parents[4]
+    .parents[3]
 )
 
 DUT_REVISION = (

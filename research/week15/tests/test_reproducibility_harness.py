@@ -504,3 +504,46 @@ def test_week15_rtl_makefile_resolves_repo_root_at_correct_depth():
             "adaptive_execution_stream_tb.sv"
         )
     ).is_file()
+
+
+
+def test_week15_python_harness_resolves_repo_root_at_correct_depth():
+    harness = (
+        ROOT
+        / "research/week15/rtl/"
+        "test_adaptive_reproducibility.py"
+    )
+
+    source = harness.read_text(
+        encoding="utf-8"
+    )
+
+    correct = """REPO_ROOT = (
+    Path(__file__)
+    .resolve()
+    .parents[3]
+)
+"""
+
+    inherited_wrong = """REPO_ROOT = (
+    Path(__file__)
+    .resolve()
+    .parents[4]
+)
+"""
+
+    assert correct in source
+    assert inherited_wrong not in source
+
+    assert (
+        harness.resolve().parents[3]
+        == ROOT
+    )
+
+    assert (
+        ROOT / ".git"
+    ).exists()
+
+    assert (
+        ROOT / "design/RegPack.sv"
+    ).is_file()
