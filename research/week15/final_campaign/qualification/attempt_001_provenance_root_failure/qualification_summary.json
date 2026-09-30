@@ -1,0 +1,35 @@
+{
+  "coverage_level_used_for_gate": false,
+  "final_seed_use": 0,
+  "performance_used_for_gate": false,
+  "qualification_head": "6cc12d7a0bc538b514db393301eaa26c46f85ba6",
+  "results_used_for_tuning": false,
+  "runs": [
+    {
+      "accepted_budget": 100000,
+      "classification": "INFRA_INVALID",
+      "command": [
+        "make",
+        "-C",
+        "/home/logan/nckh/risc-v-pipeline/research/week13/pure_random/rtl",
+        "MODULE=research.week15.final_campaign.test_m1_final",
+        "SIM_BUILD=/tmp/week15_infra_qualification_attempt_001/_build/m1",
+        "COCOTB_RESULTS_FILE=/tmp/week15_infra_qualification_attempt_001/m1_seed_16001_n_100000/results.xml"
+      ],
+      "method": "M1",
+      "result_exists": false,
+      "result_path": "/tmp/week15_infra_qualification_attempt_001/m1_seed_16001_n_100000/m1_qualification_seed_16001_n_100000.json",
+      "results_xml": "/tmp/week15_infra_qualification_attempt_001/m1_seed_16001_n_100000/results.xml",
+      "results_xml_exists": true,
+      "returncode": 0,
+      "run_dir": "/tmp/week15_infra_qualification_attempt_001/m1_seed_16001_n_100000",
+      "seed": 16001,
+      "simulator_log": "/tmp/week15_infra_qualification_attempt_001/m1_seed_16001_n_100000/simulator.log",
+      "simulator_log_sha256": "df59bc1e049111bfe102a816486c755c0ad51805aafcbe94c60f72a003fce76d"
+    }
+  ],
+  "runs_executed": 1,
+  "runs_expected": 3,
+  "schema": "week15.infra-qualification-result.v1",
+  "status": "FAIL"
+}

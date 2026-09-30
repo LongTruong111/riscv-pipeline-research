@@ -1,0 +1,50 @@
+{
+  "attempt": 1,
+  "classification": "INFRA_INVALID_PRE_CAMPAIGN_PROVENANCE_ROOT",
+  "evidence": {
+    "build_hash_manifest_preserved": true,
+    "build_products_committed": false,
+    "original_evidence_manifest_sha256": "486b36d0a9ddd9fa41f918ebfa6387b93749a74003ab0b0db4514b7638a6b079",
+    "qualification_summary_sha256": "aef0d8a61bce101366873cb22d5f73a8db2a27372172e33aadb17c5a6b1b2da6",
+    "results_xml_sha256": "b750e7d35260b5353a8f135423129103a6636a24d07b72681c3a35213cd12bd4",
+    "simulator_log_sha256": "df59bc1e049111bfe102a816486c755c0ad51805aafcbe94c60f72a003fce76d"
+  },
+  "matrix": {
+    "M1": {
+      "accepted_before_failure": 0,
+      "executed": true,
+      "result_json_created": false,
+      "seed": 16001
+    },
+    "M2": {
+      "executed": false,
+      "seed": 16002
+    },
+    "M3": {
+      "executed": false,
+      "seed": 16003
+    },
+    "executed_runs": 1,
+    "expected_runs": 3
+  },
+  "policy": {
+    "complete_matrix_rerun_required": true,
+    "final_seed_use": 0,
+    "selective_rerun_allowed": false,
+    "tuning_allowed": false
+  },
+  "qualification_head": "6cc12d7a0bc538b514db393301eaa26c46f85ba6",
+  "root_cause": {
+    "M2_same_defect": false,
+    "M3_same_defect": false,
+    "affected_method": "M1",
+    "description": "The relocated M1 final harness retained REPO_ROOT parents[4] from its Week13 source location. At research/week15/final_campaign the correct repository root depth is parents[3].",
+    "dut_affected": false,
+    "generator_affected": false,
+    "method_semantics_affected": false,
+    "type": "SOURCE_DERIVATION_RELOCATION_PATH"
+  },
+  "schema": "week15.infra-qualification-attempt.v1",
+  "status": "INFRA_INVALID",
+  "summary_status": "FAIL"
+}
