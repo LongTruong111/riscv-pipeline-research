@@ -1,0 +1,206 @@
+{
+  "base": {
+    "execution_contract": {
+      "path": "research/week15/final_campaign/EXECUTION_CONTRACT.json",
+      "sha256": "2f17686ec167a25c6df5369ee2372eb8ac7670a2b28dbf5b774edbf7b54f263f"
+    },
+    "execution_contract_head": "33e31f3abf1d51fb3aed3a041d7d6c94cf0bb724",
+    "gate_t15_head": "eefdc2da7afa6d5930fa0bf40ab460164d11958e"
+  },
+  "final_campaign": {
+    "authorized_after": "execution infrastructure qualification PASS",
+    "final_seed_use": 0,
+    "status": "NOT_STARTED",
+    "total_accepted": 4500000,
+    "total_runs": 45
+  },
+  "global_constraints": {
+    "accepted_budget": 100000,
+    "allowed_output_prefix": "research/week15/final_campaign/",
+    "checkpoint_interval": 1000,
+    "method_tuning": false,
+    "modify_frozen_method_files": false,
+    "post_cut_clock_edges": 0,
+    "qualification_before_final_seed": true,
+    "result_driven_changes": false,
+    "seed_replacement": false
+  },
+  "methods": {
+    "M1": {
+      "final_seeds": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1006,
+        1007,
+        1008,
+        1009,
+        1010,
+        1011,
+        1012,
+        1013,
+        1014,
+        1015
+      ],
+      "qualification_seed": 16001,
+      "replace_only": [
+        "pilot-only seed allowlist with final runtime binding",
+        "pilot-only accepted budget with frozen N=100000",
+        "pilot result-path binding with final-campaign result path",
+        "pilot provenance label/check with final execution provenance",
+        "pilot schema/phase labels with final execution labels"
+      ],
+      "retain": [
+        "pure-random frozen planner",
+        "campaign seed derivation",
+        "runtime stream/refill protocol",
+        "architectural model",
+        "timing oracle",
+        "functional checker",
+        "performance checker",
+        "L1/L2 coverage stack",
+        "CampaignCutDriver exact-N lifecycle",
+        "CampaignInvariantLedger",
+        "checkpoint interval semantics",
+        "bounded evidence pruning",
+        "telemetry/result generation"
+      ],
+      "source": {
+        "blob": "b561b22b6a4192efe63d282921d1f11675107c6c",
+        "path": "research/week13/pure_random/rtl/test_m1_pilot.py",
+        "sha256": "df028aee0a6567020a7fccbd20ffd2cb423e52bc01157a6f8e04b6e5ad7d56c0"
+      },
+      "strategy": "source-derived final harness"
+    },
+    "M2": {
+      "add_only": [
+        "runtime seed/budget/result binding",
+        "generic final result writer with lifecycle/status evidence",
+        "VALID_DUT_FAILURE_NONTERMINAL classification without early stop"
+      ],
+      "final_seeds": [
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015
+      ],
+      "qualification_seed": 16002,
+      "remove_only": [
+        "seed-14001/N-1000 expected plan hash KAT",
+        "seed-14001/N-1000 expected block-count KAT",
+        "seed-14001/N-1000 expected image-word KAT",
+        "seed-14001/N-1000 expected arm-count KAT",
+        "seed-14001/N-1000 expected generation KAT",
+        "N=1000 complete-template-boundary special-case assertions",
+        "qualification-only assertion functional.failed_count == 0",
+        "qualification-only assertion performance.failed_count == 0"
+      ],
+      "retain": [
+        "frozen weighted static generator",
+        "weighted runtime adapter",
+        "runtime stream/refill protocol",
+        "architectural model",
+        "timing oracle",
+        "functional checker",
+        "performance checker",
+        "L1/L2 coverage stack",
+        "CampaignCutDriver exact-N lifecycle",
+        "CampaignInvariantLedger",
+        "checkpoint interval semantics",
+        "bounded evidence pruning"
+      ],
+      "source": {
+        "blob": "fe723e01dbb2f55b7499fa156d4358b7470f0330",
+        "path": "research/week14/weighted_random/rtl/test_m2_preflight_exact_cut.py",
+        "sha256": "f7705c83ce013d8d915413e900dabfffa2954d6f6e333d3bc14a770d0b9ae4ad"
+      },
+      "strategy": "source-derived genericized final harness"
+    },
+    "M3": {
+      "final_seeds": [
+        3001,
+        3002,
+        3003,
+        3004,
+        3005,
+        3006,
+        3007,
+        3008,
+        3009,
+        3010,
+        3011,
+        3012,
+        3013,
+        3014,
+        3015
+      ],
+      "qualification_seed": 16003,
+      "replace_only": [
+        "runtime_config import/binding with final-campaign runtime config",
+        "phase-specific provenance/result labels only where necessary"
+      ],
+      "retain": [
+        "entire adaptive execution body",
+        "frozen adaptive generator stack",
+        "epsilon=0.10",
+        "alpha=0.5",
+        "q_floor=0.05",
+        "nominal_batch=500",
+        "adaptive RNG semantics",
+        "reward semantics",
+        "template semantics",
+        "exact-N lifecycle",
+        "checker semantics",
+        "coverage semantics",
+        "canonical trace semantics",
+        "result writer"
+      ],
+      "source": {
+        "blob": "9a85c3a2ef0cb673a8c5e6c1dabae706ec44c803",
+        "path": "research/week15/rtl/test_adaptive_reproducibility.py",
+        "sha256": "395df5d92a5ce540d8b45f38c19780464defb0f0995a953c610f05a380653456"
+      },
+      "strategy": "near-byte-identical source copy"
+    }
+  },
+  "qualification": {
+    "all_three_required": true,
+    "coverage_level_is_gate": false,
+    "execution_affecting_change_requires": "rerun complete 3-run matrix",
+    "fresh_process_per_run": true,
+    "matrix": [
+      {
+        "accepted_budget": 100000,
+        "method": "M1",
+        "seed": 16001
+      },
+      {
+        "accepted_budget": 100000,
+        "method": "M2",
+        "seed": 16002
+      },
+      {
+        "accepted_budget": 100000,
+        "method": "M3",
+        "seed": 16003
+      }
+    ],
+    "performance_level_is_gate": false,
+    "results_may_drive_tuning": false
+  },
+  "schema": "week15.final-execution-implementation-plan.v1",
+  "status": "FROZEN_BEFORE_HARNESS_IMPLEMENTATION"
+}
