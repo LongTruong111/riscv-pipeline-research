@@ -1,122 +1,154 @@
-# RISC-V Pipeline Verification Research
+# Coverage Saturation and Adaptive Test Generation for RISC-V
 
-This repository extends an existing pipelined RISC-V SystemVerilog core with a staged verification-research workflow. The DUT is intentionally frozen after Gate T3 so later work can evaluate verification methods against a stable baseline rather than silently repairing observed defects.
+Research on coverage saturation dynamics and adaptive test generation
+for data hazard verification in a 5-stage RISC-V processor.
 
-## Current Research State
+This project investigates how different stimulus-generation strategies
+explore a defined hazard-coverage space, how coverage growth slows near
+closure, and whether coverage feedback can improve verification efficiency.
 
-The active research line has progressed through:
+The research combines functional checking, pipeline timing checks,
+coverage analysis, and reproducible experiments on a frozen DUT.
 
-- **Gate T3** — DUT reconnaissance, independent smoke validation, and RTL freeze.
-- **Week 4** — simulator scheduling/timing contract and race experiments.
-- **Gate T5** — hazard-space definition, executable coverage model, directed realization checks, and performance preflight.
-- **Gate T6** — independent Golden Functional Model and bounded Timing Oracle v0.
-- **Gate T7** — Timing Oracle v1, retire monitoring, hazard attribution, and reset-boundary validation.
-- **Gate T8** — independent Functional Scoreboard, Performance Monitor, and cross-verdict classification.
+## Research Objectives
 
-Gate-closure evidence is kept under `research/week*/`. The frozen DUT is under `design/`.
+The project aims to:
 
-## Important Baseline Constraint
+- Build a self-checking verification environment for a 5-stage RV32I processor.
+- Define a layered coverage model for data hazards and their handling mechanisms.
+- Study coverage growth, saturation, and long-tail closure.
+- Compare directed, random, weighted-random, and adaptive stimulus generation.
+- Evaluate verification cost in terms of instruction budget and wall-clock time.
+- Assess checker effectiveness through controlled fault injection and mutation testing.
 
-The project does **not** claim that every implemented RV32I instruction is defect-free. The research baseline deliberately retains known DUT defects so the verification environment can detect and classify them.
+Adaptive stimulus generation is evaluated as a research hypothesis.
+Improvement over the comparison methods is not assumed.
 
-The frozen known defect set currently includes:
+## Verification Approach
 
-- H11
-- H13
-- H18
-- H19
-- H20
+### Functional and Pipeline Timing Checks
 
-See `research/week5/rtl/CONTROL_REALIZATION_FINDINGS.md` and later gate-closure documents for the evidence and attribution.
+The verification environment checks both architectural results and
+pipeline timing behavior within the declared research scope.
 
-## Repository Layout
+Functional checking compares observed architectural behavior against
+an independent reference model.
 
-```text
-design/                 Frozen SystemVerilog DUT
-verif/                  Legacy/original verification utilities and testbench
-sim/                    Original simulation examples + ignored runtime outputs
-tests/                  Week-4 scheduler/timing probe
-research/
-  rtl_audit/             RTL reconnaissance
-  signals/               Signal inventory and observability work
-  waveforms/             Curated historical waveform evidence
-  week3/                 Smoke validation + DUT freeze evidence
-  week4/                 Timing/race contract
-  week5/                 vPlan, coverage, directed realization, preflight
-  week6/                 Golden functional model + Timing Oracle v0
-  week7/                 Timing Oracle v1 + retire/attribution monitors
-  week8/                 Functional/performance scoreboard integration
-```
+Pipeline timing checks examine expected stalls and cycle gaps between
+retirement events. These checks target cases where architectural results
+remain correct but unnecessary stalls or timing deviations occur.
 
-Generated build products, Python caches, simulator result XML, and ordinary runtime waveforms are intentionally ignored.
+### Coverage Model
 
-## Python Regression
+The coverage model describes the selected data-hazard scenarios,
+instruction dependencies, and relevant pipeline responses.
 
-Python 3.10 is the frozen development baseline.
+Coverage objectives are accompanied by scope definitions and
+reachability analysis. Coverage completion is interpreted relative
+to this model; it does not establish complete processor correctness.
 
-```bash
-python3 -m pip install -r requirements.txt
-pytest research/week5/impl/tests -q
-pytest research/week6/tests -q
-pytest research/week7/tests -q
-pytest research/week8/tests -q
-```
+### Stimulus Generation
 
-The Gate-T8 baseline recorded:
+| Method | Role |
+|---|---|
+| Directed | Exercise selected scenarios and confirm specific defects |
+| Pure Random | Provide a non-adaptive random baseline |
+| Static Weighted Random | Bias generation using fixed sampling weights |
+| Adaptive Coverage-Guided Stimulus | Adjust stimulus selection using coverage feedback |
 
-```text
-Week 5: 142 passed
-Week 6: 64 passed
-Week 7: 40 passed
-Week 8: 36 passed
-```
+Adaptive CGS organizes stimulus templates into hazard-related groups.
+Coverage gains contribute to a reward signal used to update selection
+preferences while balancing exploration and exploitation.
 
-These counts are historical gate evidence; rerun the commands above after any maintenance change.
+The adaptive policy uses an epsilon-greedy multi-armed-bandit approach.
+Its effectiveness is evaluated under explicitly frozen experimental conditions.
 
-## Live RTL Regression
+## Experimental Evaluation
 
-Live RTL tests are cocotb tests and must be launched through their simulator runners, not by invoking the cocotb test modules directly with pytest.
+The research examines:
 
-Gate T8 directed live cases:
+- Coverage accumulation over the instruction budget.
+- Progress near saturation and the effort required to close remaining bins.
+- Variability across independently initialized runs.
+- Simulation and feedback-processing costs.
+- Detection of functional and pipeline timing defects.
 
-```bash
-for c in T01 T11 T19 T20; do
-    research/week8/rtl/run_week8_case.sh "$c"
-done
-```
+Experimental contracts define the method configurations, seed sets,
+budgets, metrics, and statistical procedures for each campaign.
 
-Expected classification coverage:
+The proposal describes the intended research scope. Versioned contracts
+and experimental records document what was implemented, executed, and accepted.
 
-- T01: `CORRECT_ON_TIME`
-- T11: `FUNCTIONAL_ONLY_FAIL`
-- T19: `PERFORMANCE_ONLY_FAIL`
-- T20: `PERFORMANCE_ONLY_FAIL`
+Results are limited to the selected DUT, coverage model, generators,
+configurations, and experimental conditions. They do not establish
+universal superiority of an adaptive or non-adaptive method.
 
-The runners mutate the root `instruction.hex` only temporarily and restore it on exit. Because that file is shared, live RTL cases must be run **sequentially**, not in parallel.
+## DUT Baseline and Scope
 
-## Runtime vs. Evidence Artifacts
+The project builds on an existing pipelined RISC-V SystemVerilog core.
 
-Runtime simulator outputs belong in ignored locations such as `sim/` or `sim_build/`.
+The DUT is frozen so verification methods can be compared against a stable
+design. Documented defects are intentionally preserved as part of this
+research baseline.
 
-Curated logs and waveforms already committed under `research/` are historical experimental evidence and should not be overwritten by ordinary regression runs.
+The project does not claim complete RV32I correctness. Supported
+instructions, hazard scenarios, exclusions, and known defects are
+defined in the verification plan and associated research records.
 
-## Tool Baseline
+## Repository Organization
 
-The recorded Week-5 environment includes:
+| Directory | Contents |
+|---|---|
+| `design/` | Frozen SystemVerilog DUT |
+| `research/` | Research implementation, verification plans, coverage models, experiments, and evidence |
+| `verif/` | Original verification utilities and testbench |
+| `tests/` | Scheduler and timing probes |
+| `sim/` | Simulation examples and runtime outputs |
+| `doc/` | Original project documentation |
 
-- Ubuntu 22.04 / WSL2
-- Python 3.10.12
-- cocotb 1.9.2
-- pytest 8.3.2
-- Icarus Verilog 11.0
-- Verilator 5.034
+Experiment-specific configurations, runners, and evidence are maintained
+under `research/`. Their availability depends on the selected source revision.
 
-See `research/week5/gate_t5/ENVIRONMENT_MANIFEST.txt` for the complete captured environment.
+## Reproducibility
 
-## Upstream Provenance
+Experiments are tied to recorded source revisions, tool versions,
+configurations, seeds, and execution budgets.
 
-This repository is based on the pipelined RISC-V implementation by the original project contributors and the earlier work acknowledged by that project. The research layer in `research/` is additive and preserves the DUT baseline for verification experiments.
+To reproduce an experiment:
 
-## Scope
+1. Select its documented source revision.
+2. Follow the corresponding environment manifest.
+3. Use the experiment-specific runner and configuration.
+4. Compare outputs against the applicable acceptance criteria.
 
-The research claims are limited to the explicitly declared verification scope in the versioned vPlan and gate documents. They should not be interpreted as proof of complete RV32I correctness.
+Python checks and live RTL simulations use different entry points.
+Launch cocotb tests through their simulator runners.
+
+Preserve committed logs, manifests, experimental records, and curated waveforms.
+Ordinary runtime outputs should be written to the designated ignored
+directories.
+
+## Research Deliverables
+
+The planned deliverables include:
+
+- An automated verification environment.
+- A documented hazard-coverage model and verification plan.
+- An Adaptive CGS implementation and comparison methods.
+- Experimental datasets and analysis utilities.
+- Fault-injection and mutation-testing evidence.
+- Reproduction instructions and a final research report.
+
+## Upstream Acknowledgements
+
+The DUT derives from
+[estufa-cin-ufpe/RISC-V-Pipeline](https://github.com/estufa-cin-ufpe/RISC-V-Pipeline),
+with original contributors
+[joaopmarinho](https://github.com/joaopmarinho) and
+[nathaliafab](https://github.com/nathaliafab).
+
+The upstream project also acknowledges
+[Yifan Xu's RISC-V-PipeLine](https://github.com/yifax/RISC-V-PipeLine).
+
+This repository adds the verification-research framework while preserving
+upstream attribution and the frozen DUT baseline.
